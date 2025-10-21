@@ -1,0 +1,78 @@
+/.specify
+/.roo
+
+# Node / React Native
+node_modules/
+npm-debug.log*
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# React Native build & caches
+android/.gradle/
+android/app/build/
+android/build/
+android/app/*.keystore
+*.keystore
+*.jks
+ios/Pods/
+ios/Podfile.lock
+ios/build/
+ios/DerivedData/
+*.xcworkspace
+xcuserdata/
+*.xcuserstate
+.expo/
+.expo-shared/
+.expo-build-cache/
+# Metro
+/metro-cache/
+/haste-map-*
+/packager-cache/
+
+# macOS
+.DS_Store
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Python / Django
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+.Python
+env/
+venv/
+ENV/
+.venv/
+env.bak/
+venv.bak/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+coverage.xml
+htmlcov/
+dist/
+build/
+eggs/
+*.egg-info/
+.eggs/
+MANIFEST
+
+# Django specific
+db.sqlite3
+media/
+staticfiles/
+local_settings.py
+*.log
+celerybeat-schedule
+
+# Other
+*.pem
+*.key
+*.crt
