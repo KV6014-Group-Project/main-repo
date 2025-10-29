@@ -48,17 +48,29 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     const first = segments[0];
     const isProtected = first === 'organiser' || first === 'promoter';
     const isAuthScreen = pathname?.startsWith('/auth');
+    const isRoot = pathname === '/' || pathname === null;
 
+    // Protect organiser and promoter routes - require token
     if (isProtected) {
       if (!session || !session.token) {
         if (!isAuthScreen) router.replace('/auth');
+        return;
       }
     }
-    // If already authed and on /auth/*, send to role landing
+
+    // Protect root route - require participant session
+    if (isRoot) {
+      if (!session || session.role !== 'participant') {
+        if (!isAuthScreen) router.replace('/auth');
+        return;
+      }
+    }
+
+    // Redirect authenticated users away from auth screens
     if (isAuthScreen && session) {
       if (session.role === 'organiser') router.replace('/organiser');
       else if (session.role === 'promoter') router.replace('/promoter');
-      else if (session.role === 'participant') router.replace('/participant');
+      else if (session.role === 'participant') router.replace('/');
     }
   }, [status, session, segments, pathname, router]);
 

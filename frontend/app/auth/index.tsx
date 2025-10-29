@@ -17,7 +17,7 @@ export default function AuthIndexScreen() {
       setLoading(true);
       setError(null);
       const session = await signUp({ email: 'guest@participant', password: 'guest', role: 'participant' });
-      if (session?.role === 'participant') router.replace('/participant');
+      if (session?.role === 'participant') router.replace('/');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
     } finally {
