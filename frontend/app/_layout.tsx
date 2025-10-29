@@ -5,6 +5,7 @@ import { SessionProvider, useSession } from '@/providers/SessionProvider';
 import { ThemeProvider } from '@react-navigation/native';
 import { PortalHost } from '@rn-primitives/portal';
 import { Stack, usePathname, useRouter, useSegments } from 'expo-router';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import React from 'react';
@@ -22,7 +23,13 @@ export default function RootLayout() {
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <SessionProvider>
         <AuthGuard>
-          <Stack />
+          <Stack
+            screenOptions={{
+              title: 'React Native Reusables',
+              headerTransparent: true,
+              headerRight: () => <ThemeToggle />,
+            }}
+          />
         </AuthGuard>
       </SessionProvider>
       <PortalHost />

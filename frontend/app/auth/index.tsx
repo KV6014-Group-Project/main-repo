@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { useSession } from '@/providers/SessionProvider';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import React from 'react';
 import { KeyboardAvoidingView, Platform, View } from 'react-native';
 
@@ -26,6 +26,7 @@ export default function AuthIndexScreen() {
   };
 
   return (
+    <>
     <KeyboardAvoidingView behavior={Platform.select({ ios: 'padding', android: undefined })} className="flex-1 items-center justify-center p-6">
       <View className="w-full max-w-md gap-6">
         <Card>
@@ -59,6 +60,7 @@ export default function AuthIndexScreen() {
         </Card>
       </View>
     </KeyboardAvoidingView>
+    </>
   );
 }
 

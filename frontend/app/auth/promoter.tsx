@@ -13,9 +13,12 @@ export default function PromoterAuth() {
   const router = useRouter();
 
   const [mode, setMode] = React.useState<Mode>('signin');
+  const [firstName, setFirstName] = React.useState('');
+  const [lastName, setLastName] = React.useState('');
   const [email, setEmail] = React.useState('');
+  const [confirmEmail, setConfirmEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
-  const [name, setName] = React.useState('');
+  const [confirmPassword, setConfirmPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -27,10 +30,17 @@ export default function PromoterAuth() {
         const session = await signIn(email, password, 'promoter');
         if (session?.role === 'promoter') router.replace('/promoter');
       } else {
-        if (!name.trim()) {
-          throw new Error('Full name is required');
+        if (!firstName.trim() || !lastName.trim()) {
+          throw new Error('First and last name are required');
         }
-        const session = await signUp({ email, password, role: 'promoter', name });
+        if (email !== confirmEmail) {
+          throw new Error('Emails do not match');
+        }
+        if (password !== confirmPassword) {
+          throw new Error('Passwords do not match');
+        }
+        const fullName = `${firstName.trim()} ${lastName.trim()}`;
+        const session = await signUp({ email, password, role: 'promoter', name: fullName });
         if (session?.role === 'promoter') router.replace('/promoter');
       }
     } catch (e) {
@@ -71,10 +81,20 @@ export default function PromoterAuth() {
                 </Button>
               </View>
               {mode === 'signup' ? (
-                <Input value={name} onChangeText={setName} placeholder="Full name" autoCapitalize="words" />
-              ) : null}
-              <Input value={email} onChangeText={setEmail} placeholder="Email" keyboardType="email-address" autoCapitalize="none" />
-              <Input value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry />
+                <>
+                  <Input value={firstName} onChangeText={setFirstName} placeholder="First name" autoCapitalize="words" />
+                  <Input value={lastName} onChangeText={setLastName} placeholder="Last name" autoCapitalize="words" />
+                  <Input value={email} onChangeText={setEmail} placeholder="Email" keyboardType="email-address" autoCapitalize="none" />
+                  <Input value={confirmEmail} onChangeText={setConfirmEmail} placeholder="Confirm email" keyboardType="email-address" autoCapitalize="none" />
+                  <Input value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry />
+                  <Input value={confirmPassword} onChangeText={setConfirmPassword} placeholder="Confirm password" secureTextEntry />
+                </>
+              ) : (
+                <>
+                  <Input value={email} onChangeText={setEmail} placeholder="Email" keyboardType="email-address" autoCapitalize="none" />
+                  <Input value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry />
+                </>
+              )}
               <Button onPress={onSubmit} disabled={loading}>
                 <Text>{mode === 'signin' ? 'Sign In' : 'Create Account'}</Text>
               </Button>
