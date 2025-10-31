@@ -1,5 +1,5 @@
 import { ScrollViewStyleReset } from 'expo-router/html';
-import { type PropsWithChildren } from 'react';
+import React, { type PropsWithChildren } from 'react';
 
 // This file is web-only and used to configure the root HTML for every
 // web page during static rendering.
@@ -18,6 +18,14 @@ export default function Root({ children }: PropsWithChildren) {
           However, body scrolling is often nice to have for mobile web. If you want to enable it, remove this line.
         */}
         <ScrollViewStyleReset />
+
+            {/* Inline script to set theme before hydration to avoid flash-of-incorrect-theme */}
+            <script
+              // runs before React hydrates; keep tiny and defensive
+              dangerouslySetInnerHTML={{
+                __html: `;(function(){try{var keys=['theme','color-scheme','nativewind-color-scheme','preferred-color-scheme'];var v=null;for(var i=0;i<keys.length;i++){v=localStorage.getItem(keys[i]);if(v)break;}if(v==='dark'){document.documentElement.classList.add('dark');return;}if(v==='light'){document.documentElement.classList.remove('dark');return;}if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.classList.add('dark');}}catch(e){} })()`
+              }}
+            />
 
         {/* Add any additional <head> elements that you want globally available on web... */}
       </head>

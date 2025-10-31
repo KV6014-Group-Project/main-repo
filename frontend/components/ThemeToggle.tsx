@@ -12,12 +12,24 @@ const THEME_ICONS = {
 export function ThemeToggle() {
   const { colorScheme, toggleColorScheme } = useColorScheme();
 
+  const handleToggle = React.useCallback(() => {
+    const next = colorScheme === 'dark' ? 'light' : 'dark';
+    try {
+      if (typeof localStorage !== 'undefined') localStorage.setItem('theme', next);
+    } catch (e) {
+      // ignore storage errors
+    }
+    toggleColorScheme();
+  }, [colorScheme, toggleColorScheme]);
+
   return (
     <Button
-      onPressIn={toggleColorScheme}
+      onPressIn={handleToggle}
       size="icon"
       variant="ghost"
-      className="ios:size-9 rounded-full web:mx-4">
+      className="ios:size-9 rounded-full web:mx-4"
+      accessibilityLabel="Toggle theme"
+    >
       <Icon as={THEME_ICONS[colorScheme ?? 'light']} className="size-5" />
     </Button>
   );
