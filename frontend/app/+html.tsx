@@ -19,13 +19,14 @@ export default function Root({ children }: PropsWithChildren) {
         */}
         <ScrollViewStyleReset />
 
-            {/* Inline script to set theme before hydration to avoid flash-of-incorrect-theme */}
-            <script
-              // runs before React hydrates; keep tiny and defensive
-              dangerouslySetInnerHTML={{
-                __html: `;(function(){try{var keys=['theme','color-scheme','nativewind-color-scheme','preferred-color-scheme'];var v=null;for(var i=0;i<keys.length;i++){v=localStorage.getItem(keys[i]);if(v)break;}if(v==='dark'){document.documentElement.classList.add('dark');return;}if(v==='light'){document.documentElement.classList.remove('dark');return;}if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.classList.add('dark');}}catch(e){} })()`
-              }}
-            />
+        {/* Inline script to set theme before hydration to avoid flash-of-incorrect-theme */}
+        <script
+          // Runs before React hydrates; keep tiny and defensive
+          // Checks for stored theme preference and applies it immediately
+          dangerouslySetInnerHTML={{
+            __html: `;(function(){try{var keys=['nativewind-color-scheme','theme','color-scheme','preferred-color-scheme'];var v=null;for(var i=0;i<keys.length;i++){v=localStorage.getItem(keys[i]);if(v)break;}if(v==='dark'){document.documentElement.classList.add('dark');return;}if(v==='light'){document.documentElement.classList.remove('dark');return;}if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.classList.add('dark');}}catch(e){}})()`
+          }}
+        />
 
         {/* Add any additional <head> elements that you want globally available on web... */}
       </head>

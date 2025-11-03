@@ -1,13 +1,12 @@
 import '@/global.css';
 
-import { NAV_THEME } from '@/lib/theme';
 import { SessionProvider, useSession } from '@/providers/SessionProvider';
 import { ThemeProvider } from '@react-navigation/native';
 import { PortalHost } from '@rn-primitives/portal';
 import { Stack, usePathname, useRouter, useSegments } from 'expo-router';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from 'nativewind';
+import { useTheme } from '@/lib/useTheme';
 import React from 'react';
 
 export {
@@ -16,11 +15,11 @@ export {
 } from 'expo-router';
 
 export default function RootLayout() {
-  const { colorScheme } = useColorScheme();
+  const { navTheme, isDark } = useTheme();
 
   return (
-    <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+    <ThemeProvider value={navTheme}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <SessionProvider>
         <AuthGuard>
           <Stack
@@ -49,11 +48,18 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     const isProtected = first === 'organiser' || first === 'promoter';
     const isAuthScreen = pathname?.startsWith('/auth');
     const isRoot = pathname === '/' || pathname === null;
+    const isWelcomeScreen = pathname === '/welcome';
+
+    // If no session and not on welcome or auth screen, redirect to welcome
+    if (!session && !isWelcomeScreen && !isAuthScreen) {
+      router.replace('/welcome');
+      return;
+    }
 
     // Protect organiser and promoter routes - require token
     if (isProtected) {
       if (!session || !session.token) {
-        if (!isAuthScreen) router.replace('/auth');
+        if (!isAuthScreen && !isWelcomeScreen) router.replace('/auth');
         return;
       }
     }
@@ -61,13 +67,13 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     // Protect root route - require participant session
     if (isRoot) {
       if (!session || session.role !== 'participant') {
-        if (!isAuthScreen) router.replace('/auth');
+        if (!isAuthScreen && !isWelcomeScreen) router.replace('/auth');
         return;
       }
     }
 
-    // Redirect authenticated users away from auth screens
-    if (isAuthScreen && session) {
+    // Redirect authenticated users away from auth and welcome screens
+    if ((isAuthScreen || isWelcomeScreen) && session) {
       if (session.role === 'organiser') router.replace('/organiser');
       else if (session.role === 'promoter') router.replace('/promoter');
       else if (session.role === 'participant') router.replace('/');
