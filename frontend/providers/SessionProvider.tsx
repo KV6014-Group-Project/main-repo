@@ -1,12 +1,12 @@
 import React from 'react';
-import { getSession, setSession, clearSession, type Session, type Role, signIn, signUp, signOut } from '@/lib/auth';
+import { getSession, setSession, type Session, type Role, signIn, signUp, signOut } from '@/lib/auth';
 
 type SessionContextValue = {
   session: Session;
   status: 'loading' | 'ready';
   setSession: (next: Session) => Promise<void>;
   signIn: (email: string, password: string, roleHint?: Role) => Promise<Session>;
-  signUp: (params: { email: string; password: string; role: Role }) => Promise<Session>;
+  signUp: (params: { email?: string; password?: string; role: Role; firstName?: string; lastName?: string; phone?: string }) => Promise<Session>;
   signOut: () => Promise<void>;
 };
 
@@ -39,7 +39,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     return s;
   }, [setSessionAndPersist]);
 
-  const doSignUp = React.useCallback(async (params: { email: string; password: string; role: Role }) => {
+  const doSignUp = React.useCallback(async (params: { email?: string; password?: string; role: Role; firstName?: string; lastName?: string; phone?: string }) => {
     const s = await signUp(params);
     await setSessionAndPersist(s);
     return s;
@@ -47,7 +47,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const doSignOut = React.useCallback(async () => {
     await signOut();
-    await clearSession();
     setSessionState(null);
   }, []);
 

@@ -7,7 +7,7 @@ import React from 'react';
 import { View } from 'react-native';
 
 export default function ParticipantHome() {
-  const { signOut } = useSession();
+  const { session, signOut } = useSession();
   const router = useRouter();
 
   const onLeave = async () => {
@@ -28,6 +28,20 @@ export default function ParticipantHome() {
         </CardHeader>
         <CardContent>
           <Text>Public participant area</Text>
+          {session?.profile ? (
+            <View className="mt-4 gap-1">
+              <Text className="text-sm text-muted-foreground">Name</Text>
+              <Text>{session.profile.firstName} {session.profile.lastName}</Text>
+              <Text className="text-sm text-muted-foreground mt-2">Email</Text>
+              <Text>{session.profile.email}</Text>
+              {session.profile.phone ? (
+                <>
+                  <Text className="text-sm text-muted-foreground mt-2">Phone</Text>
+                  <Text>{session.profile.phone}</Text>
+                </>
+              ) : null}
+            </View>
+          ) : null}
         </CardContent>
       </Card>
       <Button className="mt-6" onPress={onLeave}>

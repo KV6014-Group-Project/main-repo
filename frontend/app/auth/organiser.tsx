@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { useSession } from '@/providers/SessionProvider';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { KeyboardAvoidingView, Platform, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, View } from 'react-native';
 
 type Mode = 'signin' | 'signup';
 
@@ -107,14 +108,6 @@ export default function OrganiserAuth() {
   );
 }
 
-function Input(props: React.ComponentProps<typeof TextInput>) {
-  return (
-    <TextInput
-      {...props}
-      className="border-border bg-background text-foreground h-12 rounded-md border px-4"
-      placeholderTextColor="#9CA3AF"
-    />
-  );
-}
+// using shared Input from components/ui
 
 

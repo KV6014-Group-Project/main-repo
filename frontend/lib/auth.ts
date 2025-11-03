@@ -19,6 +19,12 @@ export type Role = 'organiser' | 'promoter' | 'participant';
 export type Session = {
   token?: string;
   role: Role;
+  profile?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+  };
 } | null;
 
 const SESSION_KEY = 'app.session.v1';
@@ -97,20 +103,30 @@ export async function signIn(email: string, password: string): Promise<Session> 
 }
 
 export async function signUp(params: {
-  email: string;
-  password: string;
+  email?: string;
+  password?: string;
   role: Role;
-  name?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
 }): Promise<Session> {
-  const { email, password, role } = params;
-  if (!email || !password) {
-    throw new Error('Email and password are required');
-  }
+  const { role } = params;
   if (role === 'participant') {
-    // Participant acts as guest (no token)
-    const session: Session = { role: 'participant' };
+    const session: Session = {
+      role: 'participant',
+      profile: {
+        firstName: params.firstName ?? '',
+        lastName: params.lastName ?? '',
+        email: params.email ?? '',
+        phone: params.phone,
+      },
+    };
     await setSession(session);
     return session;
+  }
+  const { email, password } = params;
+  if (!email || !password) {
+    throw new Error('Email and password are required');
   }
   const session: Session = { token: `stub-${Date.now()}`, role };
   await setSession(session);

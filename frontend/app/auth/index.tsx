@@ -13,16 +13,7 @@ export default function AuthIndexScreen() {
   const [error, setError] = React.useState<string | null>(null);
 
   const continueAsParticipant = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const session = await signUp({ email: 'guest@participant', password: 'guest', role: 'participant' });
-      if (session?.role === 'participant') router.replace('/');
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong');
-    } finally {
-      setLoading(false);
-    }
+    router.push('/auth/participant');
   };
 
   return (
