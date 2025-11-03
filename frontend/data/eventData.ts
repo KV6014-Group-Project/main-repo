@@ -15,6 +15,11 @@ export type EventData = {
     max?: number;
   };
   description: string;
+  sharing?: {
+    promoterLinks: string[]; // base64 tokens
+    participantLinks: string[]; // base64 tokens
+  };
+  createdAt?: number; // for organiser-created events
 };
 
 // Example events data - replace with API call or props

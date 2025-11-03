@@ -11,6 +11,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CalendarIcon, MapPinIcon, UsersIcon, Share2Icon, XIcon, QrCodeIcon, LinkIcon } from 'lucide-react-native';
 import { eventsData, type EventData } from '@/data/eventData';
 import * as Linking from 'expo-linking';
+import { Alert as RNAlert } from 'react-native';
+import { decodeParticipantToken, extractTokenFromUrl } from '@/lib/shareLinks';
+import { getEventById } from '@/lib/eventStore';
 
 const SCREEN_OPTIONS = {
   headerShown: false,
@@ -61,20 +64,37 @@ export default function Screen() {
 
     try {
       // Validate URL format
-      const url = linkInput.trim();
-      const isValidUrl = /^https?:\/\/.+/.test(url);
-      
-      if (!isValidUrl) {
-        Alert.alert('Invalid Link', 'Please enter a valid URL starting with http:// or https://');
+      const urlOrToken = linkInput.trim();
+      const token = extractTokenFromUrl(urlOrToken);
+      if (!token) {
+        Alert.alert('Invalid Link', 'Could not extract token.');
         return;
       }
 
-      // TODO: Process the link and register for event
-      // This would parse the link, extract event ID, and add to registered events
-      console.log('Processing link:', url);
-      
-      // For now, show success message
-      Alert.alert('Success', 'Event link processed successfully!', [
+      const decoded = decodeParticipantToken(token);
+      const ev = await getEventById(decoded.eventId);
+      if (!ev) {
+        RNAlert.alert('Unknown Event', 'This event is not available on this device.');
+        return;
+      }
+      if (ev.sharing && !ev.sharing.participantLinks.includes(token)) {
+        const proceed = await new Promise<boolean>((resolve) => {
+          Alert.alert(
+            'Link not in events.json',
+            'This participant link is not yet listed under sharing.participantLinks. Update events.json from promoter console log. Proceed anyway for dev?',
+            [
+              { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+              { text: 'Proceed', style: 'default', onPress: () => resolve(true) },
+            ]
+          );
+        });
+        if (!proceed) return;
+      }
+
+      // For demo: mark as checked-in for that event
+      setCheckedInEvents((prev) => new Set([...prev, ev.id]));
+
+      Alert.alert('Success', `Joined event: ${ev.name}`, [
         { text: 'OK', onPress: () => {
           setShowLinkInput(false);
           setLinkInput('');
