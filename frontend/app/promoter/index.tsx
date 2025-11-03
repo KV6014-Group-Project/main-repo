@@ -1,13 +1,18 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
+import { ScreenHeader } from '@/components/ui/screen-header';
 import { useSession } from '@/providers/SessionProvider';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import React from 'react';
 import { View, TextInput, Alert, Share, ScrollView } from 'react-native';
 import { addPromoterAssignment, listEventsForPromoter } from '@/lib/eventStore';
 import { buildShareUrl, decodeOrganiserToken, encodeParticipantToken, extractTokenFromUrl } from '@/lib/shareLinks';
 import { getEventById } from '@/lib/eventStore';
+
+const SCREEN_OPTIONS = {
+  headerShown: false,
+};
 
 export default function PromoterHome() {
   const { session, signOut } = useSession();
@@ -101,9 +106,13 @@ export default function PromoterHome() {
   };
 
   return (
-    <View className="flex-1 p-6">
-      <ScrollView className="w-full" contentContainerStyle={{ alignItems: 'center' }}>
-        <Card className="w-full max-w-2xl">
+    <>
+      {SCREEN_OPTIONS ? <Stack.Screen options={SCREEN_OPTIONS} /> : null}
+      <View className="flex-1 bg-background">
+        <ScreenHeader title="Promoter" />
+        <ScrollView className="flex-1">
+          <View className="gap-6 p-6 md:p-8 md:max-w-4xl md:mx-auto md:w-full">
+            <Card className="overflow-hidden md:shadow-lg w-full">
           <CardHeader>
             <CardTitle>
               <Text variant="h3">Promoter</Text>
@@ -133,9 +142,7 @@ export default function PromoterHome() {
           </CardContent>
         </Card>
 
-        <View className="h-4" />
-
-        <Card className="w-full max-w-2xl">
+        <Card className="overflow-hidden md:shadow-lg w-full">
           <CardHeader>
             <CardTitle>
               <Text variant="h3">Assigned Events</Text>
@@ -177,8 +184,10 @@ export default function PromoterHome() {
         <Button className="mt-6" onPress={onSignOut}>
           <Text>Sign Out</Text>
         </Button>
-      </ScrollView>
-    </View>
+          </View>
+        </ScrollView>
+      </View>
+    </>
   );
 }
 

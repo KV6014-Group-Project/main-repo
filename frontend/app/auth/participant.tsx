@@ -48,6 +48,13 @@ export default function ParticipantOnboardingScreen() {
     return cleaned || undefined;
   };
 
+  const fillTestData = () => {
+    setFirstName('John');
+    setLastName('Smith');
+    setEmail('john.smith@example.com');
+    setPhone('07123456789');
+  };
+
   const onSubmit = async () => {
     if (!canSubmit) return;
     try {
@@ -132,9 +139,14 @@ export default function ParticipantOnboardingScreen() {
 
                 {error ? <Text className="text-destructive text-sm">{error}</Text> : null}
 
-                <Button size="lg" onPress={onSubmit} disabled={loading || !canSubmit} className="mt-2">
-                  <Text>Continue</Text>
-                </Button>
+                <View className="flex-row gap-2 mt-2">
+                  <Button variant="outline" onPress={fillTestData} disabled={loading} className="flex-1">
+                    <Text>Fill Test Data</Text>
+                  </Button>
+                  <Button size="lg" onPress={onSubmit} disabled={loading || !canSubmit} className="flex-1">
+                    <Text>Continue</Text>
+                  </Button>
+                </View>
               </View>
             </CardContent>
           </Card>

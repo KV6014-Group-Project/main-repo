@@ -28,7 +28,7 @@ export default function Screen() {
   const [showLinkInput, setShowLinkInput] = React.useState(false);
   const [linkInput, setLinkInput] = React.useState('');
 
-  const handleLogout = async () => {
+const handleSignOut = async () => {
     await signOut();
     router.replace('/auth');
   };
@@ -334,8 +334,8 @@ export default function Screen() {
               activeEvents.map((event) => renderEventCard(event))
             )}
 
-            <Button variant="outline" onPress={handleLogout} className="mt-2">
-              <Text>Log Out</Text>
+            <Button className="mt-6" onPress={handleSignOut}>
+              <Text>Sign Out</Text>
             </Button>
           </View>
         </ScrollView>

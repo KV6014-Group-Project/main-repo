@@ -16,24 +16,5 @@
             "promoterLinks": [],
             "participantLinks": []
         }
-    },
-    {
-        "id": "sample-organiser-event",
-        "name": "Sample Health Workshop",
-        "date": "November 10, 2025",
-        "time": "2:00 PM - 5:00 PM",
-        "location": {
-            "venue": "Community Hall",
-            "room": "Main Room"
-        },
-        "attendees": {
-            "registered": 0
-        },
-        "description": "A sample event created by the organiser for testing share links.",
-        "sharing": {
-            "promoterLinks": [],
-            "participantLinks": []
-        },
-        "createdAt": 1730640000000
     }
 ]
