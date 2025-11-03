@@ -43,7 +43,6 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   React.useEffect(() => {
-    if (status !== 'ready') return;
     const first = segments[0];
     const isProtected = first === 'organiser' || first === 'promoter';
     const isAuthScreen = pathname?.startsWith('/auth');
@@ -80,5 +79,6 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [status, session, segments, pathname, router]);
 
+  if (status !== 'ready') return null;
   return <>{children}</>;
 }
