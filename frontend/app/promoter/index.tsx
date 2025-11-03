@@ -1,14 +1,12 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
-import { ScreenHeader } from '@/components/ui/screen-header';
+import { ScreenLayout } from '@/components/layouts';
 import { useSession } from '@/providers/SessionProvider';
 import { Stack, useRouter } from 'expo-router';
 import React from 'react';
-import { View, TextInput, Alert, Share, ScrollView } from 'react-native';
-import { addPromoterAssignment, listEventsForPromoter } from '@/lib/eventStore';
-import { buildShareUrl, decodeOrganiserToken, encodeParticipantToken, extractTokenFromUrl } from '@/lib/shareLinks';
-import { getEventById } from '@/lib/eventStore';
+import { View, TextInput } from 'react-native';
+import { usePromoterEvents } from '@/hooks';
 
 const SCREEN_OPTIONS = {
   headerShown: false,
@@ -18,104 +16,31 @@ export default function PromoterHome() {
   const { session, signOut } = useSession();
   const router = useRouter();
   const promoterId = React.useMemo(() => session?.profile?.email || 'promoter-local', [session]);
-  const [events, setEvents] = React.useState<Array<{ id: string; name: string; date: string; time: string; location: { venue: string; room?: string } }>>([]);
-  const [linkInput, setLinkInput] = React.useState('');
-  const [busy, setBusy] = React.useState(false);
-  const [shared, setShared] = React.useState<Record<string, { url: string; token: string }>>({});
-  const [statusMsg, setStatusMsg] = React.useState<string | null>(null);
+  
+  const {
+    events,
+    linkInput,
+    setLinkInput,
+    busy,
+    shared,
+    statusMsg,
+    onAcceptOrganiserLink,
+    onShareParticipantLink,
+  } = usePromoterEvents(promoterId);
 
   const onSignOut = async () => {
     await signOut();
     router.replace('/auth');
   };
 
-  const refresh = React.useCallback(async () => {
-    const list = await listEventsForPromoter(promoterId);
-    setEvents(list);
-  }, [promoterId]);
-
-  React.useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  const onAcceptOrganiserLink = async () => {
-    const token = extractTokenFromUrl(linkInput.trim());
-    if (!token) {
-      Alert.alert('Invalid link', 'Paste a valid organiser link or token.');
-      setStatusMsg('Invalid link/token');
-      return;
-    }
-    try {
-      setBusy(true);
-      setStatusMsg('Processing link…');
-      const decoded = decodeOrganiserToken(token);
-      setStatusMsg(`Decoded eventId: ${decoded.eventId}`);
-      const ev = await getEventById(decoded.eventId);
-      if (!ev) {
-        setStatusMsg('Event not found in events.json (reload after editing).');
-        throw new Error('Event not found in shared data.');
-      }
-      if (ev.sharing && !ev.sharing.promoterLinks.includes(token)) {
-        const proceed = await new Promise<boolean>((resolve) => {
-          Alert.alert(
-            'Link not in events.json',
-            'This organiser link is not yet listed under sharing.promoterLinks. Update events.json using the organiser console log. Proceed anyway for dev?',
-            [
-              { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
-              { text: 'Proceed', style: 'default', onPress: () => resolve(true) },
-            ]
-          );
-        });
-        if (!proceed) return;
-      }
-      await addPromoterAssignment(decoded.eventId, promoterId);
-      await refresh();
-      setLinkInput('');
-      Alert.alert('Event added', 'You can now promote this event.');
-      setStatusMsg('Event added to your list.');
-    } catch (e) {
-      Alert.alert('Error', e instanceof Error ? e.message : 'Failed to accept link');
-      setStatusMsg(e instanceof Error ? e.message : 'Failed to accept link');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const onShareParticipantLink = async (eventId: string) => {
-    const token = encodeParticipantToken({ eventId, issuedAt: Date.now(), shareId: eventId + '-' + Date.now(), promoterId });
-    const url = buildShareUrl(token);
-    // Log updated event for sharing
-    try {
-      const ev = await getEventById(eventId);
-      if (ev && ev.sharing) {
-        const updatedSharing = {
-          ...ev.sharing,
-          participantLinks: [...ev.sharing.participantLinks, token]
-        };
-        const updatedEv = { ...ev, sharing: updatedSharing };
-        console.log('Update this event in frontend/data/events.json with new participant link:');
-        console.log(JSON.stringify(updatedEv, null, 2));
-      }
-    } catch (e) {
-      console.warn('Could not log sharing update:', e);
-    }
-    // Share and always alert
-    try { await Share.share({ message: url }); } catch {}
-    Alert.alert('Participant Link Ready', `URL:\n${url}\n\nRaw token (add to events.json sharing.participantLinks):\n${token}`);
-    setShared(prev => ({ ...prev, [eventId]: { url, token } }));
-  };
-
   return (
     <>
       {SCREEN_OPTIONS ? <Stack.Screen options={SCREEN_OPTIONS} /> : null}
-      <View className="flex-1 bg-background">
-        <ScreenHeader title="Promoter" />
-        <ScrollView className="flex-1">
-          <View className="gap-6 p-6 md:p-8 md:max-w-4xl md:mx-auto md:w-full">
-            <Card className="overflow-hidden md:shadow-lg w-full">
+      <ScreenLayout title="Promoter">
+        <Card className="overflow-hidden md:shadow-lg w-full">
           <CardHeader>
             <CardTitle>
-              <Text variant="h3">Promoter</Text>
+              <Text variant="h3">Add Event</Text>
             </CardTitle>
             <CardDescription>
               <Text variant="muted">Accept organiser links and generate participant links</Text>
@@ -184,9 +109,7 @@ export default function PromoterHome() {
         <Button className="mt-6" onPress={onSignOut}>
           <Text>Sign Out</Text>
         </Button>
-          </View>
-        </ScrollView>
-      </View>
+      </ScreenLayout>
     </>
   );
 }
