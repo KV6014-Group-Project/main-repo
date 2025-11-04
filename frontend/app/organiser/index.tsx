@@ -5,7 +5,8 @@ import { ScreenLayout } from '@/components/layouts';
 import { useSession } from '@/providers/SessionProvider';
 import { Stack, useRouter } from 'expo-router';
 import React from 'react';
-import { View, TextInput } from 'react-native';
+import { View } from 'react-native';
+import { Input } from '@/components/ui/input';
 import { useOrganiserEvents } from '@/hooks';
 
 const SCREEN_OPTIONS = {
@@ -55,19 +56,31 @@ export default function OrganiserHome() {
           </CardHeader>
           <CardContent>
             <View className="gap-3">
-              <Text className="text-sm">Event name</Text>
-              <TextInput value={name} onChangeText={setName} placeholder="Health Fair" className="border-border bg-background text-foreground h-12 rounded-md border px-4" />
-              <Text className="text-sm">Date</Text>
-              <TextInput value={date} onChangeText={setDate} placeholder="2025-11-30" className="border-border bg-background text-foreground h-12 rounded-md border px-4" />
-              <Text className="text-sm">Time</Text>
-              <TextInput value={time} onChangeText={setTime} placeholder="10:00 - 15:00" className="border-border bg-background text-foreground h-12 rounded-md border px-4" />
-              <Text className="text-sm">Venue</Text>
-              <TextInput value={venue} onChangeText={setVenue} placeholder="Community Center" className="border-border bg-background text-foreground h-12 rounded-md border px-4" />
-              <Text className="text-sm">Room (optional)</Text>
-              <TextInput value={room} onChangeText={setRoom} placeholder="Room 2" className="border-border bg-background text-foreground h-12 rounded-md border px-4" />
-              <Text className="text-sm">Description</Text>
-              <TextInput value={description} onChangeText={setDescription} placeholder="Short description" multiline className="border-border bg-background text-foreground min-h-20 rounded-md border px-4 py-2" />
-              <Button onPress={onCreate} disabled={busy} className="mt-2">
+              <View className="gap-1.5">
+                <Text className="text-sm">Event name</Text>
+                <Input value={name} onChangeText={setName} placeholder="Health Fair" className="border-border bg-background text-foreground h-12 rounded-md border px-4" />
+              </View>
+              <View className="gap-1.5">
+                <Text className="text-sm">Date</Text>
+                <Input value={date} onChangeText={setDate} placeholder="2025-11-30" className="border-border bg-background text-foreground h-12 rounded-md border px-4" />
+              </View>
+              <View className="gap-1.5">
+                <Text className="text-sm">Time</Text>
+                <Input value={time} onChangeText={setTime} placeholder="10:00 - 15:00" className="border-border bg-background text-foreground h-12 rounded-md border px-4" />
+              </View>
+              <View className="gap-1.5">
+                <Text className="text-sm">Venue</Text>
+                <Input value={venue} onChangeText={setVenue} placeholder="Community Center" className="border-border bg-background text-foreground h-12 rounded-md border px-4" />
+              </View>
+              <View className="gap-1.5">
+                <Text className="text-sm">Room (optional)</Text>
+                <Input value={room} onChangeText={setRoom} placeholder="Room 2" className="border-border bg-background text-foreground h-12 rounded-md border px-4" />
+              </View>
+              <View className="gap-1.5">
+                <Text className="text-sm">Description</Text>
+                <Input value={description} onChangeText={setDescription} placeholder="Short description" multiline className="border-border bg-background text-foreground min-h-20 rounded-md border px-4 py-2" />
+              </View>
+              <Button onPress={onCreate} disabled={busy} className="mt-4">
                 <Text>Create Event</Text>
               </Button>
             </View>
@@ -89,21 +102,27 @@ export default function OrganiserHome() {
                 <Text variant="muted">No events yet.</Text>
               ) : (
                 events.map(ev => (
-                  <View key={ev.id} className="rounded-md border border-border p-3 gap-2">
-                    <Text className="text-base font-semibold">{ev.name}</Text>
-                    <Text variant="muted">{ev.date} • {ev.time}</Text>
-                    <Text variant="muted">{ev.location.venue}{ev.location.room ? `, ${ev.location.room}` : ''}</Text>
-                    <View className="flex-row gap-3 mt-2">
+                  <View key={ev.id} className="rounded-md border border-border p-4 gap-3">
+                    <View className="gap-1.5">
+                      <Text className="text-base font-semibold">{ev.name}</Text>
+                      <Text variant="muted">{ev.date} • {ev.time}</Text>
+                      <Text variant="muted">{ev.location.venue}{ev.location.room ? `, ${ev.location.room}` : ''}</Text>
+                    </View>
+                    <View className="flex-row gap-3">
                       <Button onPress={() => onIssuePromoterLink(ev.id)}>
                         <Text>Share with Promoter</Text>
                       </Button>
                     </View>
                     {shared[ev.id] ? (
-                      <View className="mt-3 gap-2">
-                        <Text className="text-sm font-semibold">Promoter link URL</Text>
-                        <Text selectable className="text-xs text-muted-foreground">{shared[ev.id].url}</Text>
-                        <Text className="text-sm font-semibold mt-2">Raw token</Text>
-                        <Text selectable className="text-xs text-muted-foreground">{shared[ev.id].token}</Text>
+                      <View className="gap-3 pt-3 border-t border-border">
+                        <View className="gap-1.5">
+                          <Text className="text-sm font-semibold">Promoter link URL</Text>
+                          <Text selectable className="text-xs text-muted-foreground">{shared[ev.id].url}</Text>
+                        </View>
+                        <View className="gap-1.5">
+                          <Text className="text-sm font-semibold">Raw token</Text>
+                          <Text selectable className="text-xs text-muted-foreground">{shared[ev.id].token}</Text>
+                        </View>
                       </View>
                     ) : null}
                   </View>
@@ -113,7 +132,7 @@ export default function OrganiserHome() {
           </CardContent>
         </Card>
 
-        <Button className="mt-6" onPress={onSignOut}>
+        <Button className="mt-4" onPress={onSignOut}>
           <Text>Sign Out</Text>
         </Button>
       </ScreenLayout>

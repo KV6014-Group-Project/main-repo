@@ -38,14 +38,16 @@ export default function AuthIndexScreen() {
               <View className="h-px bg-border" />
               <Text className="text-center text-sm text-muted-foreground">Or manage an event</Text>
 
-              <Button variant="outline" onPress={() => router.push('/auth/organiser')}>
-                <Text>I am an Organiser</Text>
-              </Button>
-              <Button variant="outline" onPress={() => router.push('/auth/promoter')}>
-                <Text>I am a Promoter</Text>
-              </Button>
+              <View className="gap-3">
+                <Button variant="outline" onPress={() => router.push('/auth/organiser')}>
+                  <Text>I am an Organiser</Text>
+                </Button>
+                <Button variant="outline" onPress={() => router.push('/auth/promoter')}>
+                  <Text>I am a Promoter</Text>
+                </Button>
+              </View>
 
-              {error ? <Text className="text-destructive text-sm">{error}</Text> : null}
+              {error ? <Text className="text-destructive text-sm mt-2">{error}</Text> : null}
             </View>
           </CardContent>
         </Card>

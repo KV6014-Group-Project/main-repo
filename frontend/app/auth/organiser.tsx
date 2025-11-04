@@ -19,7 +19,6 @@ export default function OrganiserAuth() {
       const session = await signIn(params.email, params.password, 'organiser');
       if (session?.role === 'organiser') router.replace('/organiser');
     } else {
-      const fullName = `${params.firstName} ${params.lastName}`;
       const session = await signUp({ 
         email: params.email, 
         password: params.password, 

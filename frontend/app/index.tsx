@@ -6,7 +6,8 @@ import { EventCard } from '@/components/events';
 import { ScreenLayout } from '@/components/layouts';
 import { Stack, useRouter } from 'expo-router';
 import * as React from 'react';
-import { View, TextInput } from 'react-native';
+import { View } from 'react-native';
+import { Input } from '@/components/ui/input';
 import { useSession } from '@/providers/SessionProvider';
 import { QrCodeIcon, LinkIcon } from 'lucide-react-native';
 import { useParticipantEvents } from '@/hooks';
@@ -78,17 +79,19 @@ export default function Screen() {
               </View>
               
               {showLinkInput && (
-                <View className="gap-3 pt-2">
-                  <TextInput
-                    value={linkInput}
-                    onChangeText={setLinkInput}
-                    placeholder="Paste event link here"
-                    placeholderTextColor="#9CA3AF"
-                    keyboardType="url"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    className="border-border bg-background text-foreground h-12 rounded-md border px-4 text-base"
-                  />
+                <View className="gap-3 pt-3 border-t border-border">
+                  <View className="gap-1.5">
+                    <Text className="text-sm">Event link</Text>
+                  <Input
+                      value={linkInput}
+                      onChangeText={setLinkInput}
+                      placeholder="Paste event link here"
+                      keyboardType="url"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      className="border-border bg-background text-foreground h-12 rounded-md border px-4 text-base"
+                    />
+                  </View>
                   <Button
                     onPress={handleSubmitLink}
                     size="lg"
@@ -127,7 +130,7 @@ export default function Screen() {
           ))
         )}
 
-        <Button className="mt-6" onPress={handleSignOut}>
+        <Button className="mt-4" onPress={handleSignOut}>
           <Text>Sign Out</Text>
         </Button>
       </ScreenLayout>

@@ -128,7 +128,17 @@ export async function signUp(params: {
   if (!email || !password) {
     throw new Error('Email and password are required');
   }
-  const session: Session = { token: `stub-${Date.now()}`, role };
+  // For organiser and promoter, also persist basic profile info
+  const session: Session = {
+    token: `stub-${Date.now()}`,
+    role,
+    profile: {
+      firstName: params.firstName ?? '',
+      lastName: params.lastName ?? '',
+      email: email,
+      phone: params.phone,
+    },
+  };
   await setSession(session);
   return session;
 }

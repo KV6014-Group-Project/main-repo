@@ -32,8 +32,8 @@ export default function WelcomeScreen() {
                 >
                     {/* Header */}
                     <View className="px-6 pt-6 pb-4">
-                        <View className="items-center">
-                            <Text variant="h1" className="font-bold text-center mb-2">
+                        <View className="items-center gap-2">
+                            <Text variant="h1" className="font-bold text-center">
                                 Event Manager
                             </Text>
                             <Text variant="muted" className="text-center text-lg">
@@ -59,11 +59,6 @@ export default function WelcomeScreen() {
                                         </Text>
                                     </CardDescription>
                                 </CardHeader>
-                                <CardContent>
-                                    <Text className="text-base leading-6">
-                                        Whether you're organizing an event, promoting it, or attending as a participant, our app streamlines the entire process from creation to check-in.
-                                    </Text>
-                                </CardContent>
                             </Card>
 
                             {/* Features Section */}
@@ -77,47 +72,41 @@ export default function WelcomeScreen() {
                                 </CardHeader>
                                 <CardContent className="gap-4">
                                     {/* For Participants */}
-                                    <View className="gap-3">
-                                        <View className="flex-row items-start gap-3">
-                                            <View className="mt-0.5">
-                                                <CheckCircleIcon size={20} className="text-primary" />
-                                            </View>
-                                            <View className="flex-1">
-                                                <Text className="font-medium text-base">For Participants</Text>
-                                                <Text variant="muted" className="text-sm mt-1">
-                                                    Easily register for events, check in with QR codes or links, and manage your event attendance.
-                                                </Text>
-                                            </View>
+                                    <View className="flex-row items-start gap-3">
+                                        <View className="mt-0.5">
+                                            <CheckCircleIcon size={20} className="text-primary" />
+                                        </View>
+                                        <View className="flex-1 gap-1">
+                                            <Text className="font-medium text-base">For Participants</Text>
+                                            <Text variant="muted" className="text-sm">
+                                                Easily register for events, check in with QR codes or links, and manage your event attendance.
+                                            </Text>
                                         </View>
                                     </View>
 
                                     {/* For Organizers */}
-                                    <View className="gap-3">
-                                        <View className="flex-row items-start gap-3">
-                                            <View className="mt-0.5">
-                                                <CheckCircleIcon size={20} className="text-primary" />
-                                            </View>
-                                            <View className="flex-1">
-                                                <Text className="font-medium text-base">For Organizers</Text>
-                                                <Text variant="muted" className="text-sm mt-1">
-                                                    Create and manage events, track registrations, and monitor attendance in real-time.
-                                                </Text>
-                                            </View>
+                                    <View className="flex-row items-start gap-3">
+                                        <View className="mt-0.5">
+                                            <CheckCircleIcon size={20} className="text-primary" />
+                                        </View>
+                                        <View className="flex-1 gap-1">
+                                            <Text className="font-medium text-base">For Organizers</Text>
+                                            <Text variant="muted" className="text-sm">
+                                                Create and manage events, track registrations, and monitor attendance in real-time.
+                                            </Text>
                                         </View>
                                     </View>
 
                                     {/* For Promoters */}
-                                    <View className="gap-3">
-                                        <View className="flex-row items-start gap-3">
-                                            <View className="mt-0.5">
-                                                <CheckCircleIcon size={20} className="text-primary" />
-                                            </View>
-                                            <View className="flex-1">
-                                                <Text className="font-medium text-base">For Promoters</Text>
-                                                <Text variant="muted" className="text-sm mt-1">
-                                                    Share events with unique links and QR codes, and track promotion effectiveness.
-                                                </Text>
-                                            </View>
+                                    <View className="flex-row items-start gap-3">
+                                        <View className="mt-0.5">
+                                            <CheckCircleIcon size={20} className="text-primary" />
+                                        </View>
+                                        <View className="flex-1 gap-1">
+                                            <Text className="font-medium text-base">For Promoters</Text>
+                                            <Text variant="muted" className="text-sm">
+                                                Share events with unique links and QR codes, and track promotion effectiveness.
+                                            </Text>
                                         </View>
                                     </View>
                                 </CardContent>
@@ -133,45 +122,39 @@ export default function WelcomeScreen() {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="gap-4">
-                                    <View className="gap-3">
-                                        <View className="flex-row items-start gap-3">
-                                            <View className="mt-0.5">
-                                                <CalendarIcon size={20} className="text-muted-foreground" />
-                                            </View>
-                                            <View className="flex-1">
-                                                <Text className="font-medium text-base">1. Choose Your Role</Text>
-                                                <Text variant="muted" className="text-sm mt-1">
-                                                    Select whether you're a participant, organizer, or promoter.
-                                                </Text>
-                                            </View>
+                                    <View className="flex-row items-start gap-3">
+                                        <View className="mt-0.5">
+                                            <CalendarIcon size={20} className="text-muted-foreground" />
+                                        </View>
+                                        <View className="flex-1 gap-1">
+                                            <Text className="font-medium text-base">1. Choose Your Role</Text>
+                                            <Text variant="muted" className="text-sm">
+                                                Select whether you're a participant, organizer, or promoter.
+                                            </Text>
                                         </View>
                                     </View>
 
-                                    <View className="gap-3">
-                                        <View className="flex-row items-start gap-3">
-                                            <View className="mt-0.5">
-                                                <UsersIcon size={20} className="text-muted-foreground" />
-                                            </View>
-                                            <View className="flex-1">
-                                                <Text className="font-medium text-base">2. Sign In or Register</Text>
-                                                <Text variant="muted" className="text-sm mt-1">
-                                                    Create an account or sign in to access your dashboard.
-                                                </Text>
-                                            </View>
+                                    <View className="flex-row items-start gap-3">
+                                        <View className="mt-0.5">
+                                            <UsersIcon size={20} className="text-muted-foreground" />
+                                        </View>
+                                        <View className="flex-1 gap-1">
+                                            <Text className="font-medium text-base">2. Sign In or Register</Text>
+                                            <Text variant="muted" className="text-sm">
+                                                Create an account or sign in to access your dashboard.
+                                            </Text>
                                         </View>
                                     </View>
 
-                                    <View className="gap-3">
-                                        <View className="flex-row items-start gap-3">
-                                            <View className="mt-0.5">
-                                                <QrCodeIcon size={20} className="text-muted-foreground" />
-                                            </View>
-                                            <View className="flex-1">
-                                                <Text className="font-medium text-base">3. Start Managing Events</Text>
-                                                <Text variant="muted" className="text-sm mt-1">
-                                                    Create, join, or promote events based on your role.
-                                                </Text>
-                                            </View>
+                                    <View className="flex-row items-start gap-3">
+                                        <View className="mt-0.5">
+                                            <QrCodeIcon size={20} className="text-muted-foreground" />
+                                        </View>
+                                        <View className="flex-1 gap-1">
+                                            <Text className="font-medium text-base">3. Start Managing Events</Text>
+                                            <Text variant="muted" className="text-sm">
+                                                Create, join, or promote events based on your role.
+                                            </Text>
                                         </View>
                                     </View>
                                 </CardContent>
@@ -181,7 +164,7 @@ export default function WelcomeScreen() {
                             <Button
                                 onPress={handleGetStarted}
                                 size="lg"
-                                className="w-full"
+                                className="w-full mt-2"
                             >
                                 <Text className="font-semibold text-base">Get Started</Text>
                             </Button>

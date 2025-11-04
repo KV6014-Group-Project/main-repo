@@ -109,7 +109,7 @@ export function EventCard({
 
         {/* Action Buttons */}
         {(onCheckIn || onViewDetails || onShare) && (
-          <View className="gap-3 pt-2 md:pt-4 md:flex-row md:flex-wrap">
+          <View className="gap-3 pt-3 border-t border-border md:pt-4 md:flex-row md:flex-wrap">
             {onCheckIn && (
               !isCheckedIn ? (
                 <Button 
@@ -156,7 +156,7 @@ export function EventCard({
 
         {/* Leave Event Button */}
         {onLeave && (
-          <View className="pt-2">
+          <View className="pt-3 border-t border-border">
             <Button
               variant="destructive"
               size="lg"

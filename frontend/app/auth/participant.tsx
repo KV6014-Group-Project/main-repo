@@ -91,8 +91,8 @@ export default function ParticipantOnboardingScreen() {
             </CardHeader>
             <CardContent>
               <View className="gap-3">
-                <View>
-                  <Text className="mb-1">First name</Text>
+                <View className="gap-1.5">
+                  <Text className="text-sm">First name</Text>
                   <Input
                     value={firstName}
                     onChangeText={setFirstName}
@@ -102,8 +102,8 @@ export default function ParticipantOnboardingScreen() {
                     returnKeyType="next"
                   />
                 </View>
-                <View>
-                  <Text className="mb-1">Last name</Text>
+                <View className="gap-1.5">
+                  <Text className="text-sm">Last name</Text>
                   <Input
                     value={lastName}
                     onChangeText={setLastName}
@@ -113,8 +113,8 @@ export default function ParticipantOnboardingScreen() {
                     returnKeyType="next"
                   />
                 </View>
-                <View>
-                  <Text className="mb-1">Email</Text>
+                <View className="gap-1.5">
+                  <Text className="text-sm">Email</Text>
                   <Input
                     value={email}
                     onChangeText={setEmail}
@@ -125,8 +125,8 @@ export default function ParticipantOnboardingScreen() {
                     returnKeyType="next"
                   />
                 </View>
-                <View>
-                  <Text className="mb-1">UK mobile (optional)</Text>
+                <View className="gap-1.5">
+                  <Text className="text-sm">UK mobile (optional)</Text>
                   <Input
                     value={phone}
                     onChangeText={setPhone}
@@ -137,9 +137,9 @@ export default function ParticipantOnboardingScreen() {
                   />
                 </View>
 
-                {error ? <Text className="text-destructive text-sm">{error}</Text> : null}
+                {error ? <Text className="text-destructive text-sm mt-2">{error}</Text> : null}
 
-                <View className="flex-row gap-2 mt-2">
+                <View className="flex-row gap-3 mt-4">
                   <Button variant="outline" onPress={fillTestData} disabled={loading} className="flex-1">
                     <Text>Fill Test Data</Text>
                   </Button>

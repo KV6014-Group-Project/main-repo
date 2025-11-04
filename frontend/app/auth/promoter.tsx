@@ -19,7 +19,6 @@ export default function PromoterAuth() {
       const session = await signIn(params.email, params.password, 'promoter');
       if (session?.role === 'promoter') router.replace('/promoter');
     } else {
-      const fullName = `${params.firstName} ${params.lastName}`;
       const session = await signUp({ 
         email: params.email, 
         password: params.password, 

@@ -1,12 +1,18 @@
 import { cn } from '@/lib/utils';
 import React from 'react';
 import { Platform, TextInput, type TextInputProps } from 'react-native';
+import { useTheme } from '@/lib/useTheme';
 
 function Input({
     className,
     placeholderClassName,
     ...props
 }: TextInputProps & React.RefAttributes<TextInput>) {
+    const { colors } = useTheme();
+    const defaultPlaceholder = Platform.select({
+        web: undefined,
+        default: colors.mutedForeground,
+    });
     return (
         <TextInput
             className={cn(
@@ -26,6 +32,7 @@ function Input({
                 }),
                 className
             )}
+            placeholderTextColor={props.placeholderTextColor ?? defaultPlaceholder}
             {...props}
         />
     );

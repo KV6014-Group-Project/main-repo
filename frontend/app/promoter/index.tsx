@@ -5,7 +5,8 @@ import { ScreenLayout } from '@/components/layouts';
 import { useSession } from '@/providers/SessionProvider';
 import { Stack, useRouter } from 'expo-router';
 import React from 'react';
-import { View, TextInput } from 'react-native';
+import { View } from 'react-native';
+import { Input } from '@/components/ui/input';
 import { usePromoterEvents } from '@/hooks';
 
 const SCREEN_OPTIONS = {
@@ -48,20 +49,22 @@ export default function PromoterHome() {
           </CardHeader>
           <CardContent>
             <View className="gap-3">
-              <Text className="text-sm">Paste organiser share link</Text>
-              <TextInput
-                value={linkInput}
-                onChangeText={setLinkInput}
-                placeholder="https://link.local/?t=... or token"
-                autoCapitalize="none"
-                autoCorrect={false}
-                className="border-border bg-background text-foreground h-12 rounded-md border px-4"
-              />
+              <View className="gap-1.5">
+                <Text className="text-sm">Paste organiser share link</Text>
+                <Input
+                  value={linkInput}
+                  onChangeText={setLinkInput}
+                  placeholder="https://link.local/?t=... or token"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  className="border-border bg-background text-foreground h-12 rounded-md border px-4"
+                />
+              </View>
               <Button onPress={onAcceptOrganiserLink} disabled={busy || !linkInput.trim()}>
                 <Text>Add Event</Text>
               </Button>
               {statusMsg ? (
-                <Text className="text-xs text-muted-foreground">{statusMsg}</Text>
+                <Text className="text-xs text-muted-foreground mt-2">{statusMsg}</Text>
               ) : null}
             </View>
           </CardContent>
@@ -82,21 +85,27 @@ export default function PromoterHome() {
                 <Text variant="muted">No events assigned yet.</Text>
               ) : (
                 events.map(ev => (
-                  <View key={ev.id} className="rounded-md border border-border p-3 gap-2">
-                    <Text className="text-base font-semibold">{ev.name}</Text>
-                    <Text variant="muted">{ev.date} • {ev.time}</Text>
-                    <Text variant="muted">{ev.location.venue}{ev.location.room ? `, ${ev.location.room}` : ''}</Text>
-                    <View className="flex-row gap-3 mt-2">
+                  <View key={ev.id} className="rounded-md border border-border p-4 gap-3">
+                    <View className="gap-1.5">
+                      <Text className="text-base font-semibold">{ev.name}</Text>
+                      <Text variant="muted">{ev.date} • {ev.time}</Text>
+                      <Text variant="muted">{ev.location.venue}{ev.location.room ? `, ${ev.location.room}` : ''}</Text>
+                    </View>
+                    <View className="flex-row gap-3">
                       <Button onPress={() => onShareParticipantLink(ev.id)}>
                         <Text>Share to Participants</Text>
                       </Button>
                     </View>
                     {shared[ev.id] ? (
-                      <View className="mt-3 gap-2">
-                        <Text className="text-sm font-semibold">Participant link URL</Text>
-                        <Text selectable className="text-xs text-muted-foreground">{shared[ev.id].url}</Text>
-                        <Text className="text-sm font-semibold mt-2">Raw token</Text>
-                        <Text selectable className="text-xs text-muted-foreground">{shared[ev.id].token}</Text>
+                      <View className="gap-3 pt-3 border-t border-border">
+                        <View className="gap-1.5">
+                          <Text className="text-sm font-semibold">Participant link URL</Text>
+                          <Text selectable className="text-xs text-muted-foreground">{shared[ev.id].url}</Text>
+                        </View>
+                        <View className="gap-1.5">
+                          <Text className="text-sm font-semibold">Raw token</Text>
+                          <Text selectable className="text-xs text-muted-foreground">{shared[ev.id].token}</Text>
+                        </View>
                       </View>
                     ) : null}
                   </View>
@@ -106,7 +115,7 @@ export default function PromoterHome() {
           </CardContent>
         </Card>
 
-        <Button className="mt-6" onPress={onSignOut}>
+        <Button className="mt-4" onPress={onSignOut}>
           <Text>Sign Out</Text>
         </Button>
       </ScreenLayout>
