@@ -8,6 +8,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '@/lib/useTheme';
 import React from 'react';
+import { View, ActivityIndicator } from 'react-native';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -21,64 +22,91 @@ export default function RootLayout() {
     <ThemeProvider value={navTheme}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <SessionProvider>
-        <AuthGuard>
-          <Stack
-            screenOptions={{
-              title: 'React Native Reusables',
-              headerTransparent: true,
-              headerRight: () => <ThemeToggle />,
-            }}
-          />
-        </AuthGuard>
+        <RootLayoutContent />
       </SessionProvider>
       <PortalHost />
     </ThemeProvider>
   );
 }
 
+function RootLayoutContent() {
+  const { navTheme } = useTheme();
+  const { status } = useSession();
+
+  // Show loading screen while session is being initialized
+  if (status !== 'ready') {
+    return (
+      <View className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator size="large" color="currentColor" />
+      </View>
+    );
+  }
+
+  return (
+    <ThemeProvider value={navTheme}>
+      <AuthGuard>
+        <Stack
+          screenOptions={{
+            title: 'React Native Reusables',
+            headerTransparent: true,
+            headerRight: () => <ThemeToggle />,
+          }}
+        />
+      </AuthGuard>
+    </ThemeProvider>
+  );
+}
+
 function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { session, status } = useSession();
+  const { session } = useSession();
   const router = useRouter();
   const segments = useSegments();
   const pathname = usePathname();
 
   React.useEffect(() => {
+    // Get route info
     const first = segments[0];
     const isProtected = first === 'organiser' || first === 'promoter';
     const isAuthScreen = pathname?.startsWith('/auth');
     const isRoot = pathname === '/' || pathname === null;
     const isWelcomeScreen = pathname === '/welcome';
+    const isParticipantRoute = pathname === '/participant';
 
-    // If no session and not on welcome or auth screen, redirect to welcome
-    if (!session && !isWelcomeScreen && !isAuthScreen) {
-      router.replace('/welcome');
+    // No session: guide to welcome
+    if (!session) {
+      if (!isWelcomeScreen && !isAuthScreen) {
+        router.replace('/welcome');
+      }
       return;
     }
 
-    // Protect organiser and promoter routes - require token
-    if (isProtected) {
-      if (!session || !session.token) {
-        if (!isAuthScreen && !isWelcomeScreen) router.replace('/auth');
-        return;
-      }
+    // User is authenticated - enforce role-based access
+    const userRole = session.role;
+
+    // If user is on a protected route that doesn't match their role, redirect
+    if (isProtected && userRole !== first) {
+      // Redirect to appropriate home screen
+      if (userRole === 'organiser') router.replace('/organiser');
+      else if (userRole === 'promoter') router.replace('/promoter');
+      else if (userRole === 'participant') router.replace('/');
+      return;
     }
 
-    // Protect root route - require participant session
-    if (isRoot) {
-      if (!session || session.role !== 'participant') {
-        if (!isAuthScreen && !isWelcomeScreen) router.replace('/auth');
-        return;
-      }
+    // If user is on root (/) they must be a participant
+    if (isRoot && userRole !== 'participant') {
+      if (userRole === 'organiser') router.replace('/organiser');
+      else if (userRole === 'promoter') router.replace('/promoter');
+      return;
     }
 
-    // Redirect authenticated users away from auth and welcome screens
-    if ((isAuthScreen || isWelcomeScreen) && session) {
-      if (session.role === 'organiser') router.replace('/organiser');
-      else if (session.role === 'promoter') router.replace('/promoter');
-      else if (session.role === 'participant') router.replace('/');
+    // If authenticated user is on welcome or auth screen, redirect to their home
+    if ((isWelcomeScreen || isAuthScreen) && session) {
+      if (userRole === 'organiser') router.replace('/organiser');
+      else if (userRole === 'promoter') router.replace('/promoter');
+      else if (userRole === 'participant') router.replace('/');
+      return;
     }
-  }, [status, session, segments, pathname, router]);
+  }, [session, segments, pathname, router]);
 
-  if (status !== 'ready') return null;
   return <>{children}</>;
 }
