@@ -1,10 +1,38 @@
-# Backend Plan
-
-Project: Event Management System  
-Scope: Offline-first, token-based event sharing with 3 roles (Organiser, Promoter, Participant)  
+Project: Event Management System
+Scope: Offline-first, token-based event sharing with 3 roles (Organiser, Promoter, Participant)
 Stack: Django 5.2.7, Django REST Framework, SQLite (dev) / PostgreSQL (prod), Expo Router frontend
 
 This plan is aligned with the existing frontend implementation in [`frontend/app/_layout.tsx`](frontend/app/_layout.tsx:1), [`frontend/providers/SessionProvider.tsx`](frontend/providers/SessionProvider.tsx:1), hooks in [`frontend/hooks`](frontend/hooks/index.ts:1), and utilities in [`frontend/lib/shareLinks.ts`](frontend/lib/shareLinks.ts:1) and [`frontend/lib/eventStore.ts`](frontend/lib/eventStore.ts:1).
+
+# Backend Plan
+
+## Phased Implementation Plan
+
+- [ ] Phase 1: Backend foundations
+  - [ ] Implement custom User with roles.
+  - [ ] Register `main_app`, `accounts` in INSTALLED_APPS.
+  - [ ] Add DRF and django-cors-headers.
+  - [ ] Implement Event, DeviceProfile, PromoterProfile, EventPromoter, RSVP models.
+  - [ ] Wire `/api/auth/*` endpoints.
+- [ ] Phase 2: Core sharing flows
+  - [ ] Implement organiser event CRUD endpoints.
+  - [ ] Implement organiser share endpoints for organiser tokens and YAML.
+  - [ ] Implement promoter accept endpoint and promoter events listing.
+  - [ ] Implement promoter participant-share endpoint.
+- [ ] Phase 3: Offline sync
+  - [ ] Implement `/api/participant/sync` with YAML/token validation and RSVP creation.
+  - [ ] Implement `/api/participant/events` for device_id.
+  - [ ] Add HMAC signing/verification utilities.
+- [ ] Phase 4: Frontend integration
+  - [ ] Update auth provider to use backend.
+  - [ ] Update organiser/promoter/participant hooks to call new APIs.
+  - [ ] Implement QR scanner and YAML parsing on frontend.
+  - [ ] Implement local pending-sync queue.
+- [ ] Phase 5: Hardening
+  - [ ] Token expiry, replay protections, rate limiting.
+  - [ ] Admin views for events, promoters, RSVPs.
+  - [ ] Switch DB to PostgreSQL for production.
+  - [ ] Add tests for all critical flows.
 
 ---
 
@@ -491,42 +519,3 @@ flowchart TD
 ```
 
 ---
-
-## 9. Phased Implementation Plan
-
-Phase 1: Backend foundations
-
-- Implement custom User with roles.
-- Register `main_app`, `accounts` in INSTALLED_APPS.
-- Add DRF and django-cors-headers.
-- Implement Event, DeviceProfile, PromoterProfile, EventPromoter, RSVP models.
-- Wire `/api/auth/*` endpoints.
-
-Phase 2: Core sharing flows
-
-- Implement organiser event CRUD endpoints.
-- Implement organiser share endpoints for organiser tokens and YAML.
-- Implement promoter accept endpoint and promoter events listing.
-- Implement promoter participant-share endpoint.
-
-Phase 3: Offline sync
-
-- Implement `/api/participant/sync` with YAML/token validation and RSVP creation.
-- Implement `/api/participant/events` for device_id.
-- Add HMAC signing/verification utilities.
-
-Phase 4: Frontend integration
-
-- Update auth provider to use backend.
-- Update organiser/promoter/participant hooks to call new APIs.
-- Implement QR scanner and YAML parsing on frontend.
-- Implement local pending-sync queue.
-
-Phase 5: Hardening
-
-- Token expiry, replay protections, rate limiting.
-- Admin views for events, promoters, RSVPs.
-- Switch DB to PostgreSQL for production.
-- Add tests for all critical flows.
-
-This backend plan now reflects and extends your current frontend design, giving Code mode a clear contract for implementation.
