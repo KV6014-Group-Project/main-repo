@@ -1,159 +1,156 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Text } from '@/components/ui/text';
-import { Input } from '@/components/ui/input';
-import { useSession } from '@/providers/SessionProvider';
-import { Stack, useRouter } from 'expo-router';
-import React from 'react';
-import { KeyboardAvoidingView, Platform, View } from 'react-native';
+import React from "react";
+import { SafeAreaView, ScrollView, View, Text, Image, TextInput, TouchableOpacity, Platform, KeyboardAvoidingView, Linking } from "react-native";
+import { useRouter } from "expo-router";
+import { useSession } from "@/providers/SessionProvider";
 
 export default function ParticipantOnboardingScreen() {
   const { signUp } = useSession();
   const router = useRouter();
 
-  const [firstName, setFirstName] = React.useState('');
-  const [lastName, setLastName] = React.useState('');
-  const [email, setEmail] = React.useState('');
-  const [phone, setPhone] = React.useState('');
+  const [firstName, setFirstName] = React.useState("");
+  const [lastName, setLastName] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [phone, setPhone] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   const isValidEmail = (value: string) => /.+@.+\..+/.test(value.trim());
   const isValidUkMobileOptional = (value: string) => {
     const v = value.trim();
-    if (!v) return true; // optional
-    const cleaned = v.replace(/[^+\d]/g, '');
-    if (/^\+447\d{9}$/.test(cleaned)) return true; // +44 7xxxxxxxxx
-    if (/^07\d{9}$/.test(cleaned)) return true; // 07xxxxxxxxx
+    if (!v) return true;
+    const cleaned = v.replace(/[^+\d]/g, "");
+    if (/^\+447\d{9}$/.test(cleaned)) return true;
+    if (/^07\d{9}$/.test(cleaned)) return true;
     return false;
   };
-  const canSubmit = firstName.trim() && lastName.trim() && isValidEmail(email) && isValidUkMobileOptional(phone);
 
   const normalizeUkMobileToE164 = (value: string): string | undefined => {
     const v = value.trim();
     if (!v) return undefined;
-    let cleaned = v.replace(/[^+\d]/g, '');
-    if (cleaned.startsWith('00')) cleaned = '+' + cleaned.slice(2);
-    if (cleaned.startsWith('+44')) {
-      // already in +44 format; ensure it's +447xxxxxxxxx
-      if (/^\+447\d{9}$/.test(cleaned)) return cleaned;
-      return cleaned; // leave as-is if different UK number; lightweight handling
-    }
-    if (cleaned.startsWith('0')) {
-      const withoutZero = cleaned.slice(1);
-      return `+44${withoutZero}`;
-    }
-    // If just digits without prefix and starts with 7, assume UK mobile
-    if (/^7\d{9}$/.test(cleaned)) return `+44${cleaned}`;
+    let cleaned = v.replace(/[^+\d]/g, "");
+    if (cleaned.startsWith("00")) cleaned = "+" + cleaned.slice(2);
+    if (cleaned.startsWith("+44")) return cleaned;
+    if (cleaned.startsWith("0")) return "+44" + cleaned.slice(1);
+    if (/^7\d{9}$/.test(cleaned)) return "+44" + cleaned;
     return cleaned || undefined;
   };
 
   const fillTestData = () => {
-    setFirstName('John');
-    setLastName('Smith');
-    setEmail('john.smith@example.com');
-    setPhone('07123456789');
+    setFirstName("John");
+    setLastName("Smith");
+    setEmail("john.smith@example.com");
+    setPhone("07123456789");
   };
 
+  const canSubmit = firstName.trim() && lastName.trim() && isValidEmail(email) && isValidUkMobileOptional(phone);
+
   const onSubmit = async () => {
-    if (!canSubmit) return;
+    if (!canSubmit || loading) return;
     try {
-      setLoading(true);
       setError(null);
+      setLoading(true);
       const s = await signUp({
-        role: 'participant',
+        role: "participant",
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim(),
         phone: normalizeUkMobileToE164(phone),
       });
-      if (s?.role === 'participant') router.replace('/');
+
+      if (s?.role === "participant") {
+        Linking.openURL("http://localhost:8081/");
+      }
+
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong');
+      setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <>
-      <Stack.Screen options={{ title: 'Participant Details' }} />
-      <KeyboardAvoidingView behavior={Platform.select({ ios: 'padding', android: undefined })} className="flex-1 items-center justify-center p-6">
-        <View className="w-full max-w-md gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                <Text variant="h3">Tell us about you</Text>
-              </CardTitle>
-              <CardDescription>
-                <Text variant="muted">No account needed — just your basic details</Text>
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <View className="gap-3">
-                <View className="gap-1.5">
-                  <Text className="text-sm">First name</Text>
-                  <Input
-                    value={firstName}
-                    onChangeText={setFirstName}
-                    placeholder="First name"
-                    editable={!loading}
-                    autoCapitalize="words"
-                    returnKeyType="next"
-                  />
-                </View>
-                <View className="gap-1.5">
-                  <Text className="text-sm">Last name</Text>
-                  <Input
-                    value={lastName}
-                    onChangeText={setLastName}
-                    placeholder="Last name"
-                    editable={!loading}
-                    autoCapitalize="words"
-                    returnKeyType="next"
-                  />
-                </View>
-                <View className="gap-1.5">
-                  <Text className="text-sm">Email</Text>
-                  <Input
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="you@example.com"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    editable={!loading}
-                    returnKeyType="next"
-                  />
-                </View>
-                <View className="gap-1.5">
-                  <Text className="text-sm">UK mobile (optional)</Text>
-                  <Input
-                    value={phone}
-                    onChangeText={setPhone}
-                    placeholder="+44 7xxx xxxxxx or 07xxxxxxxxx"
-                    keyboardType="phone-pad"
-                    editable={!loading}
-                    returnKeyType="done"
-                  />
-                </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.select({ ios: "padding" })}>
+        <ScrollView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
 
-                {error ? <Text className="text-destructive text-sm mt-2">{error}</Text> : null}
+          <Image
+            source={{ uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/fRfHRA6yfr/3g71kc30_expires_30_days.png" }}
+            resizeMode="stretch"
+            style={{ width: 59, height: 59, marginTop: 62, marginBottom: 43, marginLeft: 8 }}
+          />
 
-                <View className="flex-row gap-3 mt-4">
-                  <Button variant="outline" onPress={fillTestData} disabled={loading} className="flex-1">
-                    <Text>Fill Test Data</Text>
-                  </Button>
-                  <Button size="lg" onPress={onSubmit} disabled={loading || !canSubmit} className="flex-1">
-                    <Text>Continue</Text>
-                  </Button>
-                </View>
-              </View>
-            </CardContent>
-          </Card>
-        </View>
+          <View style={{ alignItems: "center", marginBottom: 41 }}>
+            <Image
+              source={{ uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/fRfHRA6yfr/75uk1b3i_expires_30_days.png" }}
+              resizeMode="stretch"
+              style={{ width: 122, height: 122 }}
+            />
+          </View>
+
+          {[
+            { label: "First Name", value: firstName, set: setFirstName },
+            { label: "Last Name", value: lastName, set: setLastName },
+            { label: "Email", value: email, set: setEmail, keyboardType: "email-address" },
+            { label: "UK Mobile (optional)", value: phone, set: setPhone, keyboardType: "phone-pad" },
+          ].map((field, idx) => (
+            <View key={idx} style={{ marginBottom: 25, marginHorizontal: 30 }}>
+              <Text style={{ color: "#000", fontSize: 20, marginBottom: 4 }}>{field.label}</Text>
+              <TextInput
+                style={{
+                  borderBottomWidth: 1,
+                  borderColor: "#000",
+                  fontSize: 18,
+                  paddingVertical: 6,
+                }}
+                value={field.value}
+                onChangeText={field.set}
+                editable={!loading}
+                autoCapitalize={field.label.includes("Name") ? "words" : "none"}
+                keyboardType={field.keyboardType as any}
+              />
+            </View>
+          ))}
+
+          {error ? (
+            <Text style={{ color: "red", fontSize: 14, textAlign: "center", marginBottom: 10 }}>{error}</Text>
+          ) : null}
+
+          {/* Fill Test Data Button */}
+          <View style={{ alignItems: "center", marginBottom: 10 }}>
+            <TouchableOpacity
+              onPress={fillTestData}
+              disabled={loading}
+              style={{
+                backgroundColor: "#A0A0A0",
+                borderRadius: 10,
+                paddingVertical: 8,
+                paddingHorizontal: 30,
+              }}
+            >
+              <Text style={{ color: "#FFFFFF", fontSize: 18 }}>Fill Test Data</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Submit */}
+          <View style={{ alignItems: "center", marginBottom: 30 }}>
+            <TouchableOpacity
+              onPress={onSubmit}
+              disabled={!canSubmit || loading}
+              style={{
+                backgroundColor: canSubmit ? "#BFBFBF" : "#D6D6D6",
+                borderRadius: 10,
+                paddingVertical: 10,
+                paddingHorizontal: 50,
+              }}
+            >
+              <Text style={{ color: "#FFFFFF", fontSize: 26, fontWeight: "bold" }}>
+                Continue
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+        </ScrollView>
       </KeyboardAvoidingView>
-    </>
+    </SafeAreaView>
   );
 }
-
-
