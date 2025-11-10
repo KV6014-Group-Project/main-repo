@@ -8,21 +8,24 @@ This plan is aligned with the existing frontend implementation in [`frontend/app
 
 ## Phased Implementation Plan
 
-- [ ] Phase 1: Backend foundations
-  - [ ] Implement custom User with roles.
-  - [ ] Register `main_app`, `accounts` in INSTALLED_APPS.
-  - [ ] Add DRF and django-cors-headers.
-  - [ ] Implement Event, DeviceProfile, PromoterProfile, EventPromoter, RSVP models.
-  - [ ] Wire `/api/auth/*` endpoints.
+- [x] Phase 1: Backend foundations
+  - [x] Create Django apps: users, events, participants , core, and optionally sharing
+  - [x] Register these apps in INSTALLED_APPS.
+  - [x] Add DRF and django-cors-headers to INSTALLED_APPS and configure.
+  - [x] In users app: Implement custom User model with roles, auth endpoints (/api/auth/*), and PromoterProfile model.
+  - [x] In events app: Implement Event model, EventPromoter model, RSVP model, event CRUD and share endpoints, stats endpoints.
+  - [x] In participants app: Implement DeviceProfile model and participant sync endpoints (/api/participant/*).
+  - [x] In core app: Implement shared utilities — HMAC signing/verification, YAML helpers, DRF permissions/serializers, and API base classes.
+  - [x] (Optional) In sharing app: Token/YAML generation/storage and helpers, if you want separation of concerns.
 - [ ] Phase 2: Core sharing flows
-  - [ ] Implement organiser event CRUD endpoints.
-  - [ ] Implement organiser share endpoints for organiser tokens and YAML.
-  - [ ] Implement promoter accept endpoint and promoter events listing.
-  - [ ] Implement promoter participant-share endpoint.
-- [ ] Phase 3: Offline sync
-  - [ ] Implement `/api/participant/sync` with YAML/token validation and RSVP creation.
-  - [ ] Implement `/api/participant/events` for device_id.
-  - [ ] Add HMAC signing/verification utilities.
+  - [x] In events app: Implement organiser event CRUD endpoints. (Completed in Phase 1)
+  - [ ] In events app (or sharing): Implement organiser share endpoints for organiser tokens and YAML. (Placeholders exist, need full implementation)
+  - [x] In events app: Implement promoter accept endpoint and promoter events listing. (Basic structure done, token validation needed)
+  - [ ] In events app (or sharing): Implement promoter participant-share endpoint. (Placeholder exists, need full implementation)
+- [x] Phase 3: Offline sync
+  - [x] In participants app: Implement `/api/participant/sync` with YAML/token validation and RSVP creation (using core utilities). (YAML validation complete, token decoding TODO)
+  - [x] In participants app: Implement `/api/participant/events` for device_id.
+  - [x] In core app: Add HMAC signing/verification utilities. (Completed in Phase 1)
 - [ ] Phase 4: Frontend integration
   - [ ] Update auth provider to use backend.
   - [ ] Update organiser/promoter/participant hooks to call new APIs.
@@ -30,9 +33,39 @@ This plan is aligned with the existing frontend implementation in [`frontend/app
   - [ ] Implement local pending-sync queue.
 - [ ] Phase 5: Hardening
   - [ ] Token expiry, replay protections, rate limiting.
-  - [ ] Admin views for events, promoters, RSVPs.
+  - [x] Admin views for events, promoters, RSVPs. (Completed in Phase 1)
   - [ ] Switch DB to PostgreSQL for production.
   - [ ] Add tests for all critical flows.
+
+---
+
+## Backend App Structure
+
+To layout the backend better than using main_app and accounts, we propose the following Django app structure for better modularity and separation of concerns:
+
+- **users**: 
+  - Custom User model (with roles: organiser/promoter).
+  - Authentication endpoints (/api/auth/*).
+  - Promoter profile (PromoterProfile model).
+
+- **events**:
+  - Event model.
+  - EventPromoter (many-to-many relationship).
+  - Event share endpoints (e.g., /api/organiser/events/{id}/share/*, /api/promoter/*).
+  - Stats endpoints (e.g., /api/organiser/events/{id}/stats).
+
+- **participants** (or **devices**):
+  - DeviceProfile model.
+  - Participant sync endpoints (/api/participant/*, e.g., /api/participant/sync, /api/participant/events).
+
+- **core** (or **common**):
+  - Shared utilities: HMAC signing/verification, YAML helpers, DRF custom permissions and serializers, API base classes.
+
+- **(Optional) sharing**:
+  - Token and YAML generation/storage.
+  - Related helpers, if you prefer separation of concerns from events app.
+
+This structure distributes responsibilities: users for auth/profiles, events for business logic, participants for device interactions, core for reusables, and optional sharing for token management.
 
 ---
 
@@ -63,9 +96,9 @@ This plan is aligned with the existing frontend implementation in [`frontend/app
 
 ### 1.2 Representation in Backend
 
-Use a custom User model with a role field to match frontend expectations in [`SessionProvider`](frontend/providers/SessionProvider.tsx:1):
+Use a custom User model in the users app with a role field to match frontend expectations in [`SessionProvider`](frontend/providers/SessionProvider.tsx:1):
 
-- User:
+- User (in users app):
   - id (UUID)
   - email
   - password
@@ -74,14 +107,14 @@ Use a custom User model with a role field to match frontend expectations in [`Se
 
 Participants:
 
-- Stored as DeviceProfile:
+- Stored as DeviceProfile in the participants app:
   - device_id (string, unique)
   - optional metadata (platform, app version)
   - Possible link to User in future if you add participant accounts.
 
 Authorization:
 
-- Implement DRF custom permissions:
+- Implement DRF custom permissions in the core app:
   - IsOrganiser, IsPromoter, IsOrganiserOfEvent, IsPromoterOfEvent, etc.
 - Map URL namespaces to role guards similar to frontend route guards in [`_layout.tsx AuthGuard`](frontend/app/_layout.tsx:60).
 
@@ -187,12 +220,12 @@ Notes:
 
 Signing:
 
-- Use HMAC-SHA256 with server secret.
+- Use HMAC-SHA256 with server secret (from core app utilities).
 - Sign the canonicalized YAML (or JSON) of:
   - v, event.id, share.scope, share.eventId, share.shareId, share.promoterId, share.issuedAt
 - Exclude sig from the signed content.
 
-Validation on backend:
+Validation on backend (using core app YAML helpers and HMAC utilities):
 
 1. Parse YAML; reject malformed.
 2. Verify v is supported.
@@ -220,7 +253,7 @@ We design endpoints that the existing hooks can migrate to with minimal changes.
 
 Base URL: `/api/`
 
-### 4.1 Authentication
+### 4.1 Authentication (in users app)
 
 For organisers/promoters (maps to `SessionProvider` and `lib/auth`):
 
@@ -245,7 +278,7 @@ Implementation:
 - Use JWT or DRF TokenAuth.
 - Frontend `SessionProvider` will be updated to call these instead of stubs in [`lib/auth.ts`](frontend/lib/auth.ts:1).
 
-### 4.2 Organiser Endpoints
+### 4.2 Organiser Endpoints (in events app)
 
 All require organiser auth.
 
@@ -269,7 +302,7 @@ Promoter management:
 - GET `/api/organiser/events/{event_id}/promoters`
 - DELETE `/api/organiser/events/{event_id}/promoters/{promoter_id}`
 
-Share token / QR generation:
+Share token / QR generation (using core or sharing utilities):
 
 - POST `/api/organiser/events/{event_id}/share/organiser`
   - Creates an organiser→promoter token (scope='organiser') and returns:
@@ -286,7 +319,7 @@ Stats:
 - GET `/api/organiser/events/{event_id}/stats`
   - Aggregates RSVPs by promoterId, channel, etc.
 
-### 4.3 Promoter Endpoints
+### 4.3 Promoter Endpoints (in events app)
 
 All require promoter auth.
 
@@ -297,7 +330,7 @@ All require promoter auth.
   - Body: { token }
   - Flow:
     - Decode organiser token (scope='organiser').
-    - Validate signature (server-side once tokens are signed).
+    - Validate signature (server-side once tokens are signed, using core utilities).
     - Attach promoter to event (EventPromoter).
   - Replaces local logic in [`usePromoterEvents.onAcceptOrganiserLink`](frontend/hooks/usePromoterEvents.ts:28).
 
@@ -312,7 +345,7 @@ All require promoter auth.
 - GET `/api/promoter/events/{event_id}/stats`
   - Returns RSVPs attributed to this promoter.
 
-### 4.4 Participant / Device and Sync Endpoints
+### 4.4 Participant / Device and Sync Endpoints (in participants app)
 
 No auth; uses device_id.
 
@@ -325,13 +358,13 @@ No auth; uses device_id.
       - scanned_at: epoch ms
   - Behavior:
     - For each entry:
-      - Parse YAML or decode token.
-      - Validate signature (if present).
-      - Resolve event.
+      - Parse YAML or decode token (using core YAML helpers).
+      - Validate signature (if present, using core HMAC).
+      - Resolve event (from events app).
       - Resolve promoter attribution (if valid promoterId).
       - Upsert:
-        - DeviceProfile for device_id.
-        - RSVP:
+        - DeviceProfile for device_id (in participants app).
+        - RSVP (in events app):
           - event, device_profile, optional promoter, status, source, timestamps.
     - Respond with:
       - per-entry status.
@@ -393,19 +426,19 @@ We design minimal deltas so another mode can implement them quickly.
 
 Non-code outline for Django models:
 
-- User (CustomUser):
+- User (CustomUser in users app):
   - id (UUID)
   - email (unique)
   - password
   - role: CharField('organiser'|'promoter')
   - is_active, is_staff, etc.
 
-- DeviceProfile:
+- DeviceProfile (in participants app):
   - id (UUID)
   - device_id (unique)
   - created_at
 
-- Event:
+- Event (in events app):
   - id (UUID)
   - organiser (FK User with role='organiser')
   - title, description
@@ -415,19 +448,19 @@ Non-code outline for Django models:
   - metadata (JSONField)
   - created_at, updated_at
 
-- PromoterProfile:
+- PromoterProfile (in users app):
   - id (UUID)
   - user (FK User, unique)
   - metadata (JSONField)
 
-- EventPromoter:
+- EventPromoter (in events app):
   - id
   - event (FK Event)
   - promoter (FK PromoterProfile)
   - is_active
   - created_at
 
-- RSVP:
+- RSVP (in events app):
   - id
   - event (FK Event)
   - device (FK DeviceProfile, nullable if upgraded)
@@ -437,7 +470,7 @@ Non-code outline for Django models:
   - source: 'qr' | 'link' | 'offline_sync'
   - scanned_at, created_at
 
-- ShareToken (optional persisted):
+- ShareToken (optional persisted, in sharing app or events app):
   - id
   - event (FK Event)
   - promoter (FK PromoterProfile, nullable)
@@ -455,67 +488,37 @@ Non-code outline for Django models:
 
 Textual lifecycle from organiser creation to participant sync:
 
-1. Organiser:
-   - Creates event via `/api/organiser/events`.
+1. Organiser (users app auth):
+   - Creates event via `/api/organiser/events` (events app).
    - Backend returns event with id.
 
 2. Organiser → Promoter:
-   - Organiser calls `/api/organiser/events/{id}/share/organiser`.
-   - Backend issues organiser-token (scope='organiser'), optionally also YAML.
-   - Promoter uses `/api/promoter/accept` with token.
-   - Backend validates and links promoter to event.
+   - Organiser calls `/api/organiser/events/{id}/share/organiser` (events app).
+   - Backend issues organiser-token (scope='organiser'), optionally also YAML (using core utilities).
+   - Promoter uses `/api/promoter/accept` (events app) with token.
+   - Backend validates and links promoter to event (EventPromoter in events app).
 
 3. Promoter → Participant:
-   - Promoter calls `/api/promoter/events/{id}/share/participant`.
+   - Promoter calls `/api/promoter/events/{id}/share/participant` (events app).
    - Backend creates participant-token (scope='participant', promoterId set).
-   - Optionally returns YAML for QR.
+   - Optionally returns YAML for QR (using core utilities).
 
 4. Participant offline:
    - Scans QR, gets YAML.
    - Frontend stores event snapshot + share info locally.
 
 5. Participant online:
-   - Frontend POSTs `/api/participant/sync` with stored entries.
-   - Backend validates signatures and relationships.
-   - Backend creates RSVPs with optional promoter attribution.
+   - Frontend POSTs `/api/participant/sync` (participants app) with stored entries.
+   - Backend validates signatures and relationships (using core utilities).
+   - Backend creates RSVPs with optional promoter attribution (in events app).
    - Returns canonical event data to client.
 
 6. Insights:
-   - Organiser sees stats: `/api/organiser/events/{id}/stats`.
-   - Promoter sees their impact: `/api/promoter/events/{id}/stats`.
+   - Organiser sees stats: `/api/organiser/events/{id}/stats` (events app).
+   - Promoter sees their impact: `/api/promoter/events/{id}/stats` (events app).
 
 ---
 
 ## 8. Mermaid Overview
 
-```mermaid
-flowchart TD
-  subgraph OrgSide
-    O[Organiser] --> OE[POST /api/organiser/events]
-    OE --> EV[Event]
-    O --> OST[POST /api/organiser/events/{id}/share/organiser]
-    OST --> OT[Organiser Token]
-  end
-
-  subgraph PromoterSide
-    PM[Promoter] -->|Accept OT| PA[POST /api/promoter/accept]
-    PA --> EP[EventPromoter link]
-    PM --> PST[POST /api/promoter/events/{id}/share/participant]
-    PST --> PT[Participant Token / YAML]
-  end
-
-  subgraph ParticipantSide
-    PT --> QR[QR Scan Offline]
-    QR --> LS[Local Store]
-    LS --> SYNC[POST /api/participant/sync when online]
-  end
-
-  SYNC --> BE[Backend Validation]
-  BE --> RSVP[RSVP Records with optional promoter attribution]
-  BE --> RESP[Canonical Event Data]
-
-  O --> STATS[GET /api/organiser/events/{id}/stats]
-  PM --> PSTATS[GET /api/promoter/events/{id}/stats]
 ```
-
----

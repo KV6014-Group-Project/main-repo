@@ -1,0 +1,212 @@
+"""
+Views for participants app.
+"""
+import json
+from datetime import datetime
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from django.utils import timezone
+from core.utils import parse_yaml_payload, verify_yaml_payload
+from core.views import BaseAPIView
+from .models import DeviceProfile
+from .serializers import (
+    DeviceProfileSerializer,
+    ParticipantSyncSerializer,
+    SyncEntryResponseSerializer,
+    ParticipantSyncResponseSerializer,
+)
+from events.models import Event, RSVP
+from events.serializers import EventSerializer
+from users.models import PromoterProfile
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def sync(request):
+    """
+    Sync participant entries (YAML/token) and create RSVPs.
+    
+    This endpoint:
+    1. Parses YAML or decodes token
+    2. Validates signature
+    3. Resolves event and promoter attribution
+    4. Creates/updates DeviceProfile and RSVP
+    """
+    serializer = ParticipantSyncSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    device_id = serializer.validated_data['device_id']
+    entries = serializer.validated_data['entries']
+    
+    # Get or create device profile
+    device_profile, created = DeviceProfile.objects.get_or_create(
+        device_id=device_id,
+        defaults={
+            'platform': request.META.get('HTTP_USER_AGENT', '')[:50],
+        }
+    )
+    
+    # Process each entry
+    entry_responses = []
+    event_ids = set()
+    
+    for index, entry in enumerate(entries):
+        entry_response = {
+            'entry_index': index,
+            'success': False,
+            'event_id': None,
+            'rsvp_id': None,
+            'error': None,
+        }
+        
+        try:
+            # Parse YAML or token
+            yaml_data = None
+            if entry.get('yaml'):
+                yaml_data = parse_yaml_payload(entry['yaml'])
+                if not yaml_data:
+                    entry_response['error'] = 'Invalid YAML format'
+                    entry_responses.append(entry_response)
+                    continue
+                
+                # Verify signature
+                if not verify_yaml_payload(yaml_data):
+                    entry_response['error'] = 'Invalid signature'
+                    entry_responses.append(entry_response)
+                    continue
+            elif entry.get('token'):
+                # TODO: Implement token decoding (for Phase 2/3)
+                entry_response['error'] = 'Token decoding not yet implemented'
+                entry_responses.append(entry_response)
+                continue
+            else:
+                entry_response['error'] = 'No YAML or token provided'
+                entry_responses.append(entry_response)
+                continue
+            
+            # Extract event and share data
+            event_data = yaml_data.get('event', {})
+            share_data = yaml_data.get('share', {})
+            
+            event_id = event_data.get('id') or share_data.get('eventId')
+            if not event_id:
+                entry_response['error'] = 'Event ID not found'
+                entry_responses.append(entry_response)
+                continue
+            
+            # Get event
+            try:
+                event = Event.objects.get(id=event_id, status='published')
+            except Event.DoesNotExist:
+                entry_response['error'] = 'Event not found or not published'
+                entry_responses.append(entry_response)
+                continue
+            
+            # Resolve promoter attribution
+            promoter = None
+            promoter_id = share_data.get('promoterId')
+            if promoter_id:
+                try:
+                    promoter = PromoterProfile.objects.get(id=promoter_id)
+                    # Verify promoter is assigned to event
+                    from events.models import EventPromoter
+                    if not EventPromoter.objects.filter(
+                        event=event,
+                        promoter=promoter,
+                        is_active=True
+                    ).exists():
+                        promoter = None  # Invalid attribution
+                except PromoterProfile.DoesNotExist:
+                    promoter = None
+            
+            # Map local_status to RSVP status
+            status_map = {
+                'rsvp': 'rsvp',
+                'interested': 'interested',
+                'scanned': 'rsvp',  # Default scanned to rsvp
+            }
+            rsvp_status = status_map.get(entry['local_status'], 'rsvp')
+            
+            # Determine source
+            source = share_data.get('channel', 'offline_sync')
+            if source == 'qr':
+                source = 'qr'
+            elif source in ['link', 'poster']:
+                source = 'link'
+            else:
+                source = 'offline_sync'
+            
+            # Parse scanned_at
+            scanned_at = None
+            if entry.get('scanned_at'):
+                try:
+                    scanned_at = datetime.fromtimestamp(entry['scanned_at'] / 1000, tz=timezone.utc)
+                except Exception:
+                    scanned_at = timezone.now()
+            
+            # Create or update RSVP
+            rsvp, created = RSVP.objects.update_or_create(
+                event=event,
+                device=device_profile,
+                defaults={
+                    'promoter': promoter,
+                    'status': rsvp_status,
+                    'source': source,
+                    'scanned_at': scanned_at or timezone.now(),
+                }
+            )
+            
+            entry_response['success'] = True
+            entry_response['event_id'] = event.id
+            entry_response['rsvp_id'] = rsvp.id
+            event_ids.add(event.id)
+            
+        except Exception as e:
+            entry_response['error'] = str(e)
+        
+        entry_responses.append(entry_response)
+    
+    # Get canonical event data for all synced events
+    events = Event.objects.filter(id__in=event_ids)
+    event_serializer = EventSerializer(events, many=True)
+    
+    response_data = {
+        'device_id': device_id,
+        'entries': entry_responses,
+        'events': event_serializer.data,
+    }
+    
+    response_serializer = ParticipantSyncResponseSerializer(response_data)
+    return Response(response_serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def events(request):
+    """
+    Get events associated with a device_id.
+    """
+    device_id = request.query_params.get('device_id')
+    if not device_id:
+        return Response(
+            {'error': 'device_id parameter is required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        device_profile = DeviceProfile.objects.get(device_id=device_id)
+    except DeviceProfile.DoesNotExist:
+        return Response(
+            {'error': 'Device not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    # Get events through RSVPs
+    rsvps = RSVP.objects.filter(device=device_profile).select_related('event')
+    events = [rsvp.event for rsvp in rsvps]
+    
+    event_serializer = EventSerializer(events, many=True)
+    return Response(event_serializer.data, status=status.HTTP_200_OK)
