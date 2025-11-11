@@ -7,6 +7,7 @@ import { KeyboardAvoidingView, Platform, View } from 'react-native';
 export default function PromoterAuth() {
   const { signIn, signUp } = useSession();
   const router = useRouter();
+  const [error, setError] = React.useState<string | null>(null);
 
   const handleSubmit = React.useCallback(async (params: {
     mode: 'signin' | 'signup';
@@ -15,19 +16,32 @@ export default function PromoterAuth() {
     email: string;
     password: string;
   }) => {
-    if (params.mode === 'signin') {
-      const session = await signIn(params.email, params.password, 'promoter');
-      if (session?.role === 'promoter') router.replace('/promoter');
-    } else {
-      const fullName = `${params.firstName} ${params.lastName}`;
-      const session = await signUp({ 
-        email: params.email, 
-        password: params.password, 
-        role: 'promoter',
-        firstName: params.firstName,
-        lastName: params.lastName
-      });
-      if (session?.role === 'promoter') router.replace('/promoter');
+    try {
+      setError(null);
+      if (params.mode === 'signin') {
+        const session = await signIn(params.email, params.password, 'promoter');
+        if (session?.role === 'promoter' && session.token) {
+          router.replace('/promoter');
+        } else {
+          setError('Invalid credentials or role mismatch');
+        }
+      } else {
+        const fullName = `${params.firstName} ${params.lastName}`;
+        const session = await signUp({ 
+          email: params.email, 
+          password: params.password, 
+          role: 'promoter',
+          firstName: params.firstName,
+          lastName: params.lastName
+        });
+        if (session?.role === 'promoter' && session.token) {
+          router.replace('/promoter');
+        } else {
+          setError('Sign up failed');
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Authentication failed');
     }
   }, [signIn, signUp, router]);
 

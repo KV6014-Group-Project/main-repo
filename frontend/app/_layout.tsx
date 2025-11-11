@@ -57,6 +57,13 @@ function RootLayoutContent() {
   );
 }
 
+// Role to home route mapping
+const ROLE_HOME_ROUTES: Record<string, string> = {
+  organiser: '/organiser',
+  promoter: '/promoter',
+  participant: '/',
+};
+
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { session } = useSession();
   const router = useRouter();
@@ -64,46 +71,39 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   React.useEffect(() => {
-    // Get route info
-    const first = segments[0];
-    const isProtected = first === 'organiser' || first === 'promoter';
     const isAuthScreen = pathname?.startsWith('/auth');
-    const isRoot = pathname === '/' || pathname === null;
     const isWelcomeScreen = pathname === '/welcome';
-    const isParticipantRoute = pathname === '/participant';
+    const publicRoutes = isAuthScreen || isWelcomeScreen;
 
-    // No session: guide to welcome
+    // Redirect unauthenticated users to welcome screen
     if (!session) {
-      if (!isWelcomeScreen && !isAuthScreen) {
+      if (!publicRoutes) {
         router.replace('/welcome');
       }
       return;
     }
 
-    // User is authenticated - enforce role-based access
+    // User is authenticated - enforce role-based routing
     const userRole = session.role;
+    const homeRoute = ROLE_HOME_ROUTES[userRole] || '/';
+    const firstSegment = segments[0];
+    const protectedRoute = firstSegment === 'organiser' || firstSegment === 'promoter';
 
-    // If user is on a protected route that doesn't match their role, redirect
-    if (isProtected && userRole !== first) {
-      // Redirect to appropriate home screen
-      if (userRole === 'organiser') router.replace('/organiser');
-      else if (userRole === 'promoter') router.replace('/promoter');
-      else if (userRole === 'participant') router.replace('/');
+    // Redirect authenticated users away from public routes
+    if (publicRoutes) {
+      router.replace(homeRoute);
       return;
     }
 
-    // If user is on root (/) they must be a participant
-    if (isRoot && userRole !== 'participant') {
-      if (userRole === 'organiser') router.replace('/organiser');
-      else if (userRole === 'promoter') router.replace('/promoter');
+    // Enforce role-based access for protected routes
+    if (protectedRoute && userRole !== firstSegment) {
+      router.replace(homeRoute);
       return;
     }
 
-    // If authenticated user is on welcome or auth screen, redirect to their home
-    if ((isWelcomeScreen || isAuthScreen) && session) {
-      if (userRole === 'organiser') router.replace('/organiser');
-      else if (userRole === 'promoter') router.replace('/promoter');
-      else if (userRole === 'participant') router.replace('/');
+    // Root route is participant-only
+    if ((pathname === '/' || pathname === null) && userRole !== 'participant') {
+      router.replace(homeRoute);
       return;
     }
   }, [session, segments, pathname, router]);

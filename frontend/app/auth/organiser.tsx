@@ -7,6 +7,7 @@ import { KeyboardAvoidingView, Platform, View } from 'react-native';
 export default function OrganiserAuth() {
   const { signIn, signUp } = useSession();
   const router = useRouter();
+  const [error, setError] = React.useState<string | null>(null);
 
   const handleSubmit = React.useCallback(async (params: {
     mode: 'signin' | 'signup';
@@ -15,19 +16,32 @@ export default function OrganiserAuth() {
     email: string;
     password: string;
   }) => {
-    if (params.mode === 'signin') {
-      const session = await signIn(params.email, params.password, 'organiser');
-      if (session?.role === 'organiser') router.replace('/organiser');
-    } else {
-      const fullName = `${params.firstName} ${params.lastName}`;
-      const session = await signUp({ 
-        email: params.email, 
-        password: params.password, 
-        role: 'organiser', 
-        firstName: params.firstName,
-        lastName: params.lastName
-      });
-      if (session?.role === 'organiser') router.replace('/organiser');
+    try {
+      setError(null);
+      if (params.mode === 'signin') {
+        const session = await signIn(params.email, params.password, 'organiser');
+        if (session?.role === 'organiser' && session.token) {
+          router.replace('/organiser');
+        } else {
+          setError('Invalid credentials or role mismatch');
+        }
+      } else {
+        const fullName = `${params.firstName} ${params.lastName}`;
+        const session = await signUp({ 
+          email: params.email, 
+          password: params.password, 
+          role: 'organiser', 
+          firstName: params.firstName,
+          lastName: params.lastName
+        });
+        if (session?.role === 'organiser' && session.token) {
+          router.replace('/organiser');
+        } else {
+          setError('Sign up failed');
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Authentication failed');
     }
   }, [signIn, signUp, router]);
 

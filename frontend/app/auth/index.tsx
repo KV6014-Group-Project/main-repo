@@ -7,7 +7,6 @@ import React from 'react';
 import { KeyboardAvoidingView, Platform, View } from 'react-native';
 
 export default function AuthIndexScreen() {
-  const { signUp } = useSession();
   const router = useRouter();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -18,6 +17,11 @@ export default function AuthIndexScreen() {
 
   return (
     <>
+    <Stack.Screen options={{
+      headerShown: true,
+      headerTitle: '',
+      headerTransparent: true,
+    }} />
     <KeyboardAvoidingView behavior={Platform.select({ ios: 'padding', android: undefined })} className="flex-1 items-center justify-center p-6">
       <View className="w-full max-w-md gap-6">
         <Card>

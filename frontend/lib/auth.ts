@@ -91,13 +91,15 @@ export async function clearSession(): Promise<void> {
 }
 
 // Stubbed auth flows — replace with real API when backend is ready
-export async function signIn(email: string, password: string): Promise<Session> {
+export async function signIn(email: string, password: string, role: Role): Promise<Session> {
   // simple stub validation
   if (!email || !password) {
     throw new Error('Email and password are required');
   }
-  // Default users sign in without selecting role here; caller should determine role context
-  const session: Session = { token: `stub-${Date.now()}`, role: 'organiser' };
+  if (!role) {
+    throw new Error('Role is required');
+  }
+  const session: Session = { token: `stub-${Date.now()}`, role };
   await setSession(session);
   return session;
 }

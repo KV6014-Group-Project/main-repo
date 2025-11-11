@@ -30,7 +30,7 @@ export default function PromoterHome() {
 
   const onSignOut = async () => {
     await signOut();
-    router.replace('/auth');
+    router.replace('/welcome');
   };
 
   return (

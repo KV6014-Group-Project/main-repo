@@ -37,7 +37,7 @@ export default function OrganiserHome() {
 
   const onSignOut = async () => {
     await signOut();
-    router.replace('/auth');
+    router.replace('/welcome');
   };
 
   return (
