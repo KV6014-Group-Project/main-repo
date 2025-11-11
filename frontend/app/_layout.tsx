@@ -47,7 +47,7 @@ function RootLayoutContent() {
       <AuthGuard>
         <Stack
           screenOptions={{
-            title: 'React Native Reusables',
+            title: 'Event Manager',
             headerTransparent: true,
             headerRight: () => <ThemeToggle />,
           }}
