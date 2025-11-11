@@ -1,8 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
+import { ScreenLayout } from '@/components/layouts';
 import { useSession } from '@/providers/SessionProvider';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import React from 'react';
 import { View } from 'react-native';
 
@@ -16,24 +17,29 @@ export default function ParticipantHome() {
   };
 
   return (
-    <View className="flex-1 items-center justify-center p-6">
-      <View className="w-full max-w-md gap-6">
-        <Card>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <ScreenLayout
+        title="Participant profile"
+        subtitle="View your guest details and end your session at any time."
+      >
+        <Card className="overflow-hidden md:shadow-lg">
           <CardHeader>
             <CardTitle>
-              <Text variant="h3">Participant</Text>
+              <Text variant="h3">Guest session</Text>
             </CardTitle>
             <CardDescription>
-              <Text variant="muted">Guest session — no signup required</Text>
+              <Text variant="muted">You are using Event Manager as a participant.</Text>
             </CardDescription>
           </CardHeader>
           <CardContent className="gap-4">
-            <Text>Public participant area</Text>
             {session?.profile ? (
               <View className="gap-4">
                 <View className="gap-1.5">
                   <Text className="text-sm text-muted-foreground">Name</Text>
-                  <Text>{session.profile.firstName} {session.profile.lastName}</Text>
+                  <Text>
+                    {session.profile.firstName} {session.profile.lastName}
+                  </Text>
                 </View>
                 <View className="gap-1.5">
                   <Text className="text-sm text-muted-foreground">Email</Text>
@@ -46,14 +52,24 @@ export default function ParticipantHome() {
                   </View>
                 ) : null}
               </View>
-            ) : null}
+            ) : (
+              <Text variant="muted">
+                No profile details available for this session.
+              </Text>
+            )}
           </CardContent>
         </Card>
-        <Button onPress={onLeave}>
-          <Text>End Guest Session</Text>
+
+        <Button
+          onPress={onLeave}
+          variant="ghost"
+          size="lg"
+          className="mt-6"
+        >
+          <Text>End guest session</Text>
         </Button>
-      </View>
-    </View>
+      </ScreenLayout>
+    </>
   );
 }
 

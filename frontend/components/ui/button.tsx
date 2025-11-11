@@ -1,7 +1,7 @@
 import { TextClassContext } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { Platform, Pressable } from 'react-native';
+import { Platform, Pressable, ActivityIndicator } from 'react-native';
 
 const buttonVariants = cva(
   cn(
@@ -37,7 +37,12 @@ const buttonVariants = cva(
           'active:bg-accent dark:active:bg-accent/50',
           Platform.select({ web: 'hover:bg-accent dark:hover:bg-accent/50' })
         ),
-        link: '',
+        link: cn(
+          'px-0 py-0 h-auto min-h-0 shadow-none',
+          Platform.select({
+            web: 'underline-offset-4 hover:underline',
+          })
+        ),
       },
       size: {
         default: cn('h-10 px-4 py-2 sm:h-9', Platform.select({ web: 'has-[>svg]:px-3' })),
@@ -45,10 +50,15 @@ const buttonVariants = cva(
         lg: cn('h-11 rounded-md px-6 sm:h-10', Platform.select({ web: 'has-[>svg]:px-4' })),
         icon: 'h-10 w-10 sm:h-9 sm:w-9',
       },
+      loading: {
+        true: 'opacity-80',
+        false: '',
+      },
     },
     defaultVariants: {
       variant: 'default',
       size: 'default',
+      loading: false,
     },
   }
 );
@@ -71,7 +81,7 @@ const buttonTextVariants = cva(
         ghost: 'group-active:text-accent-foreground',
         link: cn(
           'text-primary group-active:underline',
-          Platform.select({ web: 'underline-offset-4 hover:underline group-hover:underline' })
+          Platform.select({ web: 'hover:underline group-hover:underline' })
         ),
       },
       size: {
@@ -80,26 +90,57 @@ const buttonTextVariants = cva(
         lg: '',
         icon: '',
       },
+      loading: {
+        true: '',
+        false: '',
+      },
     },
     defaultVariants: {
       variant: 'default',
       size: 'default',
+      loading: false,
     },
   }
 );
 
 type ButtonProps = React.ComponentProps<typeof Pressable> &
-  React.RefAttributes<typeof Pressable> &
-  VariantProps<typeof buttonVariants>;
+  VariantProps<typeof buttonVariants> & {
+    loading?: boolean;
+  };
 
-function Button({ className, variant, size, ...props }: ButtonProps) {
+function Button({
+  className,
+  variant,
+  size,
+  loading = false,
+  disabled,
+  children,
+  ...props
+}: ButtonProps) {
+  const isDisabled = disabled || loading;
+
   return (
-    <TextClassContext.Provider value={buttonTextVariants({ variant, size })}>
+    <TextClassContext.Provider
+      value={buttonTextVariants({ variant, size, loading })}
+    >
       <Pressable
-        className={cn(props.disabled && 'opacity-50', buttonVariants({ variant, size }), className)}
-        role="button"
+        className={cn(
+          isDisabled && 'opacity-50',
+          buttonVariants({ variant, size, loading }),
+          className
+        )}
+        disabled={isDisabled}
         {...props}
-      />
+      >
+        {loading && (
+          <ActivityIndicator
+            size="small"
+            color="currentColor"
+            style={{ marginRight: children ? 6 : 0 }}
+          />
+        )}
+        {children}
+      </Pressable>
     </TextClassContext.Provider>
   );
 }

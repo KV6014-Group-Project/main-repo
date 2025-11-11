@@ -36,8 +36,11 @@ export default function PromoterHome() {
 
   return (
     <>
-      {SCREEN_OPTIONS ? <Stack.Screen options={SCREEN_OPTIONS} /> : null}
-      <ScreenLayout title="Promoter">
+      <Stack.Screen options={SCREEN_OPTIONS} />
+      <ScreenLayout
+        title="Promoter"
+        subtitle="Turn organiser events into audiences with tracked share links."
+      >
         <Card className="overflow-hidden md:shadow-lg w-full">
           <CardHeader>
             <CardTitle>
@@ -115,8 +118,13 @@ export default function PromoterHome() {
           </CardContent>
         </Card>
 
-        <Button className="mt-4" onPress={onSignOut}>
-          <Text>Sign Out</Text>
+        <Button
+          className="mt-6"
+          variant="ghost"
+          size="lg"
+          onPress={onSignOut}
+        >
+          <Text>Sign out</Text>
         </Button>
       </ScreenLayout>
     </>

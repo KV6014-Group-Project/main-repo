@@ -4,56 +4,111 @@ import { Text } from '@/components/ui/text';
 import { useSession } from '@/providers/SessionProvider';
 import { Stack, useRouter } from 'expo-router';
 import React from 'react';
-import { KeyboardAvoidingView, Platform, View } from 'react-native';
+import { View, ScrollView } from 'react-native';
 
 export default function AuthIndexScreen() {
   const { signUp } = useSession();
   const router = useRouter();
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const [loading] = React.useState(false);
+  const [error] = React.useState<string | null>(null);
 
-  const continueAsParticipant = async () => {
+  const continueAsParticipant = () => {
     router.push('/auth/participant');
   };
 
   return (
     <>
-    <KeyboardAvoidingView behavior={Platform.select({ ios: 'padding', android: undefined })} className="flex-1 items-center justify-center p-6">
-      <View className="w-full max-w-md gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <Text variant="h3">Welcome</Text>
-            </CardTitle>
-            <CardDescription>
-              <Text variant="muted">Choose how to continue</Text>
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <View className="gap-4">
-              <Button size="lg" onPress={continueAsParticipant} disabled={loading}>
-                <Text>Continue as Participant</Text>
-              </Button>
-
-              <View className="h-px bg-border" />
-              <Text className="text-center text-sm text-muted-foreground">Or manage an event</Text>
-
-              <View className="gap-3">
-                <Button variant="outline" onPress={() => router.push('/auth/organiser')}>
-                  <Text>I am an Organiser</Text>
-                </Button>
-                <Button variant="outline" onPress={() => router.push('/auth/promoter')}>
-                  <Text>I am a Promoter</Text>
-                </Button>
-              </View>
-
-              {error ? <Text className="text-destructive text-sm mt-2">{error}</Text> : null}
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          headerTransparent: false,
+          title: 'Get started',
+          headerBackTitleVisible: false,
+        }}
+      />
+      <View className="flex-1 bg-background">
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{
+            paddingHorizontal: 24,
+            paddingVertical: 24,
+          }}
+        >
+          <View className="w-full max-w-xl mx-auto gap-6">
+            <View className="gap-1">
+              <Text variant="h2" className="font-semibold">
+                Get started
+              </Text>
+              <Text variant="muted" className="text-sm">
+                Choose how you want to use Event Manager.
+              </Text>
             </View>
-          </CardContent>
-        </Card>
-      </View>
-    </KeyboardAvoidingView>
-    </>
+
+                <Card className="overflow-hidden md:shadow-lg">
+                  <CardHeader>
+                    <CardTitle>
+                      <Text variant="h3">Join as participant</Text>
+                    </CardTitle>
+                    <CardDescription>
+                      <Text variant="muted">
+                        Quick access with light details. Ideal if you just need to check in to events.
+                      </Text>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button
+                      size="lg"
+                      onPress={continueAsParticipant}
+                      disabled={loading}
+                      className="w-full"
+                    >
+                      <Text className="font-semibold">Continue as participant</Text>
+                    </Button>
+                  </CardContent>
+                </Card>
+    
+                <Card className="overflow-hidden md:shadow-lg">
+                  <CardHeader>
+                    <CardTitle>
+                      <Text variant="h3">Manage events</Text>
+                    </CardTitle>
+                    <CardDescription>
+                      <Text variant="muted">
+                        Create or promote events with dashboards tailored to your role.
+                      </Text>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <View className="gap-3">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="w-full"
+                        onPress={() => router.push('/auth/organiser')}
+                      >
+                        <Text>I am an organiser</Text>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="w-full"
+                        onPress={() => router.push('/auth/promoter')}
+                      >
+                        <Text>I am a promoter</Text>
+                      </Button>
+                    </View>
+                  </CardContent>
+                </Card>
+    
+                {error ? (
+                  <Text className="text-destructive text-sm mt-2 text-center">
+                    {error}
+                  </Text>
+                ) : null}
+              </View>
+            </ScrollView>
+          </View>
+        </>
   );
 }
 

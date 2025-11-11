@@ -43,8 +43,11 @@ export default function OrganiserHome() {
 
   return (
     <>
-      {SCREEN_OPTIONS ? <Stack.Screen options={SCREEN_OPTIONS} /> : null}
-      <ScreenLayout title="Organiser">
+      <Stack.Screen options={SCREEN_OPTIONS} />
+      <ScreenLayout
+        title="Organiser"
+        subtitle="Create events and issue promoter links to drive attendance."
+      >
         <Card className="overflow-hidden md:shadow-lg w-full">
           <CardHeader>
             <CardTitle>
@@ -132,8 +135,13 @@ export default function OrganiserHome() {
           </CardContent>
         </Card>
 
-        <Button className="mt-4" onPress={onSignOut}>
-          <Text>Sign Out</Text>
+        <Button
+          className="mt-6"
+          variant="ghost"
+          size="lg"
+          onPress={onSignOut}
+        >
+          <Text>Sign out</Text>
         </Button>
       </ScreenLayout>
     </>

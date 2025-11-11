@@ -41,6 +41,20 @@ module.exports = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+
+        // Role-based accents
+        role: {
+          participant: '#2563eb', // blue
+          organiser: '#22c55e',   // green
+          promoter: '#eab308',    // amber
+        },
+
+        // Event state colors
+        event: {
+          live: '#16a34a',
+          upcoming: '#2563eb',
+          past: '#6b7280',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

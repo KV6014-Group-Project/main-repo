@@ -15,6 +15,100 @@ export {
   ErrorBoundary,
 } from 'expo-router';
 
+type Role = 'participant' | 'organiser' | 'promoter';
+
+type RoleRouteConfig = {
+  role: Role;
+  home: string;
+  protectedPrefixes: string[];
+};
+
+const ROLE_CONFIG: Record<Role, RoleRouteConfig> = {
+  participant: {
+    role: 'participant',
+    home: '/',
+    protectedPrefixes: ['/participant'],
+  },
+  organiser: {
+    role: 'organiser',
+    home: '/organiser',
+    protectedPrefixes: ['/organiser'],
+  },
+  promoter: {
+    role: 'promoter',
+    home: '/promoter',
+    protectedPrefixes: ['/promoter'],
+  },
+};
+
+const PUBLIC_ROUTES = ['/welcome', '/auth'];
+const PUBLIC_PREFIXES = ['/auth'];
+
+function isPublicPath(pathname: string | null): boolean {
+  if (!pathname) return true;
+  if (PUBLIC_ROUTES.includes(pathname)) return true;
+  return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+function resolveRoleConfig(role: Role | undefined | null): RoleRouteConfig | null {
+  if (!role) return null;
+  return ROLE_CONFIG[role] ?? null;
+}
+
+function getFirstSegment(pathname: string | null): string | null {
+  if (!pathname) return null;
+  const [, first] = pathname.split('/');
+  return first || null;
+}
+
+/**
+ * Compute the appropriate redirect path for a given session + pathname.
+ * Returns null when the current location is allowed.
+ */
+function getRedirectPath(params: { session: { role: Role } | null; pathname: string | null }): string | null {
+  const { session, pathname } = params;
+
+  // No session: keep user on public entry points, otherwise send to welcome
+  if (!session) {
+    if (isPublicPath(pathname)) return null;
+    return '/welcome';
+  }
+
+  const roleConfig = resolveRoleConfig(session.role);
+  if (!roleConfig) {
+    // Unknown role, send to generic entry
+    return '/welcome';
+  }
+
+  const current = pathname ?? '/';
+  const firstSegment = getFirstSegment(current);
+
+  // If on an auth/welcome route while authenticated, push to home
+  if (isPublicPath(current)) {
+    return roleConfig.home;
+  }
+
+  // Allow root for participants, redirect other roles to their dashboards
+  if (current === '/') {
+    return roleConfig.role === 'participant' ? null : roleConfig.home;
+  }
+
+  // Basic protected segment check: if route segment mismatches role expectation, send home
+  if (firstSegment && !roleConfig.protectedPrefixes.some((prefix) => current.startsWith(prefix))) {
+    // Participant hitting organiser/promoter routes or vice versa
+    // Let participant access generic routes; others go home if in wrong segment
+    if (roleConfig.role === 'participant') {
+      return null;
+    }
+    // Non-participant in a segment they do not own
+    if (['organiser', 'promoter', 'participant'].includes(firstSegment)) {
+      return roleConfig.home;
+    }
+  }
+
+  return null;
+}
+
 export default function RootLayout() {
   const { navTheme, isDark } = useTheme();
 
@@ -33,7 +127,6 @@ function RootLayoutContent() {
   const { navTheme } = useTheme();
   const { status } = useSession();
 
-  // Show loading screen while session is being initialized
   if (status !== 'ready') {
     return (
       <View className="flex-1 items-center justify-center bg-background">
@@ -47,7 +140,7 @@ function RootLayoutContent() {
       <AuthGuard>
         <Stack
           screenOptions={{
-            title: 'React Native Reusables',
+            title: 'Event Manager',
             headerTransparent: true,
             headerRight: () => <ThemeToggle />,
           }}
@@ -60,53 +153,19 @@ function RootLayoutContent() {
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { session } = useSession();
   const router = useRouter();
-  const segments = useSegments();
   const pathname = usePathname();
+  const segments = useSegments(); // retained in case nested stacks are introduced
 
   React.useEffect(() => {
-    // Get route info
-    const first = segments[0];
-    const isProtected = first === 'organiser' || first === 'promoter';
-    const isAuthScreen = pathname?.startsWith('/auth');
-    const isRoot = pathname === '/' || pathname === null;
-    const isWelcomeScreen = pathname === '/welcome';
-    const isParticipantRoute = pathname === '/participant';
+    const redirect = getRedirectPath({
+      session,
+      pathname,
+    });
 
-    // No session: guide to welcome
-    if (!session) {
-      if (!isWelcomeScreen && !isAuthScreen) {
-        router.replace('/welcome');
-      }
-      return;
+    if (redirect && redirect !== pathname) {
+      router.replace(redirect);
     }
-
-    // User is authenticated - enforce role-based access
-    const userRole = session.role;
-
-    // If user is on a protected route that doesn't match their role, redirect
-    if (isProtected && userRole !== first) {
-      // Redirect to appropriate home screen
-      if (userRole === 'organiser') router.replace('/organiser');
-      else if (userRole === 'promoter') router.replace('/promoter');
-      else if (userRole === 'participant') router.replace('/');
-      return;
-    }
-
-    // If user is on root (/) they must be a participant
-    if (isRoot && userRole !== 'participant') {
-      if (userRole === 'organiser') router.replace('/organiser');
-      else if (userRole === 'promoter') router.replace('/promoter');
-      return;
-    }
-
-    // If authenticated user is on welcome or auth screen, redirect to their home
-    if ((isWelcomeScreen || isAuthScreen) && session) {
-      if (userRole === 'organiser') router.replace('/organiser');
-      else if (userRole === 'promoter') router.replace('/promoter');
-      else if (userRole === 'participant') router.replace('/');
-      return;
-    }
-  }, [session, segments, pathname, router]);
+  }, [session, pathname, router, segments]);
 
   return <>{children}</>;
 }
