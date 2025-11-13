@@ -33,7 +33,18 @@ class UserManager(BaseUserManager):
         
         return self.create_user(email, password, **extra_fields)
 
+# normalization
+"""
+class Role(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=50, unique=True)
+    description = models.CharField(max_length=256, unique=True)
 
+    class Meta:
+        db_table = 'roles'
+        ordering = ['name']
+"""
+        
 class User(AbstractBaseUser, PermissionsMixin):
     """
     Custom User model with role-based authentication.
@@ -49,7 +60,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     
     # Profile fields
-    name = models.CharField(max_length=255, blank=True)
+    first_name = models.CharField(max_length=50, blank=True)
+    last_name = models.CharField(max_length=50, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     
     # Django auth fields

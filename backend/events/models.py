@@ -5,12 +5,36 @@ import uuid
 from django.db import models
 from django.utils import timezone
 from users.models import User, PromoterProfile
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
+"""
+class Roles(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=50, unique=True)
+    description = models.CharField(max_length=256, unique=True)
+
+    class Meta:
+        db_table = 'roles'
+        ordering = ['name']
+
+class EventStatuses(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=50, unique=True)
+
+    # Indexes are inefficient for such a small lookup table
+    class Meta:
+        db_table = 'event_statuses'
+        ordering = ['name']
+"""
 
 class Event(models.Model):
     """
     Event model representing an event created by an organiser.
     """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # Why are we allowing capitalization? We should just lowercase it.
+    # this should be normalized
     STATUS_CHOICES = [
         ('draft', 'Draft'),
         ('published', 'Published'),
@@ -23,6 +47,8 @@ class Event(models.Model):
         ('private', 'Private'),
     ]
     
+    # models have a default id without being stated,
+    # you don't need to define this
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     organiser = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organised_events')
     
@@ -43,6 +69,14 @@ class Event(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     visibility = models.CharField(max_length=20, choices=VISIBILITY_CHOICES, default='public')
     
+    # Status table for normalization
+    """
+    status_id = models.ForeignKey(
+        EventStatuses,
+        on_delete=models.CASCADE
+    )
+    """
+
     # Metadata
     metadata = models.JSONField(default=dict, blank=True)
     

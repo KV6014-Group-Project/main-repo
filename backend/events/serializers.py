@@ -29,19 +29,27 @@ class EventSerializer(serializers.ModelSerializer):
 
 class EventCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating an event."""
+    # TODO: when normalizing, things like status and visibility will need to be handled
+    def validate_title(self, value):
+        """Ensure the title is at least 3 characters."""
+        if len(value.strip()) < 3:
+            raise serializers.ValidationError("Title must be at least 3 characters long!")
+        return value
+
+    def create(self, validated_data):
+        """Create a new event with the current user as organiser."""
+        validated_data['organiser'] = self.context['request'].user
+        return super().create(validated_data)
+    
     class Meta:
         model = Event
         fields = [
+            'id',
             'title', 'description',
             'start_datetime', 'end_datetime',
             'location_venue', 'location_room', 'location_address',
             'status', 'visibility', 'metadata',
         ]
-    
-    def create(self, validated_data):
-        """Create a new event with the current user as organiser."""
-        validated_data['organiser'] = self.context['request'].user
-        return super().create(validated_data)
 
 
 class EventPromoterSerializer(serializers.ModelSerializer):
