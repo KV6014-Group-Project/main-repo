@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -23,8 +24,10 @@ urlpatterns = [
     # not sure why auth is just randomly using users. It should be a wrapper that calls users, not just using users like this. Separation of concerns bro.
     #path('api/auth/', include('users.urls')),
     path('api/users/', include('users.urls')),
-    path('api/events/', include('events.urls'))
+    path('api/events/', include('events.urls')),
     #path('api/organiser/', include('events.urls')),
     #path('api/promoter/', include('events.promoter_urls')),
     #path('api/participant/', include('participants.urls')),
+    path('api/schema/', SpectacularAPIView.as_view(), name='api-schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='api-schema'), name='api-docs'),
 ]
