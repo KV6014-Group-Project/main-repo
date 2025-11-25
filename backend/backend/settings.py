@@ -186,4 +186,8 @@ CORS_ALLOW_HEADERS = [
 ]
 
 # HMAC Signing Secret (in production, use environment variable)
-HMAC_SECRET_KEY = SECRET_KEY  # For development; use separate key in production
+#HMAC_SECRET_KEY = SECRET_KEY  # For development; use separate key in production
+
+ED25519_PRIVATE_KEY = '''-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VwBCIEIPaAsM+7+wSC777M3zDRuJMPa6yfIuUJbZH2tNjzlAE6
+-----END PRIVATE KEY-----'''

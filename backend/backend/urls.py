@@ -20,11 +20,11 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     # API routes
-    # not sure why auth is just randomly using users. It should be a wrapper that calls users, not just using users like this. Separation of concerns bro.
     #path('api/auth/', include('users.urls')),
     path('api/users/', include('users.urls')),
-    path('api/events/', include('events.urls'))
-    #path('api/organiser/', include('events.urls')),
-    #path('api/promoter/', include('events.promoter_urls')),
-    #path('api/participant/', include('participants.urls')),
+    path('api/events/', include('events.urls')),
+    path('api/organiser/', include('events.urls')),
+    path('api/promoter/', include('events.promoter_urls')),
+    path('api/participant/', include('participants.urls')),
+    path('api/core/', include('core.urls'))
 ]

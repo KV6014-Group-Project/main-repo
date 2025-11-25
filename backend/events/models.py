@@ -7,48 +7,46 @@ from django.utils import timezone
 from users.models import User, PromoterProfile
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
-"""
-class Roles(models.Model):
+
+class EventVenues(models.Model):
+    """
+    Reusable venues for events
+    """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=50, unique=True)
-    description = models.CharField(max_length=256, unique=True)
+    name = models.CharField(max_length=255, blank=True)
+    room = models.CharField(max_length=255, blank=True)
+    address = models.TextField(blank=True)
 
     class Meta:
-        db_table = 'roles'
-        ordering = ['name']
+        db_table = 'events_venues'
+        ordering = ['name', 'room', 'address']
+    
+    def __str__(self):
+        if self.room:
+            return f"{self.name} - {self.room}"
+        return self.name
+
 
 class EventStatuses(models.Model):
+    """
+    Event statuses for the event
+    """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=20)
+    description = models.TextField(max_length=255, blank=True)
 
-    # Indexes are inefficient for such a small lookup table
     class Meta:
-        db_table = 'event_statuses'
+        db_table = 'events_statuses'
         ordering = ['name']
-"""
+
+    def __str__(self):
+        return self.name
+
 
 class Event(models.Model):
     """
     Event model representing an event created by an organiser.
     """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    # Why are we allowing capitalization? We should just lowercase it.
-    # this should be normalized
-    STATUS_CHOICES = [
-        ('draft', 'Draft'),
-        ('published', 'Published'),
-        ('cancelled', 'Cancelled'),
-        ('completed', 'Completed'),
-    ]
-    
-    VISIBILITY_CHOICES = [
-        ('public', 'Public'),
-        ('private', 'Private'),
-    ]
-    
-    # models have a default id without being stated,
-    # you don't need to define this
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     organiser = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organised_events')
     
@@ -59,23 +57,19 @@ class Event(models.Model):
     # Date and time
     start_datetime = models.DateTimeField()
     end_datetime = models.DateTimeField()
-    
+
     # Location
-    location_venue = models.CharField(max_length=255, blank=True)
-    location_room = models.CharField(max_length=255, blank=True)
-    location_address = models.TextField(blank=True)
+    venue = models.ForeignKey(
+        EventVenues,
+        on_delete=models.PROTECT
+    )
     
     # Status and visibility
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
-    visibility = models.CharField(max_length=20, choices=VISIBILITY_CHOICES, default='public')
-    
-    # Status table for normalization
-    """
-    status_id = models.ForeignKey(
+    status = models.ForeignKey(
         EventStatuses,
-        on_delete=models.CASCADE
+        on_delete=models.PROTECT
     )
-    """
+    is_private = models.BooleanField(default=False)
 
     # Metadata
     metadata = models.JSONField(default=dict, blank=True)
@@ -98,10 +92,17 @@ class Event(models.Model):
     @property
     def location(self):
         """Get location as a dictionary."""
+        if not self.venue:
+            return {
+                'name': '',
+                'room': '',
+                'address': ''
+            }
+        
         return {
-            'venue': self.location_venue,
-            'room': self.location_room,
-            'address': self.location_address,
+            'name': self.venue.name,
+            'room': self.venue.room,
+            'address': self.venue.address
         }
     
     def to_event_snapshot(self):
@@ -115,9 +116,10 @@ class Event(models.Model):
             'location': self.location,
             'organiser': {
                 'id': str(self.organiser.id),
-                'name': self.organiser.name or self.organiser.email,
+                'name': f"{self.organiser.last_name}, {self.organiser.first_name}".strip() or self.organiser.email,
             },
         }
+    
 
 
 class EventPromoter(models.Model):
@@ -143,22 +145,38 @@ class EventPromoter(models.Model):
         return f"{self.promoter.user.email} -> {self.event.title}"
 
 
+class RSVPStatuses(models.Model):
+    """RSVP status lookup table."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=50, unique=True)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        db_table = 'rsvp_statuses'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class RSVPSources(models.Model):
+    """RSVP source lookup table."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=50, unique=True)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        db_table = 'rsvp_sources'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
 class RSVP(models.Model):
     """
     RSVP model for participant responses to events.
     """
-    STATUS_CHOICES = [
-        ('rsvp', 'RSVP'),
-        ('interested', 'Interested'),
-        ('cancelled', 'Cancelled'),
-    ]
-    
-    SOURCE_CHOICES = [
-        ('qr', 'QR Code'),
-        ('link', 'Link'),
-        ('offline_sync', 'Offline Sync'),
-    ]
-    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='rsvps')
     
@@ -169,9 +187,9 @@ class RSVP(models.Model):
     # Attribution
     promoter = models.ForeignKey(PromoterProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='attributed_rsvps')
     
-    # RSVP details
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='rsvp')
-    source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default='offline_sync')
+    # RSVP details - now ForeignKeys
+    status = models.ForeignKey(RSVPStatuses, on_delete=models.PROTECT)
+    source = models.ForeignKey(RSVPSources, on_delete=models.PROTECT)
     
     # Timestamps
     scanned_at = models.DateTimeField(null=True, blank=True)

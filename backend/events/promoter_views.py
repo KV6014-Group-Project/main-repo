@@ -10,7 +10,8 @@ from django.db.models import Count
 from core.permissions import IsPromoter
 from .models import Event, EventPromoter, RSVP
 from .serializers import EventSerializer, EventStatsSerializer
-
+from core.utils import create_signed_yaml_payload
+import time, uuid
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsPromoter])
@@ -40,6 +41,8 @@ def promoter_accept(request):
     """
     Accept an organiser token and link promoter to event.
     TODO: Full implementation in Phase 2 with token validation.
+    
+    TODO: use db instead. server authoritive, and association through XREF table, which already exists, makes it a simple check.
     """
     token = request.data.get('token')
     if not token:
@@ -59,14 +62,7 @@ def promoter_accept(request):
 def promoter_share_participant(request, event_id):
     """
     Generate participant-facing share token/QR for an event.
-    TODO: Full implementation in Phase 2 with token/YAML generation.
     """
-    if not hasattr(request.user, 'promoter_profile'):
-        return Response(
-            {'error': 'User does not have a promoter profile'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
     event = get_object_or_404(Event, id=event_id)
     
     # Verify promoter is assigned to this event
@@ -80,12 +76,28 @@ def promoter_share_participant(request, event_id):
             status=status.HTTP_403_FORBIDDEN
         )
     
-    # Placeholder for Phase 2 - will generate signed tokens/YAML
+    # Create event snapshot (using your Event model's method)
+    event_data = event.to_event_snapshot()
+    
+    # Create share metadata with promoter attribution
+    share_data = {
+        'scope': 'participant',
+        'eventId': str(event.id),
+        'shareId': str(uuid.uuid4()),
+        'promoterId': str(request.user.promoter_profile.id),
+        'issuedAt': int(time.time() * 1000),
+        'channel': 'qr'
+    }
+    
+    # Generate signed YAML payload
+    yaml_payload = create_signed_yaml_payload(event_data, share_data)
+    
     return Response({
         'event_id': str(event.id),
         'promoter_id': str(request.user.promoter_profile.id),
-        'message': 'Participant share generation will be implemented in Phase 2',
-    }, status=status.HTTP_501_NOT_IMPLEMENTED)
+        'yaml': yaml_payload,
+        'share_id': share_data['shareId']
+    })
 
 
 @api_view(['GET'])

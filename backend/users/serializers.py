@@ -3,11 +3,20 @@ Serializers for users app.
 """
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
-from .models import User, PromoterProfile
+from .models import Roles, User, PromoterProfile
 import re
+
+class RolesSerializer(serializers.ModelSerializer):
+    """Serializer for Roles."""
+    class Meta:
+        model = Roles
+        fields = ['id', 'name', 'description']
+        read_only_fields = ['id']
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for User model."""
+    role = RolesSerializer(read_only=True)
+
     class Meta:
         model = User
         fields = ['id', 'email', 'role', 'first_name', 'last_name', 'phone', 'date_joined']
@@ -18,6 +27,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     """Serializer for user registration."""
     email = serializers.EmailField(required=True)
     password = serializers.CharField(write_only=True)
+    role = serializers.UUIDField(required=True)
 
     def validate_email(self, value):
         """Validate email"""
@@ -64,21 +74,35 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Password must contain at least one special character.")
         return value
     
-    # redundant due to choices in models. If I get around to normalizing, then this will need to be sorted.
     def validate_role(self, value):
-        """Validate role."""
+        """Validate that the role UUID exists."""
+        try:
+            role = Roles.objects.get(id=value)
+        except Roles.DoesNotExist:
+            raise serializers.ValidationError("The selected role does not exist. Please choose a valid role.")
+        
+        return value
+        """
         if value not in ['organiser', 'promoter']:
             raise serializers.ValidationError("Role must be 'organiser' or 'promoter'.")
         return value
+        """
     
     def create(self, validated_data):
         """Create a new user."""
         password = validated_data.pop('password')
-        user = User.objects.create_user(password=password, **validated_data)
+        role_id = validated_data.pop('role')
+        
+        # Get the Roles object
+        role = Roles.objects.get(id=role_id)
+        
+        # Create user with role FK
+        user = User.objects.create_user(password=password, role=role, **validated_data)
         
         # Create promoter profile if role is promoter
-        if user.role == 'promoter':
+        if user.role.name == 'promoter':
             PromoterProfile.objects.create(user=user)
+        
         return user
     
     class Meta:

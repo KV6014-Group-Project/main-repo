@@ -5,25 +5,46 @@ class EventsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'events'
 
-    """
-    # this creates the default values on migration
     def ready(self):
-        from .models import EventStatuses, Roles
-
-        def create_defaults(sender, **kwargs):
-            # create roles defaults
-            role_defaults = [
-                {'name': 'admin', 'description': 'Admin with full access controls'},
-                {'name': 'staff', 'description': 'Staff access controls'},
-                {'name': 'organizer', 'description': 'Organizer access controls'}
-            ]
-            for role in role_defaults:
-                Roles.objects.get_or_create(name=role['name'], defaults={'description': role['description']})
-
-            # create status defaults
-            status_defaults = ['draft', 'published', 'cancelled', 'completed']
-            for status in status_defaults:
-                EventStatuses.objects.get_or_create(name=status)
-            
         post_migrate.connect(create_defaults, sender=self)
-    """
+
+
+def create_defaults(sender, **kwargs):
+    """Create default event statuses after migrations."""
+    from .models import EventStatuses, RSVPStatuses, RSVPSources
+    
+    event_status_defaults = [
+        {'name': 'draft', 'description': 'Event is being prepared'},
+        {'name': 'published', 'description': 'Event is live and visible'},
+        {'name': 'cancelled', 'description': 'Event has been cancelled'},
+        {'name': 'completed', 'description': 'Event has finished'},
+    ]
+    
+    for status in event_status_defaults:
+        EventStatuses.objects.get_or_create(
+            name=status['name'],
+            defaults={'description': status['description']}
+        )
+    
+    rsvp_status_defaults = [
+        {'name': 'rsvp', 'description': 'Confirmed attendance'},
+        {'name': 'interested', 'description': 'Interested in attending'},
+        {'name': 'cancelled', 'description': 'Cancelled attendance'},
+    ]
+    
+    for status in rsvp_status_defaults:
+        RSVPStatuses.objects.get_or_create(
+            name=status['name'],
+            defaults={'description': status['description']}
+        )
+
+    source_defaults = [
+        {'name': 'qr', 'description': 'Scanned QR code'},
+        {'name': 'link', 'description': 'Clicked shared link'},
+        {'name': 'offline_sync', 'description': 'Synced from offline device'},
+    ]
+    for source in source_defaults:
+        RSVPSources.objects.get_or_create(
+            name=source['name'],
+            defaults={'description': source['description']}
+        )
