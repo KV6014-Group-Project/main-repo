@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     # Third-party apps
     'rest_framework',
     'rest_framework.authtoken',
+    'drf_spectacular',
     'corsheaders',
     # Local apps
     'core',
@@ -152,6 +153,14 @@ REST_FRAMEWORK = {
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Main Backend API',
+    'DESCRIPTION': 'Automatically generated API documentation for the backend services.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 # CORS configuration
