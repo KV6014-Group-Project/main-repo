@@ -5,12 +5,14 @@ import { useRouter } from "expo-router";
 export default function AuthIndexScreen() {
   const router = useRouter();
 
+  // ROSE STAFF = Organisers
   const continueAsStaff = () => {
-    router.push("/auth/organiser"); // if staff path exists, otherwise adjust
+    router.push("/auth/staff-login");
   };
 
+  // COMMUNITY LEADER = Promoters
   const continueAsOrganiser = () => {
-    router.push("/auth/promoter");
+    router.push("/auth/leader-login");
   };
 
   const continueAsParticipant = () => {
@@ -41,7 +43,7 @@ export default function AuthIndexScreen() {
           </Text>
         </View>
 
-        {/* ROSE STAFF */}
+        {/* ROSE STAFF = Organisers */}
         <TouchableOpacity
           onPress={continueAsStaff}
           style={{
@@ -56,7 +58,7 @@ export default function AuthIndexScreen() {
           <Text style={{ color: "#000000", fontSize: 24 }}>ROSE STAFF</Text>
         </TouchableOpacity>
 
-        {/* COMMUNITY LEADER */}
+        {/* COMMUNITY LEADER = Promoters */}
         <TouchableOpacity
           onPress={continueAsOrganiser}
           style={{
