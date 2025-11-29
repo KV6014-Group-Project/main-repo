@@ -1,0 +1,84 @@
+import { ScreenLayout } from '@/components/layouts';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
+import { Stack, useRouter } from 'expo-router';
+import React from 'react';
+import { View, Image, TouchableOpacity } from 'react-native';
+
+export default function ForgotPasswordPage() {
+  const router = useRouter();
+  const [email, setEmail] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const handleForgotPassword = async () => {
+    setError(null);
+    if (!email.trim()) {
+      setError('Email is required');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // TODO: Implement actual forgot password API call
+      console.log('Forgot password email:', email);
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      alert('Password reset instructions sent to your email!');
+      router.replace('/auth'); // Navigate back to auth page after success
+    } catch (e) {
+      setError('Failed to send reset instructions. Please try again.');
+      console.error('Forgot password error:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <ScreenLayout
+        title="Reset Password"
+        subtitle="Enter your email to reset your password."
+        showBackButton={true}
+        onBackPress={router.back}
+        showThemeToggle={true}
+      >
+        <View className="gap-y-5 px-4">
+          <View className="items-center">
+            <Image
+              source={require('@/assets/images/rose.png')} // Using rose.png as per previous instructions
+              resizeMode="stretch"
+              className="w-28 h-28"
+            />
+          </View>
+          <Text className="text-lg font-bold text-center text-neutral-700 mb-2">Enter your email to reset your password</Text>
+          <Text className="text-sm text-center text-neutral-500 mb-6">If your email matches a valid account we will send a reset link</Text>
+          <Input
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Email"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            className="border-0 border-b text-xl"
+            // Removed leadingIcon as per instruction 'dont use the google apis in this'
+          />
+          <View className="items-center pt-5">
+            <Button onPress={handleForgotPassword} disabled={loading} className="bg-green-600 rounded-lg py-2 px-10">
+              <Text className="text-white text-3xl font-bold">
+                {loading ? 'Sending...' : 'Reset Password'}
+              </Text>
+            </Button>
+          </View>
+          <View className="items-center pt-2">
+            <TouchableOpacity onPress={() => router.replace('/auth')}>
+              <Text className="text-base text-neutral-700">Go back to Login</Text>
+            </TouchableOpacity>
+          </View>
+          {error ? <Text className="text-destructive text-sm text-center">{error}</Text> : null}
+        </View>
+      </ScreenLayout>
+    </>
+  );
+}
