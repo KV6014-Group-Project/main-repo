@@ -97,3 +97,67 @@ Then visit `http://127.0.0.1:8000/admin/` to log in and manage your website.
 **Storing user information:** Create a model with the fields you need, then run migrations.
 
 **Showing data on a page:** Query your models in a view, pass the data to a template, and display it with template tags.
+
+## GeoIP / Region-based RSVP (Security)
+
+This project includes an optional region-based RSVP check to restrict or flag
+RSVPs that originate outside configured country codes for an event. The
+implementation uses the MaxMind GeoLite2 Country database and a small updater
+script to download the DB.
+
+How it works (high level)
+- Each `Event` can store `allowed_country_codes` (list of ISO country codes)
+    and a boolean `enforce_country_restriction`.
+- When a participant hits the RSVP link, the backend looks up their IP address,
+    resolves it to an approximate country using the GeoLite2 DB, and then:
+    - If enforcement is off: the RSVP proceeds as normal.
+    - If enforcement is on and the country is allowed: RSVP proceeds.
+    - If enforcement is on and the country is not allowed (or cannot be resolved):
+        the RSVP is marked as `suspicious` (or can be blocked depending on policy).
+
+Setup: download GeoLite2 DB
+1. Create a (free) MaxMind account and obtain a GeoLite2 license key.
+2. Set the `MAXMIND_LICENSE_KEY` environment variable in your shell.
+     - PowerShell example:
+         ```powershell
+         $env:MAXMIND_LICENSE_KEY = 'YOUR_LICENSE_KEY'
+         $env:GEOIP2_DB_PATH = "$PWD\backend\geoip\GeoLite2-Country.mmdb"
+         ```
+3. Run the updater script from the repository root:
+     ```powershell
+     python .\backend\scripts\update_geolite2.py
+     ```
+     This writes the file to `backend/geoip/GeoLite2-Country.mmdb` by default or
+     to the path set in `GEOIP2_DB_PATH` env var.
+
+Configuration (Django)
+- Set `GEOIP2_DB_PATH` in your environment or Django settings so the app can
+    find the downloaded DB.
+
+Enabling region checks for an event
+- In the admin (or via code), set `allowed_country_codes` to a list like
+    `["GB", "IE"]` and set `enforce_country_restriction = True` on the Event.
+
+Policy choices (how to handle out-of-region requests)
+- Block: return HTTP 403 and reject the RSVP immediately. Stronger security,
+    but may block legitimate attendees travelling or using mobile networks.
+- Flag: accept the RSVP but set `suspicious=True` and record IP/country for
+    human review. Safer UX and recommended for rollout.
+
+Notes and maintenance
+- GeoIP DB accuracy is not perfect; VPNs or mobile networks can appear in a
+    different country.
+- Update the GeoLite2 DB monthly. You can run the updater manually or schedule
+    it in CI/cron.
+- Storing IP addresses may be considered personal data under privacy laws
+    (e.g., GDPR). Keep data retention and privacy policy in mind.
+
+Running tests
+- The repository includes tests for the RSVP behavior. Run them with:
+    ```powershell
+    cd backend
+    python manage.py test sharing
+    ```
+
+If you want, I can add a small management command to run the updater on a
+schedule or a short admin dashboard to review flagged RSVPs.
