@@ -14,7 +14,7 @@ class IsOrganiser(BasePermission):
             request.user and
             request.user.is_authenticated and
             hasattr(request.user, 'role') and
-            request.user.role == 'organiser'
+            request.user.role.name == 'organiser'
         )
 
 
@@ -27,7 +27,7 @@ class IsPromoter(BasePermission):
             request.user and
             request.user.is_authenticated and
             hasattr(request.user, 'role') and
-            request.user.role == 'promoter'
+            request.user.role.name == 'promoter'
         )
 
 
@@ -42,7 +42,7 @@ class IsOrganiserOrReadOnly(BasePermission):
             request.user and
             request.user.is_authenticated and
             hasattr(request.user, 'role') and
-            request.user.role == 'organiser'
+            request.user.role.name == 'organiser'
         )
 
 

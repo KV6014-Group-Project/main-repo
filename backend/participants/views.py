@@ -17,7 +17,7 @@ from .serializers import (
     SyncEntryResponseSerializer,
     ParticipantSyncResponseSerializer,
 )
-from events.models import Event, RSVP
+from events.models import Event, RSVP, RSVPStatuses, RSVPSources, EventStatuses, EventVenues, EventPromoter
 from events.serializers import EventSerializer
 from users.models import PromoterProfile
 
@@ -78,7 +78,6 @@ def sync(request):
                     entry_responses.append(entry_response)
                     continue
             elif entry.get('token'):
-                # TODO: Implement token decoding (for Phase 2/3)
                 entry_response['error'] = 'Token decoding not yet implemented'
                 entry_responses.append(entry_response)
                 continue
@@ -97,10 +96,12 @@ def sync(request):
                 entry_responses.append(entry_response)
                 continue
             
-            # Get event
+            # Get event - check status FK name is 'published'
             try:
-                event = Event.objects.get(id=event_id, status='published')
-            except Event.DoesNotExist:
+                # Get published status
+                published_status = EventStatuses.objects.get(name='published')
+                event = Event.objects.get(id=event_id, status=published_status)
+            except (Event.DoesNotExist, EventStatuses.DoesNotExist):
                 entry_response['error'] = 'Event not found or not published'
                 entry_responses.append(entry_response)
                 continue
@@ -112,7 +113,6 @@ def sync(request):
                 try:
                     promoter = PromoterProfile.objects.get(id=promoter_id)
                     # Verify promoter is assigned to event
-                    from events.models import EventPromoter
                     if not EventPromoter.objects.filter(
                         event=event,
                         promoter=promoter,
@@ -122,22 +122,37 @@ def sync(request):
                 except PromoterProfile.DoesNotExist:
                     promoter = None
             
-            # Map local_status to RSVP status
+            # Map local_status to RSVP status FK
             status_map = {
                 'rsvp': 'rsvp',
                 'interested': 'interested',
                 'scanned': 'rsvp',  # Default scanned to rsvp
             }
-            rsvp_status = status_map.get(entry['local_status'], 'rsvp')
+            rsvp_status_name = status_map.get(entry['local_status'], 'rsvp')
             
-            # Determine source
-            source = share_data.get('channel', 'offline_sync')
-            if source == 'qr':
-                source = 'qr'
-            elif source in ['link', 'poster']:
-                source = 'link'
+            # Get RSVP status FK
+            try:
+                rsvp_status = RSVPStatuses.objects.get(name=rsvp_status_name)
+            except RSVPStatuses.DoesNotExist:
+                entry_response['error'] = f'RSVP status "{rsvp_status_name}" not found'
+                entry_responses.append(entry_response)
+                continue
+            
+            # Determine source and get FK
+            source_name = share_data.get('channel', 'offline_sync')
+            if source_name == 'qr':
+                source_name = 'qr'
+            elif source_name in ['link', 'poster']:
+                source_name = 'link'
             else:
-                source = 'offline_sync'
+                source_name = 'offline_sync'
+            
+            try:
+                rsvp_source = RSVPSources.objects.get(name=source_name)
+            except RSVPSources.DoesNotExist:
+                entry_response['error'] = f'RSVP source "{source_name}" not found'
+                entry_responses.append(entry_response)
+                continue
             
             # Parse scanned_at
             scanned_at = None
@@ -153,15 +168,15 @@ def sync(request):
                 device=device_profile,
                 defaults={
                     'promoter': promoter,
-                    'status': rsvp_status,
-                    'source': source,
+                    'status': rsvp_status,  # FK to RSVPStatuses
+                    'source': rsvp_source,  # FK to RSVPSources
                     'scanned_at': scanned_at or timezone.now(),
                 }
             )
             
             entry_response['success'] = True
-            entry_response['event_id'] = event.id
-            entry_response['rsvp_id'] = rsvp.id
+            entry_response['event_id'] = str(event.id)
+            entry_response['rsvp_id'] = str(rsvp.id)
             event_ids.add(event.id)
             
         except Exception as e:

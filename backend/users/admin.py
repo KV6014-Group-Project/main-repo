@@ -9,14 +9,14 @@ from .models import User, PromoterProfile
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     """Admin interface for User model."""
-    list_display = ['email', 'role', 'name', 'is_active', 'is_staff', 'date_joined']
+    list_display = ['email', 'role', 'first_name', 'last_name', 'is_active', 'is_staff', 'date_joined']
     list_filter = ['role', 'is_active', 'is_staff', 'date_joined']
-    search_fields = ['email', 'name']
+    search_fields = ['email', 'last_name', 'first_name']
     ordering = ['-date_joined']
     
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Personal info', {'fields': ('name', 'phone', 'role')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'phone', 'role')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )

@@ -7,6 +7,20 @@ from django.db import models
 from django.utils import timezone
 
 
+class Roles(models.Model):
+    """Role lookup table."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=50, unique=True)
+    description = models.TextField(max_length=255, blank=True)
+
+    class Meta:
+        db_table = 'roles'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
 class UserManager(BaseUserManager):
     """Custom user manager."""
     
@@ -24,7 +38,10 @@ class UserManager(BaseUserManager):
         """Create and save a superuser."""
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('role', 'organiser')
+
+        # set fk role, or create if doesn't exist then set fk role
+        organiser_role, _ = Roles.objects.get_or_create(name='organiser')
+        extra_fields.setdefault('role', organiser_role)
         
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superuser must have is_staff=True.')
@@ -32,24 +49,21 @@ class UserManager(BaseUserManager):
             raise ValueError('Superuser must have is_superuser=True.')
         
         return self.create_user(email, password, **extra_fields)
-
-
+    
+        
 class User(AbstractBaseUser, PermissionsMixin):
     """
     Custom User model with role-based authentication.
     Roles: 'organiser' | 'promoter'
     """
-    ROLE_CHOICES = [
-        ('organiser', 'Organiser'),
-        ('promoter', 'Promoter'),
-    ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    role = models.ForeignKey(Roles, on_delete=models.PROTECT, related_name='users')
     
     # Profile fields
-    name = models.CharField(max_length=255, blank=True)
+    first_name = models.CharField(max_length=50, blank=True)
+    last_name = models.CharField(max_length=50, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     
     # Django auth fields

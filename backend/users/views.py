@@ -8,8 +8,9 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from core.views import BaseAPIView
-from .models import User
+from .models import Roles, User
 from .serializers import (
+    RolesSerializer,
     UserSerializer,
     UserRegistrationSerializer,
     UserLoginSerializer,
@@ -82,7 +83,18 @@ def logout(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def me(request):
+def profile(request):
     """Get current user information."""
     serializer = UserSerializer(request.user)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def list_roles(request):
+    """Get current roles"""
+    roles = Roles.objects.all()
+    serializer = RolesSerializer(roles, many=True)
+    return Response(serializer.data)
+
+
+# TODO: setup account delete with password check

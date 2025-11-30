@@ -3,6 +3,8 @@ Base views and view utilities.
 """
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework import status
 
 
@@ -28,3 +30,11 @@ class BaseAPIView(APIView):
         if details:
             response['details'] = details
         return Response(response, status=status_code)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_public_key(request):
+    """Get the Ed25519 public key for signature verification."""
+    from .utils import get_public_key_base64
+    return Response({'public_key': get_public_key_base64()})
