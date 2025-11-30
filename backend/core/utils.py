@@ -196,3 +196,17 @@ def create_signed_yaml_payload(event_data: Dict[str, Any], share_data: Dict[str,
     # Generate YAML
     return generate_yaml_payload(payload)
 
+
+def generate_secure_token(length: int = 32) -> str:
+    """
+    Generate a cryptographically secure URL-safe token.
+
+    Args:
+        length: approximate number of bytes of randomness (passed to token_urlsafe)
+
+    Returns:
+        URL-safe token string
+    """
+    import secrets
+    return secrets.token_urlsafe(length)
+

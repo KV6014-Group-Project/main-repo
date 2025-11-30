@@ -24,4 +24,6 @@ urlpatterns = [
     path('api/organiser/', include('events.urls')),
     path('api/promoter/', include('events.promoter_urls')),
     path('api/participant/', include('participants.urls')),
+    # Sharing endpoints (RSVP links etc.)
+    path('api/sharing/', include('sharing.urls')),
 ]
