@@ -96,5 +96,47 @@ def list_roles(request):
     serializer = RolesSerializer(roles, many=True)
     return Response(serializer.data)
 
-
-# TODO: setup account delete with password check
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_account(request):
+    """
+    Delete user account with password check.
+    """
+    password = request.data.get('password')
+    
+    if not password:
+        return Response(
+            {'error': 'Password is required to delete account'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Verify password
+    user = request.user
+    if not user.check_password(password):
+        return Response(
+            {'error': 'Incorrect password'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+    
+    try:
+        # Store email for response before deletion
+        user_email = user.email
+        
+        # Delete token first (to immediately invalidate session)
+        try:
+            user.auth_token.delete()
+        except Exception:
+            pass
+        
+        # Delete user (will cascade to related objects based on your models)
+        user.delete()
+        
+        return Response({
+            'message': f'Account {user_email} has been permanently deleted',
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response(
+            {'error': f'Failed to delete account: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

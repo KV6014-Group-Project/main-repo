@@ -186,3 +186,152 @@ def create_signed_yaml_payload(event_data: Dict[str, Any], share_data: Dict[str,
     payload['share']['sig'] = signature
     
     return generate_yaml_payload(payload)
+
+def create_organiser_invitation_token(event_id: str, promoter_id: str = None) -> dict:
+    """
+    Create a signed invitation token for organiser→promoter invitations.
+    Uses the same Ed25519 signing as YAML payloads for consistency.
+    
+    Args:
+        event_id: UUID of the event
+        promoter_id: Optional PromoterProfile ID to target specific promoter
+        
+    Returns:
+        Dictionary with token and metadata
+    """
+    import uuid
+    import time
+    
+    share_id = str(uuid.uuid4())
+    issued_at = int(time.time() * 1000)
+    
+    # Create token payload
+    token_payload = {
+        'scope': 'organiser',
+        'eventId': event_id,
+        'shareId': share_id,
+        'issuedAt': issued_at,
+        'channel': 'token'
+    }
+    
+    # Add targeted promoter ID if provided
+    if promoter_id:
+        token_payload['promoterId'] = promoter_id
+    
+    # Canonicalize and sign
+    canonical_parts = [
+        f"scope:{token_payload['scope']}",
+        f"eventId:{token_payload['eventId']}",
+        f"shareId:{token_payload['shareId']}",
+        f"issuedAt:{token_payload['issuedAt']}",
+        f"channel:{token_payload['channel']}"
+    ]
+    
+    # Include promoter ID in signature if present
+    if promoter_id:
+        canonical_parts.append(f"promoterId:{promoter_id}")
+    
+    canonical_string = '\n'.join(canonical_parts)
+    signature = compute_signature(canonical_string)
+    
+    # Add signature to payload
+    token_payload['sig'] = signature
+    
+    # Encode as base64url
+    import json
+    token_json = json.dumps(token_payload, separators=(',', ':'))
+    token = base64.urlsafe_b64encode(token_json.encode()).decode().rstrip('=')
+    
+    TOKEN_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000  # 7 days
+    
+    return {
+        'token': token,
+        'share_id': share_id,
+        'issued_at': issued_at,
+        'expires_at': issued_at + TOKEN_EXPIRY_MS,
+    }
+
+
+def parse_organiser_invitation_token(token: str, promoter_id: str = None) -> dict:
+    """
+    Parse and validate an organiser invitation token.
+    
+    Args:
+        token: Base64url-encoded token string
+        promoter_id: Optional - PromoterProfile ID of user accepting token (for validation)
+        
+    Returns:
+        Dictionary with parsed and validated components
+        
+    Raises:
+        ValueError: If token is invalid, tampered, expired, or promoter mismatch
+    """
+    import json
+    import time
+    
+    try:
+        # Decode token
+        token_padded = token + '=' * (4 - len(token) % 4)
+        token_json = base64.urlsafe_b64decode(token_padded).decode()
+        token_payload = json.loads(token_json)
+        
+        # Validate required fields
+        required_fields = ['scope', 'eventId', 'shareId', 'issuedAt', 'sig']
+        for field in required_fields:
+            if field not in token_payload:
+                raise ValueError(f"Missing required field: {field}")
+        
+        # Verify scope
+        if token_payload['scope'] != 'organiser':
+            raise ValueError("Invalid token scope")
+        
+        # Extract signature
+        signature = token_payload.pop('sig')
+        
+        # Recreate canonical string for verification
+        canonical_parts = [
+            f"scope:{token_payload['scope']}",
+            f"eventId:{token_payload['eventId']}",
+            f"shareId:{token_payload['shareId']}",
+            f"issuedAt:{token_payload['issuedAt']}",
+            f"channel:{token_payload.get('channel', 'token')}"
+        ]
+        
+        # Include promoter ID in verification if present
+        token_promoter_id = token_payload.get('promoterId')
+        if token_promoter_id:
+            canonical_parts.append(f"promoterId:{token_promoter_id}")
+            
+            # If token is targeted, validate promoter matches
+            if promoter_id and promoter_id != token_promoter_id:
+                raise ValueError("This invitation is for a different promoter")
+        
+        canonical_string = '\n'.join(canonical_parts)
+        
+        # Verify signature
+        if not verify_signature(canonical_string, signature):
+            raise ValueError("Invalid signature - token may have been tampered with")
+        
+        # Check expiration
+        current_time = int(time.time() * 1000)
+        issued_at_ms = int(token_payload['issuedAt'])
+        TOKEN_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000  # 7 days
+        
+        if current_time - issued_at_ms > TOKEN_EXPIRY_MS:
+            raise ValueError("Token has expired")
+        
+        return {
+            'event_id': token_payload['eventId'],
+            'share_id': token_payload['shareId'],
+            'issued_at': issued_at_ms,
+            'scope': token_payload['scope'],
+            'promoter_id': token_promoter_id,  # None if generic token
+            'is_valid': True,
+        }
+        
+    except json.JSONDecodeError:
+        raise ValueError("Invalid token format - not valid JSON")
+    except Exception as e:
+        if isinstance(e, ValueError):
+            raise
+        raise ValueError(f"Invalid token: {str(e)}")

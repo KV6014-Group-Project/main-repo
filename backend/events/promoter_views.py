@@ -12,13 +12,12 @@ from .models import Event, EventPromoter, RSVP
 from .serializers import EventSerializer, EventStatsSerializer
 from core.utils import create_signed_yaml_payload
 import time, uuid
+from core.utils import parse_organiser_invitation_token
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsPromoter])
 def promoter_events(request):
-    """
-    Get events where the current user (promoter) is assigned.
-    """
+    """Get events where the current user (promoter) is assigned."""
     if not hasattr(request.user, 'promoter_profile'):
         return Response(
             {'error': 'User does not have a promoter profile'},
@@ -38,31 +37,77 @@ def promoter_events(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsPromoter])
 def promoter_accept(request):
-    """
-    Accept an organiser token and link promoter to event.
-    TODO: Full implementation in Phase 2 with token validation.
+    """Accept an organiser invitation token."""
     
-    TODO: use db instead. server authoritive, and association through XREF table, which already exists, makes it a simple check.
-    """
     token = request.data.get('token')
     if not token:
-        return Response(
-            {'error': 'Token is required'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({'error': 'Token is required'}, status=status.HTTP_400_BAD_REQUEST)
     
-    # Placeholder for Phase 2 - will decode and validate token
-    return Response({
-        'message': 'Token acceptance will be implemented in Phase 2',
-    }, status=status.HTTP_501_NOT_IMPLEMENTED)
+    try:
+        # Parse and validate token
+        token_data = parse_organiser_invitation_token(
+            token, 
+            promoter_id=str(request.user.promoter_profile.id)
+        )
+        event_id = token_data['event_id']
+        share_id = token_data['share_id']
+        token_promoter_id = token_data['promoter_id']
+        
+        # Get event
+        event = get_object_or_404(Event, id=event_id)
+        
+        # Create or update EventPromoter link
+        event_promoter, created = EventPromoter.objects.get_or_create(
+            event=event,
+            promoter=request.user.promoter_profile,
+            defaults={'is_active': True}
+        )
+        
+        # Nice added response for promoter
+        if not created and not event_promoter.is_active:
+            event_promoter.is_active = True
+            event_promoter.save()
+            message = 'Welcome back! Your access has been reactivated.'
+        elif not created:
+            message = 'You are already connected to this event.'
+        else:
+            message = 'Successfully joined event! You can now promote and track RSVPs.'
+        
+        from .serializers import EventPromoterSerializer
+        event_serializer = EventSerializer(event)
+        link_serializer = EventPromoterSerializer(event_promoter)
+        
+        response_data = {
+            'success': True,
+            'message': message,
+            'created': created,
+            'event': event_serializer.data,
+            'link': link_serializer.data,
+            'share_id': share_id,
+        }
+        
+        # Indicate if this was a targeted invitation
+        if token_promoter_id:
+            response_data['was_targeted'] = True
+        
+        return Response(
+            response_data,
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        )
+        
+    except ValueError as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response(
+            {'error': f'Failed to process token: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsPromoter])
 def promoter_share_participant(request, event_id):
-    """
-    Generate participant-facing share token/QR for an event.
-    """
+    """Generate participant-facing share token/QR for an event."""
     event = get_object_or_404(Event, id=event_id)
     
     # Verify promoter is assigned to this event
@@ -76,7 +121,7 @@ def promoter_share_participant(request, event_id):
             status=status.HTTP_403_FORBIDDEN
         )
     
-    # Create event snapshot (using your Event model's method)
+    # Create event snapshot
     event_data = event.to_event_snapshot()
     
     # Create share metadata with promoter attribution
@@ -103,9 +148,7 @@ def promoter_share_participant(request, event_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsPromoter])
 def promoter_event_stats(request, event_id):
-    """
-    Get statistics for an event, filtered to this promoter's attributed RSVPs.
-    """
+    """Get statistics for an event, filtered to this promoter's attributed RSVPs."""
     if not hasattr(request.user, 'promoter_profile'):
         return Response(
             {'error': 'User does not have a promoter profile'},
@@ -131,15 +174,16 @@ def promoter_event_stats(request, event_id):
         promoter=request.user.promoter_profile
     )
     
-    total_rsvps = rsvps.filter(status='rsvp').count()
-    total_interested = rsvps.filter(status='interested').count()
-    total_cancelled = rsvps.filter(status='cancelled').count()
+    # Use FK instead
+    total_rsvps = rsvps.filter(status__name='rsvp').count()
+    total_interested = rsvps.filter(status__name='interested').count()
+    total_cancelled = rsvps.filter(status__name='cancelled').count()
     
     # By source
     by_source = {}
-    source_rsvps = rsvps.values('source').annotate(count=Count('id'))
+    source_rsvps = rsvps.values('source__name').annotate(count=Count('id'))
     for item in source_rsvps:
-        by_source[item['source']] = item['count']
+        by_source[item['source__name']] = item['count']
     
     stats_data = {
         'total_rsvps': total_rsvps,
@@ -151,4 +195,3 @@ def promoter_event_stats(request, event_id):
     
     serializer = EventStatsSerializer(stats_data)
     return Response(serializer.data, status=status.HTTP_200_OK)
-

@@ -77,7 +77,9 @@ class Event(models.Model):
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
+    # TODO Capacity
+        
     class Meta:
         db_table = 'events'
         ordering = ['-created_at']
