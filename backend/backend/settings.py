@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -206,6 +207,9 @@ CORS_ALLOW_HEADERS = [
 
 # HMAC Signing Secret (in production, use environment variable)
 HMAC_SECRET_KEY = SECRET_KEY  # For development; use separate key in production
+
+# GeoIP2 DB path (optional). Set via environment variable in production.
+GEOIP2_DB_PATH = os.environ.get('GEOIP2_DB_PATH')
 
 # Security settings for production (only applied when DEBUG is False)
 if not DEBUG:

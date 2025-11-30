@@ -210,3 +210,37 @@ def generate_secure_token(length: int = 32) -> str:
     import secrets
     return secrets.token_urlsafe(length)
 
+
+def get_client_ip(request):
+    """
+    Return the client IP address from the request, considering common proxy headers.
+
+    Note: In production, ensure your reverse proxy (nginx, load balancer) sets
+    `X-Forwarded-For` and that you trust that proxy before using this header.
+    """
+    xff = request.META.get('HTTP_X_FORWARDED_FOR')
+    if xff:
+        # X-Forwarded-For may contain multiple IPs: client, proxy1, proxy2
+        return xff.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR')
+
+
+def ip_to_country_code(ip: str):
+    """
+    Convert an IP address to an ISO country code using MaxMind GeoLite2 DB.
+
+    Returns None if the DB path is not configured or lookup fails.
+    """
+    if not ip:
+        return None
+    db_path = getattr(__import__('django.conf').conf.settings, 'GEOIP2_DB_PATH', None)
+    if not db_path:
+        return None
+    try:
+        import geoip2.database
+        reader = geoip2.database.Reader(db_path)
+        resp = reader.country(ip)
+        return resp.country.iso_code
+    except Exception:
+        return None
+

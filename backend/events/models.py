@@ -45,6 +45,10 @@ class Event(models.Model):
     
     # Metadata
     metadata = models.JSONField(default=dict, blank=True)
+    # Optional geographic restrictions for RSVPs: list of ISO country codes (e.g. ["GB","IE"]).
+    # Empty or null = unrestricted. Toggle enforcement with `enforce_country_restriction`.
+    allowed_country_codes = models.JSONField(default=list, blank=True, null=True)
+    enforce_country_restriction = models.BooleanField(default=False)
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -142,6 +146,10 @@ class RSVP(models.Model):
     # Timestamps
     scanned_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    # Optional IP / country tracking for auditing and suspicious detection
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    country_code = models.CharField(max_length=2, null=True, blank=True)
+    suspicious = models.BooleanField(default=False)
     
     class Meta:
         db_table = 'rsvps'
