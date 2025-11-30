@@ -110,3 +110,29 @@ When features are merged, keep this updated.
   - [ ] API documentation
   - [ ] User guides
   - [ ] Deployment instructions
+
+## Security - Required by Alvin on 30/11/2025
+- [ ] Region-based access control
+  - [ ] Geographic location detection
+  - [ ] Region validation middleware
+  - [ ] IP-based geolocation service integration
+  - [ ] Event-specific region restrictions
+  - [ ] User region profile management
+  - [ ] Region-based filtering for event discovery
+  - [ ] Security logging for region violations
+  - [ ] Admin override capabilities for region restrictions 
+- [ ] Enhanced endpoint protection
+  - [ ] Rate limiting per endpoint
+  - [ ] API key authentication for sensitive operations
+  - [ ] CORS policy enforcement
+  - [ ] Request size limits
+  - [ ] Input sanitization and validation
+  - [ ] SQL injection prevention
+  - [ ] XSS protection headers
+  - [ ] CSRF token validation
+  - [ ] JWT token expiration and refresh
+  - [ ] IP whitelisting for admin endpoints
+  - [ ] Request signature verification
+  - [ ] Brute force protection
+  - [ ] Audit logging for all API calls 
+- 
