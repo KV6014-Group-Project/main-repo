@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from 'react';
 import { SafeAreaView, ScrollView, View, Image, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 
@@ -20,16 +20,16 @@ export default function AuthIndexScreen() {
 
         <TouchableOpacity
           style={styles.roleButton}
-          onPress={() => router.push("/auth/staff-login")}
+          onPress={() => router.push("/auth/organiser-login")}
         >
-          <Text style={styles.roleText}>ROSE STAFF</Text>
+          <Text style={styles.roleText}>ORGANISER</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.roleButton}
-          onPress={() => router.push("/auth/leader-login")}
+          onPress={() => router.push("/auth/promoter-login")}
         >
-          <Text style={styles.roleText}>COMMUNITY LEADER</Text>
+          <Text style={styles.roleText}>PROMOTER</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

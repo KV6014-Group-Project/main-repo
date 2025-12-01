@@ -1,26 +1,31 @@
-import React from 'react';
-import { Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
+import * as React from 'react';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 
-export default function StaffSignup() {
+export default function OrganiserLogin() {
   const router = useRouter();
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Organiser Sign Up</Text>
+      <Text style={styles.title}>Organiser Login</Text>
+      <Text style={styles.subtitle}>Create and manage events with full control.</Text>
 
-      <TextInput placeholder="First Name" style={styles.input} />
-      <TextInput placeholder="Last Name" style={styles.input} />
-      <TextInput placeholder="Email" style={styles.input} keyboardType="email-address" />
+      <TextInput placeholder="Email" style={styles.input} />
       <TextInput placeholder="Password" secureTextEntry style={styles.input} />
-      <TextInput placeholder="Confirm Password" secureTextEntry style={styles.input} />
+
+      <View style={styles.row}>
+        <Text>Remember me</Text>
+        <TouchableOpacity onPress={() => router.push('/auth/forgot-password')}>
+          <Text style={styles.link}>Forgot Password?</Text>
+        </TouchableOpacity>
+      </View>
 
       <TouchableOpacity style={styles.button} onPress={() => router.replace('/organiser')}>
-        <Text style={styles.buttonText}>SIGN UP</Text>
+        <Text style={styles.buttonText}>LOGIN</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push('/auth/staff-login')} style={styles.loginLink}>
-        <Text style={styles.loginText}>Already have an account? Login</Text>
+      <TouchableOpacity onPress={() => router.push('/auth/organiser-signup')} style={styles.signupLink}>
+        <Text style={styles.signupText}>Don't have an account? Sign up</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => router.back()} style={styles.backLink}>
@@ -41,15 +46,28 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginTop: 50,
+  },
+  subtitle: {
+    fontSize: 14,
+    textAlign: 'center',
     marginBottom: 40,
+    color: '#666',
   },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 12,
     borderRadius: 8,
-    marginBottom: 16,
+    marginBottom: 20,
     fontSize: 16,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 10,
+  },
+  link: {
+    color: '#007AFF',
   },
   button: {
     backgroundColor: '#28B900',
@@ -63,10 +81,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  loginLink: {
+  signupLink: {
     marginTop: 20,
   },
-  loginText: {
+  signupText: {
     textAlign: 'center',
     color: '#333',
   },

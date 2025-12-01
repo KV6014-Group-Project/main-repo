@@ -1,13 +1,13 @@
-import React from 'react';
+import * as React from 'react';
 import { Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 
-export default function LeaderSignup() {
+export default function PromoterSignup() {
   const router = useRouter();
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Community Leader Sign Up</Text>
+      <Text style={styles.title}>Promoter Sign Up</Text>
 
       <TextInput placeholder="First Name" style={styles.input} />
       <TextInput placeholder="Last Name" style={styles.input} />
@@ -19,7 +19,7 @@ export default function LeaderSignup() {
         <Text style={styles.buttonText}>SIGN UP</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push('/auth/leader-login')} style={styles.loginLink}>
+      <TouchableOpacity onPress={() => router.push('/auth/promoter-login')} style={styles.loginLink}>
         <Text style={styles.loginText}>Already have an account? Login</Text>
       </TouchableOpacity>
 
