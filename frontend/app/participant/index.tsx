@@ -32,6 +32,13 @@ export default function ParticipantHome() {
 
         <TouchableOpacity 
           style={styles.signOutButton} 
+          onPress={() => router.replace('/participant/qr-code-page')}
+        >
+          <Text style={styles.signOutText}>QR Code Scanner</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.signOutButton} 
           onPress={() => router.replace('/welcome')}
         >
           <Text style={styles.signOutText}>Sign Out</Text>

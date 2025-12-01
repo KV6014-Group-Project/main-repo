@@ -31,7 +31,7 @@ export default function ParticipantScreen() {
           <TextInput style={styles.input} placeholder="Enter phone number" keyboardType="phone-pad" />
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={() => router.replace('/')}>
+        <TouchableOpacity style={styles.button} onPress={() => router.replace('/participant')}>
           <Text style={styles.buttonText}>Continue</Text>
         </TouchableOpacity>
 
