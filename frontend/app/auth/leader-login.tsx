@@ -1,58 +1,99 @@
-// Screen: Promoter Login (UI Only)
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 
-export default function PromoterLogin() {
+export default function LeaderLogin() {
   const router = useRouter();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff", padding: 20 }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginTop: 50 }}>
-        Promoter Access
-      </Text>
-      <Text style={{ fontSize: 14, textAlign: 'center', marginBottom: 40 }}>
-        Connect organiser events to participants with shareable links.
-      </Text>
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.title}>Community Leader Login</Text>
+      <Text style={styles.subtitle}>Connect events to participants with shareable links.</Text>
 
-      {/* Email */}
-      <TextInput placeholder="Promoter Email" style={styles.input} />
-      {/* Password */}
+      <TextInput placeholder="Email" style={styles.input} />
       <TextInput placeholder="Password" secureTextEntry style={styles.input} />
 
-      {/* Remember me + Forgot password */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 10 }}>
+      <View style={styles.row}>
         <Text>Remember me</Text>
         <TouchableOpacity onPress={() => router.push('/auth/forgot-password')}>
-          <Text style={{ color: '#007AFF' }}>Forgot Password?</Text>
+          <Text style={styles.link}>Forgot Password?</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Login button */}
-      <TouchableOpacity style={styles.btn}>
-        <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>LOGIN</Text>
+      <TouchableOpacity style={styles.button} onPress={() => router.replace('/promoter')}>
+        <Text style={styles.buttonText}>LOGIN</Text>
       </TouchableOpacity>
 
-      {/* Go to signup */}
-      <TouchableOpacity onPress={() => router.push('/auth/promoter-signup')} style={{ marginTop: 20 }}>
-        <Text style={{ textAlign: 'center' }}>Don’t have an account? Sign up</Text>
+      <TouchableOpacity onPress={() => router.push('/auth/leader-signup')} style={styles.signupLink}>
+        <Text style={styles.signupText}>Don't have an account? Sign up</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => router.back()} style={styles.backLink}>
+        <Text style={styles.backText}>← Back</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 50,
+  },
+  subtitle: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 40,
+    color: '#666',
+  },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 12,
     borderRadius: 8,
-    marginBottom: 20
+    marginBottom: 20,
+    fontSize: 16,
   },
-  btn: {
-    backgroundColor: '#00b300',
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 10,
+  },
+  link: {
+    color: '#007AFF',
+  },
+  button: {
+    backgroundColor: '#28B900',
     padding: 15,
     borderRadius: 8,
-    alignItems: 'center'
-  }
-};
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  signupLink: {
+    marginTop: 20,
+  },
+  signupText: {
+    textAlign: 'center',
+    color: '#333',
+  },
+  backLink: {
+    marginTop: 30,
+  },
+  backText: {
+    textAlign: 'center',
+    color: '#007AFF',
+    fontSize: 16,
+  },
+});

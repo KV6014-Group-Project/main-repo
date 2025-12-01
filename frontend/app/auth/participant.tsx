@@ -1,156 +1,106 @@
 import React from "react";
-import { SafeAreaView, ScrollView, View, Text, Image, TextInput, TouchableOpacity, Platform, KeyboardAvoidingView, Linking } from "react-native";
+import { SafeAreaView, ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
-import { useSession } from "@/providers/SessionProvider";
 
-export default function ParticipantOnboardingScreen() {
-  const { signUp } = useSession();
+export default function ParticipantScreen() {
   const router = useRouter();
 
-  const [firstName, setFirstName] = React.useState("");
-  const [lastName, setLastName] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [phone, setPhone] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-
-  const isValidEmail = (value: string) => /.+@.+\..+/.test(value.trim());
-  const isValidUkMobileOptional = (value: string) => {
-    const v = value.trim();
-    if (!v) return true;
-    const cleaned = v.replace(/[^+\d]/g, "");
-    if (/^\+447\d{9}$/.test(cleaned)) return true;
-    if (/^07\d{9}$/.test(cleaned)) return true;
-    return false;
-  };
-
-  const normalizeUkMobileToE164 = (value: string): string | undefined => {
-    const v = value.trim();
-    if (!v) return undefined;
-    let cleaned = v.replace(/[^+\d]/g, "");
-    if (cleaned.startsWith("00")) cleaned = "+" + cleaned.slice(2);
-    if (cleaned.startsWith("+44")) return cleaned;
-    if (cleaned.startsWith("0")) return "+44" + cleaned.slice(1);
-    if (/^7\d{9}$/.test(cleaned)) return "+44" + cleaned;
-    return cleaned || undefined;
-  };
-
-  const fillTestData = () => {
-    setFirstName("John");
-    setLastName("Smith");
-    setEmail("john.smith@example.com");
-    setPhone("07123456789");
-  };
-
-  const canSubmit = firstName.trim() && lastName.trim() && isValidEmail(email) && isValidUkMobileOptional(phone);
-
-  const onSubmit = async () => {
-    if (!canSubmit || loading) return;
-    try {
-      setError(null);
-      setLoading(true);
-      const s = await signUp({
-        role: "participant",
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        email: email.trim(),
-        phone: normalizeUkMobileToE164(phone),
-      });
-
-      if (s?.role === "participant") {
-        Linking.openURL("http://localhost:8081/");
-      }
-
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.select({ ios: "padding" })}>
-        <ScrollView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.title}>Participant Registration</Text>
+        <Text style={styles.subtitle}>Join events in your community</Text>
 
-          <Image
-            source={{ uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/fRfHRA6yfr/3g71kc30_expires_30_days.png" }}
-            resizeMode="stretch"
-            style={{ width: 59, height: 59, marginTop: 62, marginBottom: 43, marginLeft: 8 }}
-          />
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>First Name</Text>
+          <TextInput style={styles.input} placeholder="Enter first name" />
+        </View>
 
-          <View style={{ alignItems: "center", marginBottom: 41 }}>
-            <Image
-              source={{ uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/fRfHRA6yfr/75uk1b3i_expires_30_days.png" }}
-              resizeMode="stretch"
-              style={{ width: 122, height: 122 }}
-            />
-          </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Last Name</Text>
+          <TextInput style={styles.input} placeholder="Enter last name" />
+        </View>
 
-          {[
-            { label: "First Name", value: firstName, set: setFirstName },
-            { label: "Last Name", value: lastName, set: setLastName },
-            { label: "Email", value: email, set: setEmail, keyboardType: "email-address" },
-            { label: "UK Mobile (optional)", value: phone, set: setPhone, keyboardType: "phone-pad" },
-          ].map((field, idx) => (
-            <View key={idx} style={{ marginBottom: 25, marginHorizontal: 30 }}>
-              <Text style={{ color: "#000", fontSize: 20, marginBottom: 4 }}>{field.label}</Text>
-              <TextInput
-                style={{
-                  borderBottomWidth: 1,
-                  borderColor: "#000",
-                  fontSize: 18,
-                  paddingVertical: 6,
-                }}
-                value={field.value}
-                onChangeText={field.set}
-                editable={!loading}
-                autoCapitalize={field.label.includes("Name") ? "words" : "none"}
-                keyboardType={field.keyboardType as any}
-              />
-            </View>
-          ))}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Email</Text>
+          <TextInput style={styles.input} placeholder="Enter email" keyboardType="email-address" />
+        </View>
 
-          {error ? (
-            <Text style={{ color: "red", fontSize: 14, textAlign: "center", marginBottom: 10 }}>{error}</Text>
-          ) : null}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Phone (optional)</Text>
+          <TextInput style={styles.input} placeholder="Enter phone number" keyboardType="phone-pad" />
+        </View>
 
-          {/* Fill Test Data Button */}
-          <View style={{ alignItems: "center", marginBottom: 10 }}>
-            <TouchableOpacity
-              onPress={fillTestData}
-              disabled={loading}
-              style={{
-                backgroundColor: "#A0A0A0",
-                borderRadius: 10,
-                paddingVertical: 8,
-                paddingHorizontal: 30,
-              }}
-            >
-              <Text style={{ color: "#FFFFFF", fontSize: 18 }}>Fill Test Data</Text>
-            </TouchableOpacity>
-          </View>
+        <TouchableOpacity style={styles.button} onPress={() => router.replace('/')}>
+          <Text style={styles.buttonText}>Continue</Text>
+        </TouchableOpacity>
 
-          {/* Submit */}
-          <View style={{ alignItems: "center", marginBottom: 30 }}>
-            <TouchableOpacity
-              onPress={onSubmit}
-              disabled={!canSubmit || loading}
-              style={{
-                backgroundColor: canSubmit ? "#BFBFBF" : "#D6D6D6",
-                borderRadius: 10,
-                paddingVertical: 10,
-                paddingHorizontal: 50,
-              }}
-            >
-              <Text style={{ color: "#FFFFFF", fontSize: 26, fontWeight: "bold" }}>
-                Continue
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-        </ScrollView>
-      </KeyboardAvoidingView>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backLink}>
+          <Text style={styles.backText}>← Back</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 24,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 40,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 14,
+    textAlign: 'center',
+    color: '#666',
+    marginBottom: 40,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 8,
+    color: '#333',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 12,
+    borderRadius: 8,
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: '#28B900',
+    padding: 16,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  backLink: {
+    marginTop: 30,
+  },
+  backText: {
+    textAlign: 'center',
+    color: '#007AFF',
+    fontSize: 16,
+  },
+});

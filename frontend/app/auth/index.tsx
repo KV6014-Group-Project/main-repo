@@ -1,95 +1,83 @@
 import React from "react";
-import { SafeAreaView, ScrollView, View, Image, TouchableOpacity, Text } from "react-native";
+import { SafeAreaView, ScrollView, View, Image, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 
 export default function AuthIndexScreen() {
   const router = useRouter();
 
-  // ROSE STAFF = Organisers
-  const continueAsStaff = () => {
-    router.push("/auth/staff-login");
-  };
-
-  // COMMUNITY LEADER = Promoters
-  const continueAsOrganiser = () => {
-    router.push("/auth/leader-login");
-  };
-
-  const continueAsParticipant = () => {
-    router.push("/auth/participant");
-  };
-
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
-      <ScrollView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
-
-        {/* Rose logo */}
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scroll}>
         <Image
           source={require("../../assets/rose.png")}
           resizeMode="contain"
-          style={{
-            width: 70,
-            height: 70,
-            marginTop: 47,
-            marginBottom: 133,
-            marginLeft: 7,
-          }}
+          style={styles.logo}
         />
 
-        {/* Title */}
-        <View style={{ alignItems: "center", marginBottom: 94 }}>
-          <Text style={{ color: "#000000", fontSize: 32, fontWeight: "bold" }}>
-            PICK YOUR ROLE
-          </Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>PICK YOUR ROLE</Text>
         </View>
 
-        {/* ROSE STAFF = Organisers */}
         <TouchableOpacity
-          onPress={continueAsStaff}
-          style={{
-            backgroundColor: "#F8F8F8",
-            borderRadius: 16,
-            paddingVertical: 26,
-            paddingHorizontal: 45,
-            marginHorizontal: 36,
-            marginBottom: 57,
-          }}
+          style={styles.roleButton}
+          onPress={() => router.push("/auth/staff-login")}
         >
-          <Text style={{ color: "#000000", fontSize: 24 }}>ROSE STAFF</Text>
+          <Text style={styles.roleText}>ROSE STAFF</Text>
         </TouchableOpacity>
 
-        {/* COMMUNITY LEADER = Promoters */}
         <TouchableOpacity
-          onPress={continueAsOrganiser}
-          style={{
-            backgroundColor: "#F8F8F8",
-            borderRadius: 16,
-            paddingVertical: 26,
-            paddingHorizontal: 45,
-            marginHorizontal: 37,
-            marginBottom: 35,
-          }}
+          style={styles.roleButton}
+          onPress={() => router.push("/auth/leader-login")}
         >
-          <Text style={{ color: "#000000", fontSize: 24 }}>COMMUNITY LEADER</Text>
+          <Text style={styles.roleText}>COMMUNITY LEADER</Text>
         </TouchableOpacity>
 
-        {/* PARTICIPANTS */}
         <TouchableOpacity
-          onPress={continueAsParticipant}
-          style={{
-            backgroundColor: "#F8F8F8",
-            borderRadius: 16,
-            paddingVertical: 26,
-            paddingHorizontal: 45,
-            marginLeft: 45,
-            marginRight: 28,
-            marginBottom: 142,
-          }}
+          style={styles.roleButton}
+          onPress={() => router.push("/auth/participant")}
         >
-          <Text style={{ color: "#000000", fontSize: 24 }}>Participants</Text>
+          <Text style={styles.roleText}>PARTICIPANT</Text>
         </TouchableOpacity>
-
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  scroll: {
+    flex: 1,
+  },
+  logo: {
+    width: 70,
+    height: 70,
+    marginTop: 60,
+    marginBottom: 60,
+    marginLeft: 20,
+  },
+  titleContainer: {
+    alignItems: "center",
+    marginBottom: 60,
+  },
+  title: {
+    color: "#000000",
+    fontSize: 28,
+    fontWeight: "bold",
+  },
+  roleButton: {
+    backgroundColor: "#F8F8F8",
+    borderRadius: 16,
+    paddingVertical: 24,
+    paddingHorizontal: 40,
+    marginHorizontal: 36,
+    marginBottom: 20,
+  },
+  roleText: {
+    color: "#000000",
+    fontSize: 20,
+    fontWeight: "500",
+  },
+});

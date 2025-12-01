@@ -1,64 +1,137 @@
-export default function ParticipantDashboard() {
-  const events = [
-    { id: 1, title: "Health Screening - Community Hall", date: "Saturday, Oct 21st", time: "2:00 PM" },
-    { id: 2, title: "Charity Walk - Riverside Park", date: "Sunday, Nov 5th", time: "10:00 AM" },
-  ];
+import React from 'react';
+import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+
+export default function OrganiserDashboard() {
+  const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-white max-w-md mx-auto">
-      {/* Name Bar */}
-      <div className="bg-gray-300 rounded-lg mx-2 mt-2 py-6 text-center">
-        <h1 className="text-4xl text-black">JOHN DOE</h1>
-      </div>
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>JOHN DOE</Text>
+        </View>
 
-      {/* Impact Card */}
-      <div className="mx-2 mt-3 mb-3">
-        <div className="bg-white rounded-lg shadow-lg p-4">
-          <h2 className="text-xs font-bold text-black mb-3">Your Impact This Month</h2>
-          
-          <div className="flex justify-between items-start px-2">
-            <div className="text-center">
-              <p className="text-4xl font-bold text-black">48</p>
-              <p className="text-xs text-black mt-1">Participants<br/>Registered</p>
-            </div>
-            <div className="text-center">
-              <p className="text-4xl font-bold text-black">3</p>
-              <p className="text-xs text-black mt-1">Active Events</p>
-            </div>
-            <div className="text-center">
-              <p className="text-4xl font-bold text-black">120</p>
-              <p className="text-xs text-black mt-1">WhatsApp<br/>Shares</p>
-            </div>
-          </div>
-        </div>
-      </div>
+        <View style={styles.impactCard}>
+          <Text style={styles.impactTitle}>Your Impact This Month</Text>
+          <View style={styles.statsRow}>
+            <View style={styles.stat}>
+              <Text style={styles.statNumber}>48</Text>
+              <Text style={styles.statLabel}>Participants</Text>
+            </View>
+            <View style={styles.stat}>
+              <Text style={styles.statNumber}>3</Text>
+              <Text style={styles.statLabel}>Events</Text>
+            </View>
+            <View style={styles.stat}>
+              <Text style={styles.statNumber}>120</Text>
+              <Text style={styles.statLabel}>Shares</Text>
+            </View>
+          </View>
+        </View>
 
-      {/* Active Events Section */}
-      <h3 className="text-sm font-bold text-black mb-4 ml-8">Active Events</h3>
+        <Text style={styles.sectionTitle}>Active Events</Text>
 
-      {/* Event Cards */}
-      {events.map((event) => (
-        <button
-          key={event.id}
-          className="w-full bg-gray-300 rounded-lg py-3 mb-4 mx-2 text-left hover:bg-gray-400 transition-colors"
-          style={{ width: "calc(100% - 16px)" }}
-        >
-          <p className="text-sm font-bold text-black mb-2 ml-7">{event.title}</p>
-          <p className="text-sm text-black mb-2 ml-7">{event.date}</p>
-          <p className="text-sm text-black mb-2 ml-7">{event.time}</p>
-          <p className="text-sm font-bold ml-7" style={{ color: "#28B900" }}>VIEW DETAILS</p>
-        </button>
-      ))}
+        <TouchableOpacity style={styles.eventCard}>
+          <Text style={styles.eventTitle}>Health Screening - Community Hall</Text>
+          <Text style={styles.eventDate}>Saturday, Oct 21st</Text>
+          <Text style={styles.eventTime}>2:00 PM</Text>
+        </TouchableOpacity>
 
-      {/* Create Button */}
-      <div className="flex justify-center mt-4 mb-8">
-        <button
-          className="text-white text-lg font-bold py-3 px-16 rounded-lg hover:opacity-90"
-          style={{ backgroundColor: "#28B900" }}
-        >
-          CREATE
-        </button>
-      </div>
-    </div>
+        <TouchableOpacity style={styles.eventCard}>
+          <Text style={styles.eventTitle}>Charity Walk - Riverside Park</Text>
+          <Text style={styles.eventDate}>Sunday, Nov 5th</Text>
+          <Text style={styles.eventTime}>10:00 AM</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Text style={styles.backText}>← Back</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+  },
+  header: {
+    backgroundColor: '#D9D9D9',
+    borderRadius: 12,
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+  impactCard: {
+    backgroundColor: '#F8F8F8',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 24,
+  },
+  impactTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  stat: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 32,
+    fontWeight: 'bold',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  eventCard: {
+    backgroundColor: '#D9D9D9',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  eventTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  eventDate: {
+    fontSize: 14,
+    color: '#333',
+  },
+  eventTime: {
+    fontSize: 14,
+    color: '#333',
+  },
+  backButton: {
+    marginTop: 20,
+    padding: 16,
+    alignItems: 'center',
+  },
+  backText: {
+    color: '#007AFF',
+    fontSize: 16,
+  },
+});
