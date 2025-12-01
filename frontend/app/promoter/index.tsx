@@ -1,134 +1,107 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Text } from '@/components/ui/text';
-import { ScreenLayout } from '@/components/layouts';
-import { useSession } from '@/providers/SessionProvider';
-import { Stack, useRouter } from 'expo-router';
 import React from 'react';
-import { View } from 'react-native';
-import { Input } from '@/components/ui/input';
-import { usePromoterEvents } from '@/hooks';
-
-const SCREEN_OPTIONS = {
-  headerShown: false,
-};
+import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 
 export default function PromoterHome() {
-  const { session, signOut } = useSession();
   const router = useRouter();
-  const promoterId = React.useMemo(() => session?.profile?.email || 'promoter-local', [session]);
-  
-  const {
-    events,
-    linkInput,
-    setLinkInput,
-    busy,
-    shared,
-    statusMsg,
-    onAcceptOrganiserLink,
-    onShareParticipantLink,
-  } = usePromoterEvents(promoterId);
-
-  const onSignOut = async () => {
-    await signOut();
-    router.replace('/auth');
-  };
 
   return (
-    <>
-      <Stack.Screen options={SCREEN_OPTIONS} />
-      <ScreenLayout
-        title="Promoter"
-        subtitle="Turn organiser events into audiences with tracked share links."
-      >
-        <Card className="overflow-hidden md:shadow-lg w-full">
-          <CardHeader>
-            <CardTitle>
-              <Text variant="h3">Add Event</Text>
-            </CardTitle>
-            <CardDescription>
-              <Text variant="muted">Accept organiser links and generate participant links</Text>
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <View className="gap-3">
-              <View className="gap-1.5">
-                <Text className="text-sm">Paste organiser share link</Text>
-                <Input
-                  value={linkInput}
-                  onChangeText={setLinkInput}
-                  placeholder="https://link.local/?t=... or token"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  className="border-border bg-background text-foreground h-12 rounded-md border px-4"
-                />
-              </View>
-              <Button onPress={onAcceptOrganiserLink} disabled={busy || !linkInput.trim()}>
-                <Text>Add Event</Text>
-              </Button>
-              {statusMsg ? (
-                <Text className="text-xs text-muted-foreground mt-2">{statusMsg}</Text>
-              ) : null}
-            </View>
-          </CardContent>
-        </Card>
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.title}>Promoter Dashboard</Text>
+        <Text style={styles.subtitle}>Share events with your community</Text>
 
-        <Card className="overflow-hidden md:shadow-lg w-full">
-          <CardHeader>
-            <CardTitle>
-              <Text variant="h3">Assigned Events</Text>
-            </CardTitle>
-            <CardDescription>
-              <Text variant="muted">Share participant links to invite people</Text>
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <View className="gap-4">
-              {events.length === 0 ? (
-                <Text variant="muted">No events assigned yet.</Text>
-              ) : (
-                events.map(ev => (
-                  <View key={ev.id} className="rounded-md border border-border p-4 gap-3">
-                    <View className="gap-1.5">
-                      <Text className="text-base font-semibold">{ev.name}</Text>
-                      <Text variant="muted">{ev.date} • {ev.time}</Text>
-                      <Text variant="muted">{ev.location.venue}{ev.location.room ? `, ${ev.location.room}` : ''}</Text>
-                    </View>
-                    <View className="flex-row gap-3">
-                      <Button onPress={() => onShareParticipantLink(ev.id)}>
-                        <Text>Share to Participants</Text>
-                      </Button>
-                    </View>
-                    {shared[ev.id] ? (
-                      <View className="gap-3 pt-3 border-t border-border">
-                        <View className="gap-1.5">
-                          <Text className="text-sm font-semibold">Participant link URL</Text>
-                          <Text selectable className="text-xs text-muted-foreground">{shared[ev.id].url}</Text>
-                        </View>
-                        <View className="gap-1.5">
-                          <Text className="text-sm font-semibold">Raw token</Text>
-                          <Text selectable className="text-xs text-muted-foreground">{shared[ev.id].token}</Text>
-                        </View>
-                      </View>
-                    ) : null}
-                  </View>
-                ))
-              )}
-            </View>
-          </CardContent>
-        </Card>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Your Events</Text>
+          <Text style={styles.cardText}>No events assigned yet.</Text>
+        </View>
 
-        <Button
-          className="mt-6"
-          variant="ghost"
-          size="lg"
-          onPress={onSignOut}
+        <TouchableOpacity 
+          style={styles.navButton} 
+          onPress={() => router.push('/promoter/promoterevent')}
         >
-          <Text>Sign out</Text>
-        </Button>
-      </ScreenLayout>
-    </>
+          <Text style={styles.navButtonText}>View Event Details</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.navButton} 
+          onPress={() => router.push('/promoter/promoterimpact')}
+        >
+          <Text style={styles.navButtonText}>View Impact</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.signOutButton} 
+          onPress={() => router.replace('/welcome')}
+        >
+          <Text style={styles.signOutText}>Sign Out</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  card: {
+    backgroundColor: '#F8F8F8',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  cardText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  navButton: {
+    backgroundColor: '#28B900',
+    padding: 16,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  navButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  signOutButton: {
+    backgroundColor: '#E0E0E0',
+    padding: 16,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  signOutText: {
+    color: '#333',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});

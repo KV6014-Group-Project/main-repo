@@ -1,115 +1,83 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Text } from '@/components/ui/text';
-import { useSession } from '@/providers/SessionProvider';
-import { Stack, useRouter } from 'expo-router';
-import React from 'react';
-import { View, ScrollView } from 'react-native';
+import React from "react";
+import { SafeAreaView, ScrollView, View, Image, TouchableOpacity, Text, StyleSheet } from "react-native";
+import { useRouter } from "expo-router";
 
 export default function AuthIndexScreen() {
-  const { signUp } = useSession();
   const router = useRouter();
-  const [loading] = React.useState(false);
-  const [error] = React.useState<string | null>(null);
-
-  const continueAsParticipant = () => {
-    router.push('/auth/participant');
-  };
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          headerTransparent: false,
-          title: 'Get started',
-          headerBackTitleVisible: false,
-        }}
-      />
-      <View className="flex-1 bg-background">
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{
-            paddingHorizontal: 24,
-            paddingVertical: 24,
-          }}
-        >
-          <View className="w-full max-w-xl mx-auto gap-6">
-            <View className="gap-1">
-              <Text variant="h2" className="font-semibold">
-                Get started
-              </Text>
-              <Text variant="muted" className="text-sm">
-                Choose how you want to use Event Manager.
-              </Text>
-            </View>
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scroll}>
+        <Image
+          source={require("../../assets/rose.png")}
+          resizeMode="contain"
+          style={styles.logo}
+        />
 
-                <Card className="overflow-hidden md:shadow-lg">
-                  <CardHeader>
-                    <CardTitle>
-                      <Text variant="h3">Join as participant</Text>
-                    </CardTitle>
-                    <CardDescription>
-                      <Text variant="muted">
-                        Quick access with light details. Ideal if you just need to check in to events.
-                      </Text>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button
-                      size="lg"
-                      onPress={continueAsParticipant}
-                      disabled={loading}
-                      className="w-full"
-                    >
-                      <Text className="font-semibold">Continue as participant</Text>
-                    </Button>
-                  </CardContent>
-                </Card>
-    
-                <Card className="overflow-hidden md:shadow-lg">
-                  <CardHeader>
-                    <CardTitle>
-                      <Text variant="h3">Manage events</Text>
-                    </CardTitle>
-                    <CardDescription>
-                      <Text variant="muted">
-                        Create or promote events with dashboards tailored to your role.
-                      </Text>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <View className="gap-3">
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        className="w-full"
-                        onPress={() => router.push('/auth/organiser')}
-                      >
-                        <Text>I am an organiser</Text>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        className="w-full"
-                        onPress={() => router.push('/auth/promoter')}
-                      >
-                        <Text>I am a promoter</Text>
-                      </Button>
-                    </View>
-                  </CardContent>
-                </Card>
-    
-                {error ? (
-                  <Text className="text-destructive text-sm mt-2 text-center">
-                    {error}
-                  </Text>
-                ) : null}
-              </View>
-            </ScrollView>
-          </View>
-        </>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>PICK YOUR ROLE</Text>
+        </View>
+
+        <TouchableOpacity
+          style={styles.roleButton}
+          onPress={() => router.push("/auth/staff-login")}
+        >
+          <Text style={styles.roleText}>ROSE STAFF</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.roleButton}
+          onPress={() => router.push("/auth/leader-login")}
+        >
+          <Text style={styles.roleText}>COMMUNITY LEADER</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.roleButton}
+          onPress={() => router.push("/auth/participant")}
+        >
+          <Text style={styles.roleText}>PARTICIPANT</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  scroll: {
+    flex: 1,
+  },
+  logo: {
+    width: 70,
+    height: 70,
+    marginTop: 60,
+    marginBottom: 60,
+    marginLeft: 20,
+  },
+  titleContainer: {
+    alignItems: "center",
+    marginBottom: 60,
+  },
+  title: {
+    color: "#000000",
+    fontSize: 28,
+    fontWeight: "bold",
+  },
+  roleButton: {
+    backgroundColor: "#F8F8F8",
+    borderRadius: 16,
+    paddingVertical: 24,
+    paddingHorizontal: 40,
+    marginHorizontal: 36,
+    marginBottom: 20,
+  },
+  roleText: {
+    color: "#000000",
+    fontSize: 20,
+    fontWeight: "500",
+  },
+});
