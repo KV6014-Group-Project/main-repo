@@ -147,7 +147,7 @@ Add simple logging for important security actions such as event deletion, role c
 
 These give you plenty of concrete things to test and write about.
 
-Medium priority good to mention or partially implement
+**Medium priority good to mention or partially implement**
 
 You can ask devs to do lighter versions or treat some as design level for future work.
 
@@ -175,7 +175,7 @@ Region validation middleware
 Developers
 Again more future focused. You can say that in a full system, middleware would check location before allowing RSVP traffic through, but you are not building this fully now.
 
-Lower priority mostly future recommendations for Log Task 4
+**Lower priority mostly future recommendations for Log Task 4**
 
 These are nice extras you can describe as future improvements if the NGO had more time and budget.
 
@@ -199,7 +199,7 @@ API key authentication for sensitive operations
 Future
 You can mention this if you later add internal APIs or integrations. For the current coursework, standard Django auth is enough.
 
-Request signature verification
+**Request signature verification
 Future
 This is advanced and not needed for the project. At most, mention it as a possible future control for protecting webhooks or external callbacks.
-- 
+- **
