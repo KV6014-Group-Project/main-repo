@@ -113,7 +113,7 @@ When features are merged, keep this updated.
 
 ## Security - Required by Alvin on 30/11/2025
 Priority- (HIghest-Lowest)
--Enhanced endpoint protection
+Enhanced endpoint protection
 Developers
 Make sure sensitive endpoints for staff and community leaders all require authentication and the correct role. Participants and anonymous users must not be able to hit staff or organiser routes even if they use Postman.
 
@@ -196,7 +196,7 @@ Future
 This is heavy for your use case. You can keep it as a short note saying that in a real environment, admin tools could be restricted to particular office networks.
 
 API key authentication for sensitive operations
-Future
+-Future
 You can mention this if you later add internal APIs or integrations. For the current coursework, standard Django auth is enough.
 
 **Request signature verification
