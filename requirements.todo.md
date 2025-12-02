@@ -201,5 +201,5 @@ You can mention this if you later add internal APIs or integrations. For the cur
 
 Request signature verification
 Future
-This is advanced and not needed for your project. At most, mention it as a possible future control for protecting webhooks or external callbacks.
+This is advanced and not needed for the project. At most, mention it as a possible future control for protecting webhooks or external callbacks.
 - 
