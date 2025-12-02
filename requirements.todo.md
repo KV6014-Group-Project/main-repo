@@ -112,94 +112,93 @@ When features are merged, keep this updated.
   - [ ] Deployment instructions
 
 ## Security - Required by Alvin on 30/11/2025
-Priority- (HIghest-Lowest)
-Enhanced endpoint protection
-Developers
-Make sure sensitive endpoints for staff and community leaders all require authentication and the correct role. Participants and anonymous users must not be able to hit staff or organiser routes even if they use Postman.
+**High Priority (Develop now)**
 
-Input sanitisation and validation
-Developers
-Check key endpoints such as event creation, registration and RSVP. Validate all required fields, reject missing or badly formatted data and strip out obviously dangerous input. This reduces basic injection and broken data issues.
+1. Enhanced endpoint protection
+Developers must ensure that all staff and community leader endpoints require authentication and the correct role.
+Participants and anonymous users must not be able to access these endpoints even with tools like Postman.
 
-SQL injection prevention
-Developers
-Confirm that all database access uses Django ORM only and that no raw SQL queries are used. If any raw SQL exists, parameterise it properly or replace with ORM queries.
+2. Input sanitisation and validation
+Check all endpoints that accept user input (event creation, registration, RSVP).
+Reject missing fields, enforce correct formats, and strip out unsafe data to prevent broken or harmful requests.
 
-CSRF token validation
-Developers
-For any browser based staff interface, keep Django CSRF protection turned on. Ensure that forms and frontend requests are sending CSRF tokens correctly where needed.
+3. SQL injection prevention
+Confirm all database operations use Django ORM only.
+If any raw SQL is present, replace it with ORM queries or add parameterisation.
 
-XSS protection headers
-Developers
-Ensure Django security middleware is enabled so that headers such as X Content Type Options and X XSS Protection are set. If any custom HTML rendering exists, escape user input properly.
+4. CSRF token validation
+For any browser based staff screens, ensure Django’s CSRF protection remains active and that the frontend passes CSRF tokens correctly.
 
-JWT or token expiry
-Developers
-Whatever auth approach you use, confirm that tokens or sessions expire after a sensible period rather than lasting forever. If you use JWT, set an expiry. If you use session auth, make sure session age is reasonable.
+5. XSS protection headers
+Make sure Django Security Middleware is enabled so important headers such as X Content Type Options and X XSS Protection are automatically applied.
+Escape any user provided text if it is ever rendered into HTML.
 
-Brute force protection and rate limiting on sensitive endpoints
-Developers
-At minimum, add rate limiting or throttling on login endpoints and maybe RSVP endpoints. This can be DRF throttling classes or a simple check to slow down repeated failed login attempts.
+6. Token or session expiry
+Ensure login tokens or sessions expire after a reasonable time instead of lasting forever.
+If using JWT, set an expiry. If using sessions, set a clear session duration.
 
-Audit logging for key actions
-Developers
-Add simple logging for important security actions such as event deletion, role changes and possibly bulk RSVP imports. Log who did it, what they did and when, without logging passwords or full tokens.
+7. Brute force and rate limiting
+Add rate limiting on sensitive endpoints such as login and possibly RSVP.
+Use DRF throttling or a simple lockout after repeated failures.
 
-These give you plenty of concrete things to test and write about.
+8. Audit logging
+Log important staff actions such as event deletion, role changes or bulk RSVP operations.
+Log who performed the action, what happened, and when.
+Do not log passwords or full tokens.
 
-**Medium priority good to mention or partially implement**
+**Medium Priority (Implement or document as future work)**
 
-You can ask devs to do lighter versions or treat some as design level for future work.
+9. CORS policy enforcement
+Restrict allowed frontend origins in production.
+For now, include a simple list, but tighten this when deploying.
 
-CORS policy enforcement
-Developers
-In settings, restrict allowed origins so that only your real frontend domains are allowed in production. For coursework this can be a simple list but still worth mentioning.
+10. Request size limits
+Set a maximum request size to prevent abuse of upload or large payload endpoints.
 
-Request size limits
-Developers
-Set a sensible maximum request size if you have any upload or large payload endpoints. This can stay as a short note in settings or as a future recommendation if time is tight.
+11. Security logging for access or region violations
+If someone repeatedly hits a forbidden endpoint or attempts an RSVP from an invalid region, record a warning log entry.
 
-Security logging for region or access violations
-Developers
-If someone repeatedly hits a forbidden endpoint, or tries to use an RSVP from the wrong place, log it as a warning. Even if region logic is not fully built, you can log repeated forbidden access.
+12. Region based access control (future extension)
+Store an “allowed region” field on events and plan to validate it later.
+Developers can add basic placeholders now if time allows.
 
-Region based access control and event specific region restrictions
-Developers
-You can keep this mainly as a future design. For example store an allowed country code on the event and plan to link it to geolocation later. If they have time, they can stub the field and add a simple check.
+13. Geolocation integration
+Advanced future recommendation.
+Would use an IP to country lookup if the NGO deploys to cloud.
+Not required to implement fully now.
 
-Geographic location detection and IP based geolocation service integration
-Developers
-This is more expensive and probably too heavy to fully build. You can describe it as future work. For instance using a basic IP to country lookup service for RSVP requests if the NGO moves to full cloud deployment.
+14. Region validation middleware
+Future work.
+Would check user region before allowing certain routes.
 
-Region validation middleware
-Developers
-Again more future focused. You can say that in a full system, middleware would check location before allowing RSVP traffic through, but you are not building this fully now.
+Lower Priority (Future roadmap for Log Task 4)
 
-**Lower priority mostly future recommendations for Log Task 4**
+15. User region profile management
+Future enhancement where staff or leaders would have assigned regions.
 
-These are nice extras you can describe as future improvements if the NGO had more time and budget.
+16. Region filtered event discovery
+Participants could see only events in their area.
 
-User region profile management
-Future
-Describe that staff and community leaders could have a region attribute so that they only manage events in their own area. You do not need to build this.
+17. Admin override for region rules
+Senior staff could bypass restrictions if needed.
 
-Region based filtering for event discovery
-Future
-Explain that participants could be shown only events for their local region if the app later had more discovery features. Not essential now.
+18. IP whitelisting for admin areas
+Limit admin access to trusted networks in a real deployment.
 
-Admin override capabilities for region restrictions
-Future
-Mention that in a real deployment, senior staff could override region checks to handle exceptional cases. Again this is design level.
+19. API key authentication for sensitive endpoints
+Future extension for internal integrations.
 
-IP whitelisting for admin endpoints
-Future
-This is heavy for your use case. You can keep it as a short note saying that in a real environment, admin tools could be restricted to particular office networks.
+20. Request signature verification
+Advanced security for external callbacks or webhooks.
+Not needed for this coursework.
 
-API key authentication for sensitive operations
--Future
-You can mention this if you later add internal APIs or integrations. For the current coursework, standard Django auth is enough.
+Short summary for developers
 
-**Request signature verification
-Future
-This is advanced and not needed for the project. At most, mention it as a possible future control for protecting webhooks or external callbacks.
-- **
+Please focus on
+proper role protection on endpoints
+input validation
+no raw SQL
+CSRF + security middleware
+real token/session expiry
+basic rate limiting
+and audit logs for key actions
