@@ -112,6 +112,7 @@ When features are merged, keep this updated.
   - [ ] Deployment instructions
 
 ## Security - Required by Alvin on 30/11/2025
+Priority- (HIghest-Lowest)
 - [ ] Region-based access control
   - [ ] Geographic location detection
   - [ ] Region validation middleware
