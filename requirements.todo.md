@@ -171,7 +171,7 @@ Not required to implement fully now.
 Future work.
 Would check user region before allowing certain routes.
 
-Lower Priority (Future roadmap for Log Task 4)
+**Lower Priority (Future roadmap for Log Task 4)**
 
 15. User region profile management
 Future enhancement where staff or leaders would have assigned regions.
