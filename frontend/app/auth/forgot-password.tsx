@@ -1,40 +1,53 @@
 import React from 'react';
 import { SafeAreaView, View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, Stack } from 'expo-router';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
 
+  const handleSendReset = () => {
+    // In a real app, this would send a reset email
+    // For now, just go back to the previous screen
+    router.back();
+  };
+
+  const handleBack = () => {
+    router.back();
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Image
-          source={require('../../assets/rose.png')}
-          resizeMode="contain"
-          style={styles.logo}
-        />
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <Image
+            source={require('../../assets/rose.png')}
+            resizeMode="contain"
+            style={styles.logo}
+          />
 
-        <Text style={styles.title}>Reset Password</Text>
-        <Text style={styles.subtitle}>
-          Enter your email and we'll send you a reset link
-        </Text>
+          <Text style={styles.title}>Reset Password</Text>
+          <Text style={styles.subtitle}>
+            Enter your email and we'll send you a reset link
+          </Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
-        <TouchableOpacity style={styles.button} onPress={() => router.back()}>
-          <Text style={styles.buttonText}>Send Reset Link</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleSendReset}>
+            <Text style={styles.buttonText}>Send Reset Link</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.back()} style={styles.backLink}>
-          <Text style={styles.backText}>← Back to Login</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+          <TouchableOpacity onPress={handleBack} style={styles.backLink}>
+            <Text style={styles.backText}>← Back to Login</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </>
   );
 }
 

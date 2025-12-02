@@ -1,37 +1,57 @@
 import * as React from 'react';
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, Stack } from 'expo-router';
 
 export default function PromoterLogin() {
   const router = useRouter();
 
+  const handleLogin = () => {
+    // Clear stack and set promoter home as root
+    router.replace('/promoter');
+  };
+
+  const handleBack = () => {
+    router.replace('/auth');
+  };
+
+  const handleSignup = () => {
+    router.push('/auth/promoter-signup');
+  };
+
+  const handleForgotPassword = () => {
+    router.push('/auth/forgot-password');
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Promoter Login</Text>
-      <Text style={styles.subtitle}>Connect events to participants with shareable links.</Text>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.title}>Promoter Login</Text>
+        <Text style={styles.subtitle}>Connect events to participants with shareable links.</Text>
 
-      <TextInput placeholder="Email" style={styles.input} />
-      <TextInput placeholder="Password" secureTextEntry style={styles.input} />
+        <TextInput placeholder="Email" style={styles.input} />
+        <TextInput placeholder="Password" secureTextEntry style={styles.input} />
 
-      <View style={styles.row}>
-        <Text>Remember me</Text>
-        <TouchableOpacity onPress={() => router.push('/auth/forgot-password')}>
-          <Text style={styles.link}>Forgot Password?</Text>
+        <View style={styles.row}>
+          <Text>Remember me</Text>
+          <TouchableOpacity onPress={handleForgotPassword}>
+            <Text style={styles.link}>Forgot Password?</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>LOGIN</Text>
         </TouchableOpacity>
-      </View>
 
-      <TouchableOpacity style={styles.button} onPress={() => router.replace('/promoter')}>
-        <Text style={styles.buttonText}>LOGIN</Text>
-      </TouchableOpacity>
+        <TouchableOpacity onPress={handleSignup} style={styles.signupLink}>
+          <Text style={styles.signupText}>Don't have an account? Sign up</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push('/auth/promoter-signup')} style={styles.signupLink}>
-        <Text style={styles.signupText}>Don't have an account? Sign up</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => router.back()} style={styles.backLink}>
-        <Text style={styles.backText}>← Back</Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+        <TouchableOpacity onPress={handleBack} style={styles.backLink}>
+          <Text style={styles.backText}>← Back</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    </>
   );
 }
 

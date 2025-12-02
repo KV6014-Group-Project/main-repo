@@ -2,11 +2,13 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import React from 'react';
 import { useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
 
 export default function QRScannerComponent() {
   const [lastScanned, setLastScanned] = useState('');
   const [scanned, setScanned] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
+  const router = useRouter();
 
   const handleBarcodeScanned = ({ type, data }: { type: string; data: string }) => {
     if (scanned) return;
@@ -20,13 +22,7 @@ export default function QRScannerComponent() {
   };
 
   const goBack = () => {
-    // Try to use browser history first
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      // If no history, go to home or referrer
-      window.location.href = document.referrer || '/';
-    }
+    router.replace('/participant');
   };
 
   // Handle permission states
@@ -70,7 +66,12 @@ export default function QRScannerComponent() {
           {lastScanned || 'Point the camera at a QR code'}
         </Text>
         {scanned && (
-          <Text style={styles.helperText}>Waiting a moment before scanning again…</Text>
+          <>
+            <Text style={styles.helperText}>Waiting a moment before scanning again…</Text>
+            <Pressable style={styles.backButton} onPress={() => router.replace('/participant')}>
+              <Text style={styles.backButtonText}>Back to Participant Home</Text>
+            </Pressable>
+          </>
         )}
       </View>
     </View>
@@ -128,6 +129,17 @@ const styles = StyleSheet.create({
     color: '#1a73e8',
     fontSize: 15,
     fontWeight: '500',
+  },
+  backButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    backgroundColor: '#1a73e8',
+  },
+  backButtonText: {
+    color: '#fff',
+    fontWeight: '600',
   },
   dataValue: {
     fontSize: 18,

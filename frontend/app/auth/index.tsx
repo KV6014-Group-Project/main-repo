@@ -1,45 +1,48 @@
 import * as React from 'react';
 import { SafeAreaView, ScrollView, View, Image, TouchableOpacity, Text, StyleSheet } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, Stack } from "expo-router";
 
 export default function AuthIndexScreen() {
   const router = useRouter();
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scroll}>
-        <Image
-          source={require("../../assets/rose.png")}
-          resizeMode="contain"
-          style={styles.logo}
-        />
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView style={styles.container}>
+        <ScrollView style={styles.scroll}>
+          <Image
+            source={require("../../assets/rose.png")}
+            resizeMode="contain"
+            style={styles.logo}
+          />
 
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>PICK YOUR ROLE</Text>
-        </View>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>PICK YOUR ROLE</Text>
+          </View>
 
-        <TouchableOpacity
-          style={styles.roleButton}
-          onPress={() => router.push("/auth/organiser-login")}
-        >
-          <Text style={styles.roleText}>ORGANISER</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.roleButton}
+            onPress={() => router.push("/auth/organiser-login")}
+          >
+            <Text style={styles.roleText}>ORGANISER</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.roleButton}
-          onPress={() => router.push("/auth/promoter-login")}
-        >
-          <Text style={styles.roleText}>PROMOTER</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.roleButton}
+            onPress={() => router.push("/auth/promoter-login")}
+          >
+            <Text style={styles.roleText}>PROMOTER</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.roleButton}
-          onPress={() => router.push("/auth/participant")}
-        >
-          <Text style={styles.roleText}>PARTICIPANT</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
+          <TouchableOpacity
+            style={styles.roleButton}
+            onPress={() => router.push("/auth/participant")}
+          >
+            <Text style={styles.roleText}>PARTICIPANT</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    </>
   );
 }
 

@@ -1,32 +1,48 @@
 import * as React from 'react';
 import { Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, Stack } from 'expo-router';
 
 export default function PromoterSignup() {
   const router = useRouter();
 
+  const handleSignup = () => {
+    // Clear stack and set promoter home as root
+    router.replace('/promoter');
+  };
+
+  const handleLogin = () => {
+    router.push('/auth/promoter-login');
+  };
+
+  const handleBack = () => {
+    router.push('/auth/promoter-login');
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Promoter Sign Up</Text>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.title}>Promoter Sign Up</Text>
 
-      <TextInput placeholder="First Name" style={styles.input} />
-      <TextInput placeholder="Last Name" style={styles.input} />
-      <TextInput placeholder="Email" style={styles.input} keyboardType="email-address" />
-      <TextInput placeholder="Password" secureTextEntry style={styles.input} />
-      <TextInput placeholder="Confirm Password" secureTextEntry style={styles.input} />
+        <TextInput placeholder="First Name" style={styles.input} />
+        <TextInput placeholder="Last Name" style={styles.input} />
+        <TextInput placeholder="Email" style={styles.input} keyboardType="email-address" />
+        <TextInput placeholder="Password" secureTextEntry style={styles.input} />
+        <TextInput placeholder="Confirm Password" secureTextEntry style={styles.input} />
 
-      <TouchableOpacity style={styles.button} onPress={() => router.replace('/promoter')}>
-        <Text style={styles.buttonText}>SIGN UP</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleSignup}>
+          <Text style={styles.buttonText}>SIGN UP</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push('/auth/promoter-login')} style={styles.loginLink}>
-        <Text style={styles.loginText}>Already have an account? Login</Text>
-      </TouchableOpacity>
+        <TouchableOpacity onPress={handleLogin} style={styles.loginLink}>
+          <Text style={styles.loginText}>Already have an account? Login</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.back()} style={styles.backLink}>
-        <Text style={styles.backText}>← Back</Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+        <TouchableOpacity onPress={handleBack} style={styles.backLink}>
+          <Text style={styles.backText}>← Back</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    </>
   );
 }
 

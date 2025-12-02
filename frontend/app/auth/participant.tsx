@@ -1,45 +1,57 @@
 import React from "react";
 import { SafeAreaView, ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, Stack } from "expo-router";
 
 export default function ParticipantScreen() {
   const router = useRouter();
 
+  const handleContinue = () => {
+    // Clear stack and set participant home as root
+    router.replace('/participant');
+  };
+
+  const handleBack = () => {
+    router.replace('/auth');
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>Participant Registration</Text>
-        <Text style={styles.subtitle}>Join events in your community</Text>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView style={styles.container}>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+          <Text style={styles.title}>Participant Registration</Text>
+          <Text style={styles.subtitle}>Join events in your community</Text>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>First Name</Text>
-          <TextInput style={styles.input} placeholder="Enter first name" />
-        </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>First Name</Text>
+            <TextInput style={styles.input} placeholder="Enter first name" />
+          </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Last Name</Text>
-          <TextInput style={styles.input} placeholder="Enter last name" />
-        </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Last Name</Text>
+            <TextInput style={styles.input} placeholder="Enter last name" />
+          </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput style={styles.input} placeholder="Enter email" keyboardType="email-address" />
-        </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput style={styles.input} placeholder="Enter email" keyboardType="email-address" />
+          </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Phone (optional)</Text>
-          <TextInput style={styles.input} placeholder="Enter phone number" keyboardType="phone-pad" />
-        </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Phone (optional)</Text>
+            <TextInput style={styles.input} placeholder="Enter phone number" keyboardType="phone-pad" />
+          </View>
 
-        <TouchableOpacity style={styles.button} onPress={() => router.replace('/participant')}>
-          <Text style={styles.buttonText}>Continue</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleContinue}>
+            <Text style={styles.buttonText}>Continue</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.back()} style={styles.backLink}>
-          <Text style={styles.backText}>← Back</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
+          <TouchableOpacity onPress={handleBack} style={styles.backLink}>
+            <Text style={styles.backText}>← Back</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    </>
   );
 }
 

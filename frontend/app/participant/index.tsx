@@ -23,18 +23,28 @@ export default function ParticipantHome() {
           </View>
         </View>
 
-        <TouchableOpacity 
-          style={styles.navButton} 
-          onPress={() => router.push('/participant/participantimpact')}
-        >
-          <Text style={styles.navButtonText}>View Your Impact</Text>
-        </TouchableOpacity>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Your Upcoming Event</Text>
+          <View style={styles.eventCard}>
+            <View style={styles.eventHeader}>
+              <Text style={styles.eventTitle}>Medical Screening - Community Hall</Text>
+              <View style={styles.dateBadge}>
+                <Text style={styles.dateText}>DEC 15</Text>
+              </View>
+            </View>
+            <View style={styles.eventDetails}>
+              <Text style={styles.eventDetail}>📍 Community Hall, Main Street</Text>
+              <Text style={styles.eventDetail}>🕐 10:00 AM - 2:00 PM</Text>
+              <Text style={styles.eventDetail}>👥 Registered: Yes</Text>
+            </View>
+          </View>
+        </View>
 
         <TouchableOpacity 
           style={styles.signOutButton} 
-          onPress={() => router.replace('/participant/qr-code-page')}
+          onPress={() => router.push('/participant/qr-code-page')}
         >
-          <Text style={styles.signOutText}>QR Code Scanner</Text>
+          <Text style={styles.signOutText}>Add Event with QR</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
@@ -117,5 +127,41 @@ const styles = StyleSheet.create({
     color: '#333',
     fontSize: 16,
     fontWeight: '600',
+  },
+  eventCard: {
+    backgroundColor: '#F8F8F8',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 12,
+  },
+  eventHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  eventTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+    marginRight: 12,
+  },
+  dateBadge: {
+    backgroundColor: '#28B900',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  dateText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  eventDetails: {
+    gap: 4,
+  },
+  eventDetail: {
+    fontSize: 14,
+    color: '#666',
   },
 });
