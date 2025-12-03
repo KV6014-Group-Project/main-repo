@@ -2,7 +2,7 @@ import "../global.css";
 import React from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Pressable, Text } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -27,12 +27,13 @@ export default function RootLayout() {
   return (
     <>
       <StatusBar style="dark" />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}
-      />
-      <BackButtonOverlay />
+      <View className="flex-1 max-w-2xl mx-auto w-full">
+        <Stack
+          screenOptions={{
+            headerShown: false,
+          }}
+        />
+      </View>
     </>
   );
 }

@@ -2,6 +2,12 @@ import React from 'react';
 import { SafeAreaView, ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 
+const outreachSummary = {
+  peopleHelped: 120,
+  audience: 'women',
+  benefit: 'free health screenings',
+};
+
 export default function PromoterImpact() {
   const router = useRouter();
 
@@ -52,6 +58,15 @@ export default function PromoterImpact() {
         <View className="bg-neutral-200 rounded-xl p-4 flex-row justify-between items-center mb-3">
           <Text className="text-sm font-medium flex-1">Women Wellness Workshop</Text>
           <Text className="text-base font-bold">30</Text>
+        </View>
+
+        <View className="bg-[#FFE4EB] border border-[#FF9FBA] rounded-2xl p-4 mt-4 flex-row items-start gap-3">
+          <Text className="text-xl">💡</Text>
+          <Text className="text-sm text-gray-700 flex-1">
+            Your outreach helped{' '}
+            <Text className="font-semibold text-[#E2004E]">{outreachSummary.peopleHelped} {outreachSummary.audience}</Text>{' '}
+            access {outreachSummary.benefit}.
+          </Text>
         </View>
 
         <TouchableOpacity className="p-4 items-center mt-5" onPress={() => router.back()}>
