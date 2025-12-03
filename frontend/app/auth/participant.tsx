@@ -1,5 +1,5 @@
 import React from "react";
-import { SafeAreaView, ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { SafeAreaView, ScrollView, View, Text, TextInput, TouchableOpacity } from "react-native";
 import { useRouter, Stack } from "expo-router";
 
 export default function ParticipantScreen() {
@@ -17,102 +17,40 @@ export default function ParticipantScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView style={styles.container}>
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.title}>Participant Registration</Text>
-          <Text style={styles.subtitle}>Join events in your community</Text>
+      <SafeAreaView className="flex-1 bg-white">
+        <ScrollView className="flex-1" contentContainerClassName="p-6">
+          <Text className="text-2xl font-bold text-center mt-10 mb-2">Participant Registration</Text>
+          <Text className="text-sm text-center text-gray-500 mb-10">Join events in your community</Text>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>First Name</Text>
-            <TextInput style={styles.input} placeholder="Enter first name" />
+          <View className="mb-5">
+            <Text className="text-base font-medium mb-2 text-gray-700">First Name</Text>
+            <TextInput className="border border-gray-300 p-3 rounded-lg text-base" placeholder="Enter first name" />
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Last Name</Text>
-            <TextInput style={styles.input} placeholder="Enter last name" />
+          <View className="mb-5">
+            <Text className="text-base font-medium mb-2 text-gray-700">Last Name</Text>
+            <TextInput className="border border-gray-300 p-3 rounded-lg text-base" placeholder="Enter last name" />
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput style={styles.input} placeholder="Enter email" keyboardType="email-address" />
+          <View className="mb-5">
+            <Text className="text-base font-medium mb-2 text-gray-700">Email</Text>
+            <TextInput className="border border-gray-300 p-3 rounded-lg text-base" placeholder="Enter email" keyboardType="email-address" />
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Phone (optional)</Text>
-            <TextInput style={styles.input} placeholder="Enter phone number" keyboardType="phone-pad" />
+          <View className="mb-5">
+            <Text className="text-base font-medium mb-2 text-gray-700">Phone (optional)</Text>
+            <TextInput className="border border-gray-300 p-3 rounded-lg text-base" placeholder="Enter phone number" keyboardType="phone-pad" />
           </View>
 
-          <TouchableOpacity style={styles.button} onPress={handleContinue}>
-            <Text style={styles.buttonText}>Continue</Text>
+          <TouchableOpacity className="bg-[#28B900] p-4 rounded-xl items-center mt-5" onPress={handleContinue}>
+            <Text className="text-white text-lg font-bold">Continue</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={handleBack} style={styles.backLink}>
-            <Text style={styles.backText}>← Back</Text>
+          <TouchableOpacity onPress={handleBack} className="mt-8">
+            <Text className="text-center text-blue-500 text-base">← Back</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 24,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 40,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    textAlign: 'center',
-    color: '#666',
-    marginBottom: 40,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 8,
-    color: '#333',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 12,
-    borderRadius: 8,
-    fontSize: 16,
-  },
-  button: {
-    backgroundColor: '#28B900',
-    padding: 16,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  backLink: {
-    marginTop: 30,
-  },
-  backText: {
-    textAlign: 'center',
-    color: '#007AFF',
-    fontSize: 16,
-  },
-});

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 
 export default function OrganiserLogin() {
@@ -25,95 +25,32 @@ export default function OrganiserLogin() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.title}>Organiser Login</Text>
-        <Text style={styles.subtitle}>Create and manage events with full control.</Text>
+      <SafeAreaView className="flex-1 bg-white p-5">
+        <Text className="text-2xl font-bold text-center mt-12">Organiser Login</Text>
+        <Text className="text-sm text-center mb-10 text-gray-500">Create and manage events with full control.</Text>
 
-        <TextInput placeholder="Email" style={styles.input} />
-        <TextInput placeholder="Password" secureTextEntry style={styles.input} />
+        <TextInput placeholder="Email" className="border border-gray-300 p-3 rounded-lg mb-5 text-base" />
+        <TextInput placeholder="Password" secureTextEntry className="border border-gray-300 p-3 rounded-lg mb-5 text-base" />
 
-        <View style={styles.row}>
+        <View className="flex-row justify-between my-2.5">
           <Text>Remember me</Text>
           <TouchableOpacity onPress={handleForgotPassword}>
-            <Text style={styles.link}>Forgot Password?</Text>
+            <Text className="text-blue-500">Forgot Password?</Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>LOGIN</Text>
+        <TouchableOpacity className="bg-[#28B900] p-4 rounded-lg items-center mt-2.5" onPress={handleLogin}>
+          <Text className="text-white text-base font-bold">LOGIN</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={handleSignup} style={styles.signupLink}>
-          <Text style={styles.signupText}>Don't have an account? Sign up</Text>
+        <TouchableOpacity onPress={handleSignup} className="mt-5">
+          <Text className="text-center text-gray-700">Don't have an account? Sign up</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={handleBack} style={styles.backLink}>
-          <Text style={styles.backText}>← Back</Text>
+        <TouchableOpacity onPress={handleBack} className="mt-8">
+          <Text className="text-center text-blue-500 text-base">← Back</Text>
         </TouchableOpacity>
       </SafeAreaView>
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 50,
-  },
-  subtitle: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 40,
-    color: '#666',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 20,
-    fontSize: 16,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 10,
-  },
-  link: {
-    color: '#007AFF',
-  },
-  button: {
-    backgroundColor: '#28B900',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  signupLink: {
-    marginTop: 20,
-  },
-  signupText: {
-    textAlign: 'center',
-    color: '#333',
-  },
-  backLink: {
-    marginTop: 30,
-  },
-  backText: {
-    textAlign: 'center',
-    color: '#007AFF',
-    fontSize: 16,
-  },
-});

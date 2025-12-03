@@ -1,7 +1,7 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import React from 'react';
 import { useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 
 export default function QRScannerComponent() {
@@ -28,31 +28,31 @@ export default function QRScannerComponent() {
   // Handle permission states
   if (!permission) {
     return (
-      <View style={styles.wrapper}>
-        <Text style={styles.message}>Requesting camera permission...</Text>
+      <View className="flex-1 w-full max-w-[600px] self-center">
+        <Text className="text-center text-base text-gray-700 mb-3">Requesting camera permission...</Text>
       </View>
     );
   }
 
   if (!permission.granted) {
     return (
-      <View style={styles.wrapper}>
-        <Text style={styles.message}>Camera access is needed to scan QR codes.</Text>
-        <Pressable style={styles.primaryButton} onPress={requestPermission}>
-          <Text style={styles.primaryButtonText}>Enable Camera</Text>
+      <View className="flex-1 w-full max-w-[600px] self-center">
+        <Text className="text-center text-base text-gray-700 mb-3">Camera access is needed to scan QR codes.</Text>
+        <Pressable className="bg-blue-600 py-3 px-6 rounded-lg items-center mb-2" onPress={requestPermission}>
+          <Text className="text-white text-base font-semibold">Enable Camera</Text>
         </Pressable>
-        <Pressable style={styles.secondaryButton} onPress={goBack}>
-          <Text style={styles.secondaryButtonText}>Go Back</Text>
+        <Pressable className="py-2.5 items-center" onPress={goBack}>
+          <Text className="text-blue-600 text-base font-medium">Go Back</Text>
         </Pressable>
       </View>
     );
   }
 
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.cameraContainer}>
+    <View className="flex-1 w-full max-w-[600px] self-center">
+      <View className="flex-1 w-full aspect-square rounded-2xl overflow-hidden">
         <CameraView
-          style={styles.camera}
+          className="flex-1 w-full"
           facing="back"
           barcodeScannerSettings={{
             barcodeTypes: ['qr'],
@@ -61,15 +61,15 @@ export default function QRScannerComponent() {
         />
       </View>
 
-      <View style={styles.dataContainer}>
-        <Text style={styles.dataValue}>
+      <View className="flex-1 justify-center items-center p-5">
+        <Text className="text-lg text-gray-900 text-center">
           {lastScanned || 'Point the camera at a QR code'}
         </Text>
         {scanned && (
           <>
-            <Text style={styles.helperText}>Waiting a moment before scanning again…</Text>
-            <Pressable style={styles.backButton} onPress={() => router.replace('/participant')}>
-              <Text style={styles.backButtonText}>Back to Participant Home</Text>
+            <Text className="mt-3 text-sm text-gray-500 text-center">Waiting a moment before scanning again…</Text>
+            <Pressable className="mt-4 py-3 px-5 rounded-lg bg-blue-600" onPress={() => router.replace('/participant')}>
+              <Text className="text-white font-semibold">Back to Participant Home</Text>
             </Pressable>
           </>
         )}
@@ -77,79 +77,3 @@ export default function QRScannerComponent() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    width: '100%',
-    maxWidth: 600,
-    alignSelf: 'center',
-  },
-  message: {
-    textAlign: 'center',
-    fontSize: 16,
-    color: '#333',
-    marginBottom: 12,
-  },
-  cameraContainer: {
-    flex: 1,
-    width: '100%',
-    aspectRatio: 1,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  camera: {
-    flex: 1,
-    width: '100%',
-  },
-  dataContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  primaryButton: {
-    backgroundColor: '#1a73e8',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  secondaryButton: {
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    color: '#1a73e8',
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  backButton: {
-    marginTop: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    backgroundColor: '#1a73e8',
-  },
-  backButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  dataValue: {
-    fontSize: 18,
-    color: '#111827',
-    textAlign: 'center',
-  },
-  helperText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: '#6b7280',
-    textAlign: 'center',
-  },
-});

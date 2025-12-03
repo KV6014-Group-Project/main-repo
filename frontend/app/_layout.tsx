@@ -1,7 +1,8 @@
+import "../global.css";
 import React from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Pressable, Text, StyleSheet } from 'react-native';
+import { Pressable, Text } from 'react-native';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -14,13 +15,10 @@ function BackButtonOverlay() {
 
   return (
     <Pressable
-      style={({ pressed }) => [
-        styles.backButton,
-        pressed && styles.backButtonPressed,
-      ]}
+      className="absolute top-10 left-4 z-20 bg-black/5 px-3.5 py-2 rounded-full active:bg-black/10"
       onPress={router.back}
     >
-      <Text style={styles.backButtonText}>← Back</Text>
+      <Text className="text-sm font-semibold text-gray-900">← Back</Text>
     </Pressable>
   );
 }
@@ -38,24 +36,3 @@ export default function RootLayout() {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  backButton: {
-    position: 'absolute',
-    top: 40,
-    left: 16,
-    zIndex: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 999,
-  },
-  backButtonPressed: {
-    backgroundColor: 'rgba(0, 0, 0, 0.12)',
-  },
-  backButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111',
-  },
-});

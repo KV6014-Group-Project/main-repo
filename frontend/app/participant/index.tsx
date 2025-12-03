@@ -1,167 +1,59 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { SafeAreaView, ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 
 export default function ParticipantHome() {
   const router = useRouter();
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>Participant Profile</Text>
-        <Text style={styles.subtitle}>Your event participation details</Text>
+    <SafeAreaView className="flex-1 bg-white">
+      <ScrollView className="flex-1" contentContainerClassName="p-5">
+        <Text className="text-3xl font-bold text-center mt-5 mb-2">Participant Profile</Text>
+        <Text className="text-sm text-gray-500 text-center mb-8">Your event participation details</Text>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Your Info</Text>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Name</Text>
-            <Text style={styles.value}>John Doe</Text>
+        <View className="bg-neutral-100 rounded-xl p-5 mb-5">
+          <Text className="text-lg font-semibold mb-4">Your Info</Text>
+          <View className="mb-3">
+            <Text className="text-xs text-gray-500 mb-1">Name</Text>
+            <Text className="text-base">John Doe</Text>
           </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Email</Text>
-            <Text style={styles.value}>john@example.com</Text>
+          <View className="mb-3">
+            <Text className="text-xs text-gray-500 mb-1">Email</Text>
+            <Text className="text-base">john@example.com</Text>
           </View>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Your Upcoming Event</Text>
-          <View style={styles.eventCard}>
-            <View style={styles.eventHeader}>
-              <Text style={styles.eventTitle}>Medical Screening - Community Hall</Text>
-              <View style={styles.dateBadge}>
-                <Text style={styles.dateText}>DEC 15</Text>
+        <View className="bg-neutral-100 rounded-xl p-5 mb-5">
+          <Text className="text-lg font-semibold mb-4">Your Upcoming Event</Text>
+          <View className="bg-neutral-100 rounded-xl p-4 mt-3">
+            <View className="flex-row justify-between items-center mb-3">
+              <Text className="text-base font-semibold flex-1 mr-3">Medical Screening - Community Hall</Text>
+              <View className="bg-[#28B900] rounded-md px-2 py-1">
+                <Text className="text-white text-xs font-bold">DEC 15</Text>
               </View>
             </View>
-            <View style={styles.eventDetails}>
-              <Text style={styles.eventDetail}>📍 Community Hall, Main Street</Text>
-              <Text style={styles.eventDetail}>🕐 10:00 AM - 2:00 PM</Text>
-              <Text style={styles.eventDetail}>👥 Registered: Yes</Text>
+            <View className="gap-1">
+              <Text className="text-sm text-gray-500">📍 Community Hall, Main Street</Text>
+              <Text className="text-sm text-gray-500">🕐 10:00 AM - 2:00 PM</Text>
+              <Text className="text-sm text-gray-500">👥 Registered: Yes</Text>
             </View>
           </View>
         </View>
 
         <TouchableOpacity 
-          style={styles.signOutButton} 
+          className="bg-neutral-200 p-4 rounded-xl items-center mt-5" 
           onPress={() => router.push('/participant/qr-code-page')}
         >
-          <Text style={styles.signOutText}>Add Event with QR</Text>
+          <Text className="text-gray-700 text-base font-semibold">Add Event with QR</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
-          style={styles.signOutButton} 
+          className="bg-neutral-200 p-4 rounded-xl items-center mt-5" 
           onPress={() => router.replace('/welcome')}
         >
-          <Text style={styles.signOutText}>Sign Out</Text>
+          <Text className="text-gray-700 text-base font-semibold">Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 20,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 30,
-  },
-  card: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
-  },
-  infoRow: {
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 4,
-  },
-  value: {
-    fontSize: 16,
-  },
-  navButton: {
-    backgroundColor: '#28B900',
-    padding: 16,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  navButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  signOutButton: {
-    backgroundColor: '#E0E0E0',
-    padding: 16,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  signOutText: {
-    color: '#333',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  eventCard: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 12,
-  },
-  eventHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  eventTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    flex: 1,
-    marginRight: 12,
-  },
-  dateBadge: {
-    backgroundColor: '#28B900',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  dateText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  eventDetails: {
-    gap: 4,
-  },
-  eventDetail: {
-    fontSize: 14,
-    color: '#666',
-  },
-});

@@ -1,56 +1,26 @@
 import React from "react";
-import { SafeAreaView, View, Image, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { SafeAreaView, View, Image, Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 
 export default function WelcomeScreen() {
   const router = useRouter();
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
+    <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1 justify-center items-center px-6">
         <Image
           source={require("../assets/rose.png")}
           resizeMode="contain"
-          style={styles.logo}
+          className="w-72 h-72 mb-10"
         />
 
         <TouchableOpacity
-          style={styles.button}
+          className="w-[70%] bg-neutral-800 rounded-xl py-4"
           onPress={() => router.push("/auth")}
         >
-          <Text style={styles.buttonText}>Continue</Text>
+          <Text className="text-white text-lg text-center font-semibold">Continue</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-  content: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 24,
-  },
-  logo: {
-    width: 300,
-    height: 300,
-    marginBottom: 40,
-  },
-  button: {
-    width: "70%",
-    backgroundColor: "#2C2C2C",
-    borderRadius: 10,
-    paddingVertical: 16,
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    textAlign: "center",
-    fontWeight: "600",
-  },
-});
