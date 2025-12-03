@@ -9,37 +9,35 @@ export default function AuthIndexScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView style={styles.container}>
-        <ScrollView style={styles.scroll}>
-          <Image
-            source={require("../../assets/rose.png")}
-            resizeMode="contain"
-            style={styles.logo}
-          />
-
-          <View style={styles.titleContainer}>
-            <Text style={styles.title}>PICK YOUR ROLE</Text>
-          </View>
-
+        <ScrollView contentContainerStyle={styles.scrollContent}>
           <TouchableOpacity
-            style={styles.roleButton}
-            onPress={() => router.push("/auth/organiser-login")}
-          >
-            <Text style={styles.roleText}>ORGANISER</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.roleButton}
-            onPress={() => router.push("/auth/promoter-login")}
-          >
-            <Text style={styles.roleText}>PROMOTER</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.roleButton}
+            style={styles.primaryRoleButton}
             onPress={() => router.push("/auth/participant")}
           >
-            <Text style={styles.roleText}>PARTICIPANT</Text>
+            <Text style={styles.primaryRoleText}>CONTINUE AS PARTICIPANT</Text>
+            <Text style={styles.primaryHint}>Add and manage your events</Text>
           </TouchableOpacity>
+
+          <View style={styles.secondaryGroup}>
+            <Text style={styles.secondaryLabel}>Need organiser tools?</Text>
+            <View style={styles.secondaryButtons}>
+              <TouchableOpacity
+                style={styles.secondaryRoleButton}
+                onPress={() => router.push("/auth/organiser-login")}
+              >
+                <Text style={styles.secondaryText}>Organiser</Text>
+                <Text style={styles.secondaryHint}>Create events and track impact</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.secondaryRoleButton}
+                onPress={() => router.push("/auth/promoter-login")}
+              >
+                <Text style={styles.secondaryText}>Promoter</Text>
+                <Text style={styles.secondaryHint}>Share events with your community</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </ScrollView>
       </SafeAreaView>
     </>
@@ -51,36 +49,81 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
-  scroll: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 32,
+    paddingBottom: 32,
+    paddingTop: 200,
+    gap: 24,
+    justifyContent: "flex-start",
+  },
+  header: {
+    alignItems: "center",
+    gap: 8,
   },
   logo: {
-    width: 70,
-    height: 70,
-    marginTop: 60,
-    marginBottom: 60,
-    marginLeft: 20,
-  },
-  titleContainer: {
-    alignItems: "center",
-    marginBottom: 60,
+    width: 90,
+    height: 90,
   },
   title: {
-    color: "#000000",
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "bold",
+    textAlign: "center",
   },
-  roleButton: {
+  lede: {
+    fontSize: 16,
+    color: "#555",
+    textAlign: "center",
+    paddingHorizontal: 12,
+  },
+  primaryRoleButton: {
+    backgroundColor: "#28B900",
+    paddingVertical: 20,
+    borderRadius: 16,
+    alignItems: "center",
+  },
+  primaryRoleText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+  },
+  primaryHint: {
+    color: "#E8F7E6",
+    fontSize: 13,
+    marginTop: 6,
+  },
+  secondaryGroup: {
     backgroundColor: "#F8F8F8",
     borderRadius: 16,
-    paddingVertical: 24,
-    paddingHorizontal: 40,
-    marginHorizontal: 36,
-    marginBottom: 20,
+    padding: 16,
   },
-  roleText: {
-    color: "#000000",
-    fontSize: 20,
+  secondaryLabel: {
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 12,
+    color: "#666",
     fontWeight: "500",
+  },
+  secondaryButtons: {
+    flexDirection: "column",
+    gap: 12,
+  },
+  secondaryRoleButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    backgroundColor: "#F8F8F8",
+  },
+  secondaryText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  secondaryHint: {
+    fontSize: 13,
+    color: "#888",
+    marginTop: 4,
   },
 });

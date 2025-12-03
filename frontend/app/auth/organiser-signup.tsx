@@ -15,7 +15,7 @@ export default function OrganiserSignup() {
   };
 
   const handleBack = () => {
-    router.push('/auth/organiser-login');
+    router.back();
   };
 
   return (

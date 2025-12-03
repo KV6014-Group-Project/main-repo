@@ -11,7 +11,7 @@ export default function PromoterLogin() {
   };
 
   const handleBack = () => {
-    router.replace('/auth');
+    router.back();
   };
 
   const handleSignup = () => {

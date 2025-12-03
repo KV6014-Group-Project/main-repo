@@ -11,7 +11,7 @@ export default function ParticipantScreen() {
   };
 
   const handleBack = () => {
-    router.replace('/auth');
+    router.back();
   };
 
   return (
