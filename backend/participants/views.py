@@ -106,6 +106,27 @@ def sync(request):
                 entry_responses.append(entry_response)
                 continue
             
+            # Check if device+event combo already exists to prevetn duplicate entries
+            existing_rsvp = RSVP.objects.filter(
+                event=event,
+                device=device_profile
+            ).first()
+            
+            # Only check when creating, not updating
+            if not existing_rsvp:
+                # Count current RSVPs (excluding cancelled)
+                current_rsvps = RSVP.objects.filter(
+                    event=event
+                ).exclude(
+                    status__name='cancelled'
+                ).count()
+                
+                # Check if capacity is reached
+                if current_rsvps >= event.capacity:
+                    entry_response['error'] = f'Event is at full capacity ({event.capacity}/{event.capacity})'
+                    entry_responses.append(entry_response)
+                    continue
+            
             # Resolve promoter attribution
             promoter = None
             promoter_id = share_data.get('promoterId')
