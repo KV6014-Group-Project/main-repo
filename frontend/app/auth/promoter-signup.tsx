@@ -1,13 +1,59 @@
 import * as React from 'react';
-import { Text, TextInput, TouchableOpacity, SafeAreaView } from 'react-native';
+import { Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
+import { registerUser } from '../lib/api';
+import { setAuthSession } from '../lib/authState';
 
 export default function PromoterSignup() {
   const router = useRouter();
+  const [firstName, setFirstName] = React.useState('');
+  const [lastName, setLastName] = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [confirmPassword, setConfirmPassword] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  const handleSignup = () => {
-    // Clear stack and set promoter home as root
-    router.replace('/promoter');
+  const handleSignup = async () => {
+    if (loading) return;
+
+    if (!email || !password || !confirmPassword) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    setError(null);
+    setLoading(true);
+
+    try {
+      const response = await registerUser({
+        email: email.trim(),
+        password,
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        roleName: 'promoter',
+      });
+
+      setAuthSession(response.token, response.user);
+
+      const roleName = response.user.role?.name;
+      if (roleName === 'promoter') {
+        router.replace('/promoter');
+      } else if (roleName === 'organiser') {
+        router.replace('/organiser');
+      } else {
+        router.replace('/');
+      }
+    } catch (e: any) {
+      setError(e?.message || 'Failed to sign up. Please check your details.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleLogin = () => {
@@ -24,14 +70,55 @@ export default function PromoterSignup() {
       <SafeAreaView className="flex-1 bg-white p-5">
         <Text className="text-2xl font-bold text-center mt-12 mb-10">Promoter Sign Up</Text>
 
-        <TextInput placeholder="First Name" className="border border-gray-300 p-3 rounded-lg mb-4 text-base" />
-        <TextInput placeholder="Last Name" className="border border-gray-300 p-3 rounded-lg mb-4 text-base" />
-        <TextInput placeholder="Email" className="border border-gray-300 p-3 rounded-lg mb-4 text-base" keyboardType="email-address" />
-        <TextInput placeholder="Password" secureTextEntry className="border border-gray-300 p-3 rounded-lg mb-4 text-base" />
-        <TextInput placeholder="Confirm Password" secureTextEntry className="border border-gray-300 p-3 rounded-lg mb-4 text-base" />
+        {error && (
+          <Text className="text-red-500 text-sm text-center mb-4">{error}</Text>
+        )}
 
-        <TouchableOpacity className="bg-[#28B900] p-4 rounded-lg items-center mt-2.5" onPress={handleSignup}>
-          <Text className="text-white text-base font-bold">SIGN UP</Text>
+        <TextInput
+          placeholder="First Name"
+          className="border border-gray-300 p-3 rounded-lg mb-4 text-base"
+          value={firstName}
+          onChangeText={setFirstName}
+        />
+        <TextInput
+          placeholder="Last Name"
+          className="border border-gray-300 p-3 rounded-lg mb-4 text-base"
+          value={lastName}
+          onChangeText={setLastName}
+        />
+        <TextInput
+          placeholder="Email"
+          className="border border-gray-300 p-3 rounded-lg mb-4 text-base"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <TextInput
+          placeholder="Password"
+          secureTextEntry
+          className="border border-gray-300 p-3 rounded-lg mb-4 text-base"
+          value={password}
+          onChangeText={setPassword}
+        />
+        <TextInput
+          placeholder="Confirm Password"
+          secureTextEntry
+          className="border border-gray-300 p-3 rounded-lg mb-4 text-base"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+        />
+
+        <TouchableOpacity
+          className="bg-[#28B900] p-4 rounded-lg items-center mt-2.5 opacity-100"
+          onPress={handleSignup}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text className="text-white text-base font-bold">SIGN UP</Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleLogin} className="mt-5">

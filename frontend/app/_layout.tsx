@@ -2,7 +2,9 @@ import "../global.css";
 import React from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { hydrateAuthSession, hasHydratedAuth } from './lib/authState';
+import ServerStatusIndicator from './components/ServerStatusIndicator';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -24,6 +26,25 @@ function BackButtonOverlay() {
 }
 
 export default function RootLayout() {
+  const [authReady, setAuthReady] = React.useState(hasHydratedAuth());
+
+  React.useEffect(() => {
+    if (authReady) {
+      return;
+    }
+
+    hydrateAuthSession().finally(() => setAuthReady(true));
+  }, [authReady]);
+
+  if (!authReady) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <StatusBar style="dark" />
+        <ActivityIndicator size="large" color="#28B900" />
+      </View>
+    );
+  }
+
   return (
     <>
       <StatusBar style="dark" />
@@ -33,6 +54,7 @@ export default function RootLayout() {
             headerShown: false,
           }}
         />
+        <ServerStatusIndicator />
       </View>
     </>
   );
