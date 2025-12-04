@@ -35,10 +35,8 @@ class CountryBlockMiddleware:
         
         # Skip for localhost/private IPs (development)
         # comment out for security test, or create .env and add DEV/PROD variable for dynamic check.
-        """
         if self.is_private_ip(ip):
             return self.get_response(request)
-        """
             
         try:
             # Look up country
