@@ -59,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.CountryBlockMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -207,6 +208,9 @@ CORS_ALLOW_HEADERS = [
 DATA_UPLOAD_MAX_MEMORY_SIZE = 2097152
 # Enable browser XSS protection
 SECURE_BROWSER_XSS_FILTER = True 
+# GeoIP2 Configuration (ISO 3166-1 alpha 2)
+GEOIP_PATH = BASE_DIR / 'geoip'
+ALLOWED_COUNTRIES = ['MY']
 
 # HMAC Signing Secret (in production, use environment variable)
 #HMAC_SECRET_KEY = SECRET_KEY  # For development; use separate key in production

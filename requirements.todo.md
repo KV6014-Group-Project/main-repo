@@ -37,16 +37,16 @@ When features are merged, keep this updated.
 
 ## Sharing & Distribution
 - [ ] Token-based sharing system
-  - [ ] Organiser to promoter tokens
+  - [x] Organiser to promoter tokens
   - [ ] Promoter to participant tokens
-  - [ ] Token validation
-- [ ] QR/YAML payload generation
-  - [ ] YAML schema design
-  - [ ] Digital signatures
-  - [ ] Payload validation
+  - [x] Token validation
+- [x] QR/YAML payload generation
+  - [x] YAML schema design
+  - [x] Digital signatures
+  - [x] Payload validation
 - [ ] QR code generation and scanning
   - [ ] QR code creation
-  - [ ] Camera integration
+  - [x] Camera integration
   - [ ] QR code parsing
 
 ## Participant Experience
@@ -114,81 +114,63 @@ When features are merged, keep this updated.
 ## Security - Required by Alvin on 30/11/2025
 **High Priority (Develop now)**
 
-1. Enhanced endpoint protection
+- [x] Enhanced endpoint protection
 Developers must ensure that all staff and community leader endpoints require authentication and the correct role.
 Participants and anonymous users must not be able to access these endpoints even with tools like Postman.
-
-2. Input sanitisation and validation
+- [x] Input sanitisation and validation
 Check all endpoints that accept user input (event creation, registration, RSVP).
 Reject missing fields, enforce correct formats, and strip out unsafe data to prevent broken or harmful requests.
-
-3. SQL injection prevention
+- [x] SQL injection prevention
 Confirm all database operations use Django ORM only.
 If any raw SQL is present, replace it with ORM queries or add parameterisation.
-
-4. CSRF token validation
-For any browser based staff screens, ensure Django’s CSRF protection remains active and that the frontend passes CSRF tokens correctly.
-
-5. XSS protection headers
+- [ ] CSRF token validation
+For any browser based staff screens, ensure Django’s CSRF protection remains active and that the frontend passes CSRF tokens correctly. Note: I don't think this matters for our system. 
+- [x] XSS protection headers
 Make sure Django Security Middleware is enabled so important headers such as X Content Type Options and X XSS Protection are automatically applied.
 Escape any user provided text if it is ever rendered into HTML.
-
-6. Token or session expiry
+- [ ] Token or session expiry
 Ensure login tokens or sessions expire after a reasonable time instead of lasting forever.
 If using JWT, set an expiry. If using sessions, set a clear session duration.
-
-7. Brute force and rate limiting
+- [x] Brute force and rate limiting
 Add rate limiting on sensitive endpoints such as login and possibly RSVP.
 Use DRF throttling or a simple lockout after repeated failures.
-
-8. Audit logging
+- [ ] Audit logging (partial)
 Log important staff actions such as event deletion, role changes or bulk RSVP operations.
 Log who performed the action, what happened, and when.
 Do not log passwords or full tokens.
 
 **Medium Priority (Implement or document as future work)**
 
-9. CORS policy enforcement
+- [ ] CORS policy enforcement
 Restrict allowed frontend origins in production.
 For now, include a simple list, but tighten this when deploying.
-
-10. Request size limits
+- [x] Request size limits
 Set a maximum request size to prevent abuse of upload or large payload endpoints.
-
-11. Security logging for access or region violations
+- [ ] Security logging for access or region violations
 If someone repeatedly hits a forbidden endpoint or attempts an RSVP from an invalid region, record a warning log entry.
-
-12. Region based access control (future extension)
+- [ ] Region based access control (future extension)
 Store an “allowed region” field on events and plan to validate it later.
 Developers can add basic placeholders now if time allows.
-
-13. Geolocation integration
+- [ ] Geolocation integration
 Advanced future recommendation.
 Would use an IP to country lookup if the NGO deploys to cloud.
 Not required to implement fully now.
-
-14. Region validation middleware
+- [ ] Region validation middleware
 Future work.
 Would check user region before allowing certain routes.
 
 **Lower Priority (Future roadmap for Log Task 4)**
-
-15. User region profile management
+- [ ] User region profile management
 Future enhancement where staff or leaders would have assigned regions.
-
-16. Region filtered event discovery
+- [ ] Region filtered event discovery
 Participants could see only events in their area.
-
-17. Admin override for region rules
+- [ ] Admin override for region rules
 Senior staff could bypass restrictions if needed.
-
-18. IP whitelisting for admin areas
+- [ ] IP whitelisting for admin areas
 Limit admin access to trusted networks in a real deployment.
-
-19. API key authentication for sensitive endpoints
+- [ ] API key authentication for sensitive endpoints
 Future extension for internal integrations.
-
-20. Request signature verification
+- [ ] Request signature verification
 Advanced security for external callbacks or webhooks.
 Not needed for this coursework.
 

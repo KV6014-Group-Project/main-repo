@@ -16,6 +16,9 @@ Feel free to fork the repository and submit pull requests. For major changes, pl
 - **SQLite** – Lightweight relational database for storing RSVPs, events, and leader information.
 ## Django Backend
 
+This product includes GeoLite2 data created by MaxMind, available from
+https://www.maxmind.com
+
 The backend is built using Django REST Framework. I would recommend using the UV package manager for managing dependencies and virtual environments.
 to install UV, run the following command:
 ```
