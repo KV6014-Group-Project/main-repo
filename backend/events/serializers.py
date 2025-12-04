@@ -30,6 +30,7 @@ class EventSerializer(serializers.ModelSerializer):
             'id', 'organiser', 'title', 'description',
             'start_datetime', 'end_datetime',
             'location', 'status', 'is_private', 'metadata',
+            'capacity',
             'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'organiser', 'created_at', 'updated_at']
@@ -112,6 +113,7 @@ class EventCreateSerializer(serializers.ModelSerializer):
             'title', 'description',
             'start_datetime', 'end_datetime',
             'venue',
+            'capacity',
             'status', 'is_private', 'metadata',
         ]
 

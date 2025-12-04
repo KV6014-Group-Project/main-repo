@@ -5,6 +5,7 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from .models import Roles, User, PromoterProfile
 import re
+from uuid import UUID
 
 class RolesSerializer(serializers.ModelSerializer):
     """Serializer for Roles."""
@@ -27,7 +28,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     """Serializer for user registration."""
     email = serializers.EmailField(required=True)
     password = serializers.CharField(write_only=True)
-    role = serializers.UUIDField(required=True)
+    role = serializers.CharField(required=True)
 
     def validate_email(self, value):
         """Validate email"""
@@ -75,13 +76,24 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return value
     
     def validate_role(self, value):
-        """Validate that the role UUID exists."""
-        try:
-            role = Roles.objects.get(id=value)
-        except Roles.DoesNotExist:
-            raise serializers.ValidationError("The selected role does not exist. Please choose a valid role.")
+        """Validate that the role exists by UUID or name."""
+        role = None
         
-        return value
+        # Try to find role by UUID first
+        try:
+            UUID(str(value))  # Validate it's a valid UUID format
+            role = Roles.objects.filter(id=value).first()
+        except (ValueError, AttributeError):
+            # If not a valid UUID, try to find by name
+            role = Roles.objects.filter(name__iexact=value).first()
+        
+        if not role:
+            raise serializers.ValidationError(
+                "The selected role does not exist. Please provide a valid role name or UUID."
+            )
+        
+        # Return the role object so it can be used in create()
+        return role
         """
         if value not in ['organiser', 'promoter']:
             raise serializers.ValidationError("Role must be 'organiser' or 'promoter'.")
@@ -91,10 +103,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Create a new user."""
         password = validated_data.pop('password')
-        role_id = validated_data.pop('role')
-        
-        # Get the Roles object
-        role = Roles.objects.get(id=role_id)
+        role = validated_data.pop('role')
         
         # Create user with role FK
         user = User.objects.create_user(password=password, role=role, **validated_data)

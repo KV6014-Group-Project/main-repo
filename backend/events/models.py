@@ -6,7 +6,7 @@ from django.db import models
 from django.utils import timezone
 from users.models import User, PromoterProfile
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 class EventVenues(models.Model):
     """
@@ -78,7 +78,14 @@ class Event(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # TODO Capacity
+    # Capacity
+    capacity = models.IntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(1000)
+        ],
+        #null=True
+    )
         
     class Meta:
         db_table = 'events'
@@ -116,6 +123,7 @@ class Event(models.Model):
             'start': self.start_datetime.isoformat(),
             'end': self.end_datetime.isoformat(),
             'location': self.location,
+            'capacity': self.capacity,
             'organiser': {
                 'id': str(self.organiser.id),
                 'name': f"{self.organiser.last_name}, {self.organiser.first_name}".strip() or self.organiser.email,
