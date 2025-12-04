@@ -154,6 +154,14 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.JSONParser',
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '10/hour',
+        'user': '1000/hour',
+    }
 }
 
 SPECTACULAR_SETTINGS = {
@@ -193,6 +201,12 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+
+# SECURITY SETTINGS
+# POST request memory limit (bytes)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 2097152
+# Enable browser XSS protection
+SECURE_BROWSER_XSS_FILTER = True 
 
 # HMAC Signing Secret (in production, use environment variable)
 #HMAC_SECRET_KEY = SECRET_KEY  # For development; use separate key in production
