@@ -1,4 +1,6 @@
-import { AuthUser, AuthRole, getAuthToken } from "./authState";
+import { getAuthToken, AuthUser, AuthRole } from "./AuthContext";
+
+export type { AuthUser, AuthRole };
 
 export const API_BASE_URL = "http://localhost:8000/api";
 

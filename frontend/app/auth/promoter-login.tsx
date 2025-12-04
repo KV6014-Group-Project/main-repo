@@ -2,10 +2,11 @@ import * as React from 'react';
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { login } from '../lib/api';
-import { setAuthSession } from '../lib/authState';
+import { useAuth } from '../lib/AuthContext';
 
 export default function PromoterLogin() {
   const router = useRouter();
+  const { signIn } = useAuth();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
@@ -22,7 +23,7 @@ export default function PromoterLogin() {
 
     try {
       const response = await login(email.trim(), password);
-      setAuthSession(response.token, response.user);
+      await signIn(response.token, response.user);
 
       const roleName = response.user.role?.name;
       if (roleName === 'promoter') {

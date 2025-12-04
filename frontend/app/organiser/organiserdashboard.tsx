@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { fetchOrganiserEvents, Event } from '../lib/api';
-import { getCurrentUser } from '../lib/authState';
+import { useAuth } from '../lib/AuthContext';
 
 export default function OrganiserDashboard() {
   const router = useRouter();
@@ -11,7 +11,7 @@ export default function OrganiserDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const user = getCurrentUser();
+  const { user } = useAuth();
 
   const loadEvents = useCallback(async () => {
     try {

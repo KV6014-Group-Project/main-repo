@@ -1,61 +1,55 @@
 import "../global.css";
-import React from 'react';
-import { Stack, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { hydrateAuthSession, hasHydratedAuth } from './lib/authState';
+import { ActivityIndicator, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as SplashScreen from 'expo-splash-screen';
+import { AuthProvider } from './lib/AuthContext';
 import ServerStatusIndicator from './components/ServerStatusIndicator';
 
 export { ErrorBoundary } from 'expo-router';
 
-function BackButtonOverlay() {
-  const router = useRouter();
-
-  if (!router.canGoBack()) {
-    return null;
-  }
-
-  return (
-    <Pressable
-      className="absolute top-10 left-4 z-20 bg-black/5 px-3.5 py-2 rounded-full active:bg-black/10"
-      onPress={router.back}
-    >
-      <Text className="text-sm font-semibold text-gray-900">← Back</Text>
-    </Pressable>
-  );
-}
+// Prevent splash screen from auto-hiding until we finish loading
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [authReady, setAuthReady] = React.useState(hasHydratedAuth());
+  const [appReady, setAppReady] = useState(false);
 
-  React.useEffect(() => {
-    if (authReady) {
-      return;
-    }
+  const onAuthHydrated = useCallback(async () => {
+    // Auth is ready, hide splash screen and show app
+    setAppReady(true);
+    await SplashScreen.hideAsync();
+  }, []);
 
-    hydrateAuthSession().finally(() => setAuthReady(true));
-  }, [authReady]);
-
-  if (!authReady) {
+  // Show loading indicator while auth is hydrating
+  // (Splash screen is still visible, this is a fallback)
+  if (!appReady) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <StatusBar style="dark" />
-        <ActivityIndicator size="large" color="#28B900" />
-      </View>
+      <SafeAreaProvider>
+        <AuthProvider onHydrated={onAuthHydrated}>
+          <View className="flex-1 items-center justify-center bg-white">
+            <StatusBar style="dark" />
+            <ActivityIndicator size="large" color="#28B900" />
+          </View>
+        </AuthProvider>
+      </SafeAreaProvider>
     );
   }
 
   return (
-    <>
-      <StatusBar style="dark" />
-      <View className="flex-1 max-w-2xl mx-auto w-full">
-        <Stack
-          screenOptions={{
-            headerShown: false,
-          }}
-        />
-        <ServerStatusIndicator />
-      </View>
-    </>
+    <SafeAreaProvider>
+      <AuthProvider onHydrated={onAuthHydrated}>
+        <StatusBar style="dark" />
+        <View className="flex-1 max-w-2xl mx-auto w-full">
+          <Stack
+            screenOptions={{
+              headerShown: false,
+            }}
+          />
+          <ServerStatusIndicator />
+        </View>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

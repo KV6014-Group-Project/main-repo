@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { fetchPromoterEvents, acceptPromoterInvitation, Event } from '../lib/api';
-import { getCurrentUser } from '../lib/authState';
+import { useAuth } from '../lib/AuthContext';
 
 export default function PromoterHome() {
   const router = useRouter();
@@ -27,7 +27,7 @@ export default function PromoterHome() {
   const [invitationToken, setInvitationToken] = useState('');
   const [acceptingInvite, setAcceptingInvite] = useState(false);
   
-  const user = getCurrentUser();
+  const { user, signOut } = useAuth();
 
   const loadEvents = useCallback(async () => {
     try {
@@ -188,7 +188,10 @@ export default function PromoterHome() {
 
         <TouchableOpacity 
           className="bg-neutral-200 p-4 rounded-xl items-center mt-5" 
-          onPress={() => router.replace('/welcome')}
+          onPress={async () => {
+            await signOut();
+            router.replace('/welcome');
+          }}
         >
           <Text className="text-gray-700 text-base font-semibold">Sign Out</Text>
         </TouchableOpacity>
