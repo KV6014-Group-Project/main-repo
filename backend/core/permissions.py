@@ -54,7 +54,7 @@ class IsOrganiserOfEvent(BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
         
-        if not hasattr(request.user, 'role') or request.user.role != 'organiser':
+        if not hasattr(request.user, 'role') or request.user.role.name != 'organiser':
             return False
         
         # Check if obj has an organiser attribute and it matches
@@ -72,7 +72,7 @@ class IsPromoterOfEvent(BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
         
-        if not hasattr(request.user, 'role') or request.user.role != 'promoter':
+        if not hasattr(request.user, 'role') or request.user.role.name != 'promoter':
             return False
         
         # Check if user has a promoter profile
@@ -80,8 +80,9 @@ class IsPromoterOfEvent(BasePermission):
             return False
         
         # Check if the event has this promoter assigned
-        if hasattr(obj, 'promoters'):
-            return obj.promoters.filter(
+        # Event has related name event_promoters
+        if hasattr(obj, 'event_promoters'):
+            return obj.event_promoters.filter(
                 promoter=request.user.promoter_profile,
                 is_active=True
             ).exists()

@@ -34,6 +34,33 @@ def promoter_events(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsPromoter])
+def promoter_event_detail(request, event_id):
+    """Get a single event that the promoter is assigned to."""
+    if not hasattr(request.user, 'promoter_profile'):
+        return Response(
+            {'error': 'User does not have a promoter profile'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Verify promoter is assigned to this event
+    if not EventPromoter.objects.filter(
+        event=event,
+        promoter=request.user.promoter_profile,
+        is_active=True
+    ).exists():
+        return Response(
+            {'error': 'You are not assigned to this event'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    serializer = EventSerializer(event)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsPromoter])
 def promoter_accept(request):
@@ -121,17 +148,16 @@ def promoter_share_participant(request, event_id):
             status=status.HTTP_403_FORBIDDEN
         )
     
-    # Create event snapshot
-    event_data = event.to_event_snapshot()
+    # Use minimal event snapshot for smaller QR codes
+    event_data = event.to_minimal_snapshot()
     
-    # Create share metadata with promoter attribution
+    # Compact share metadata
     share_data = {
         'scope': 'participant',
         'eventId': str(event.id),
         'shareId': str(uuid.uuid4()),
         'promoterId': str(request.user.promoter_profile.id),
-        'issuedAt': int(time.time() * 1000),
-        'channel': 'qr'
+        'issuedAt': int(time.time()),
     }
     
     # Generate signed YAML payload
@@ -141,7 +167,7 @@ def promoter_share_participant(request, event_id):
         'event_id': str(event.id),
         'promoter_id': str(request.user.promoter_profile.id),
         'yaml': yaml_payload,
-        'share_id': share_data['shareId']
+        'share_id': share_data['shareId'],
     })
 
 

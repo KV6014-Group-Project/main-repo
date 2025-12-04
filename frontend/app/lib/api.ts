@@ -7,6 +7,14 @@ type AuthResponse = {
   token: string;
 };
 
+// Paginated response structure from Django REST Framework
+type PaginatedResponse<T> = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+};
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getAuthToken();
 
@@ -109,4 +117,156 @@ export async function checkServerConnection(): Promise<boolean> {
   } catch (error) {
     return false;
   }
+}
+
+// ============ Event Types ============
+
+export type EventStatus = {
+  id: string;
+  name: string;
+  description: string;
+};
+
+export type EventLocation = {
+  venue: string;
+  room: string;
+  address: string;
+};
+
+export type Event = {
+  id: string;
+  organiser: AuthUser;
+  title: string;
+  description: string;
+  start_datetime: string;
+  end_datetime: string;
+  location: EventLocation;
+  status: EventStatus;
+  is_private: boolean;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateEventParams = {
+  title: string;
+  description?: string;
+  start_datetime: string;
+  end_datetime: string;
+  venue: {
+    name: string;
+    room: string;
+    address: string;
+  };
+  status: string;
+  is_private?: boolean;
+  metadata?: Record<string, unknown>;
+};
+
+export type InvitationResponse = {
+  success: boolean;
+  event_id: string;
+  event_title: string;
+  token: string;
+  share_id: string;
+  issued_at: string;
+  expires_at: string;
+  expires_in_days: number;
+  share_url: string;
+  targeted_to?: {
+    promoter_id: string;
+    email: string;
+    name: string;
+  };
+};
+
+export type QRShareResponse = {
+  event_id: string;
+  promoter_id: string;
+  yaml: string;
+  share_id: string;
+};
+
+export type AcceptInvitationResponse = {
+  success: boolean;
+  message: string;
+  created: boolean;
+  event: Event;
+  link: {
+    id: string;
+    is_active: boolean;
+    created_at: string;
+  };
+  share_id: string;
+  was_targeted?: boolean;
+};
+
+// ============ Organiser Event APIs ============
+
+export async function fetchEventStatuses(): Promise<EventStatus[]> {
+  const response = await request<EventStatus[] | PaginatedResponse<EventStatus>>("/events/statuses/");
+  return Array.isArray(response) ? response : response.results;
+}
+
+export async function fetchOrganiserEvents(): Promise<Event[]> {
+  const response = await request<Event[] | PaginatedResponse<Event>>("/events/");
+  return Array.isArray(response) ? response : response.results;
+}
+
+export async function fetchEvent(eventId: string): Promise<Event> {
+  return request<Event>(`/events/${eventId}/`);
+}
+
+export async function createEvent(params: CreateEventParams): Promise<Event> {
+  return request<Event>("/events/", {
+    method: "POST",
+    body: JSON.stringify(params),
+  });
+}
+
+export async function updateEvent(eventId: string, params: Partial<CreateEventParams>): Promise<Event> {
+  return request<Event>(`/events/${eventId}/`, {
+    method: "PATCH",
+    body: JSON.stringify(params),
+  });
+}
+
+export async function deleteEvent(eventId: string): Promise<void> {
+  return request<void>(`/events/${eventId}/`, {
+    method: "DELETE",
+  });
+}
+
+export async function generatePromoterInvitation(
+  eventId: string,
+  promoterId?: string
+): Promise<InvitationResponse> {
+  return request<InvitationResponse>(`/events/${eventId}/share/organiser/`, {
+    method: "POST",
+    body: JSON.stringify(promoterId ? { promoter_id: promoterId } : {}),
+  });
+}
+
+// ============ Promoter Event APIs ============
+
+export async function fetchPromoterEvents(): Promise<Event[]> {
+  const response = await request<Event[] | PaginatedResponse<Event>>("/promoter/events/");
+  return Array.isArray(response) ? response : response.results;
+}
+
+export async function fetchPromoterEvent(eventId: string): Promise<Event> {
+  return request<Event>(`/promoter/events/${eventId}/`);
+}
+
+export async function acceptPromoterInvitation(token: string): Promise<AcceptInvitationResponse> {
+  return request<AcceptInvitationResponse>("/promoter/accept/", {
+    method: "POST",
+    body: JSON.stringify({ token }),
+  });
+}
+
+export async function generateParticipantQR(eventId: string): Promise<QRShareResponse> {
+  return request<QRShareResponse>(`/promoter/events/${eventId}/share/participant/`, {
+    method: "POST",
+  });
 }
