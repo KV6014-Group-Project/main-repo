@@ -85,6 +85,7 @@ def verify_signature(data: str, signature: str) -> bool:
 def canonicalize_yaml_data(data: Dict[str, Any]) -> str:
     """
     Canonicalize YAML data for signing.
+    Supports both full format and compact format.
     
     Args:
         data: Dictionary containing event and share data
@@ -100,15 +101,22 @@ def canonicalize_yaml_data(data: Dict[str, Any]) -> str:
     parts.append(f"event.id:{event.get('id', '')}")
     
     share = data.get('share', {})
-    parts.append(f"share.scope:{share.get('scope', '')}")
-    parts.append(f"share.eventId:{share.get('eventId', '')}")
-    parts.append(f"share.shareId:{share.get('shareId', '')}")
     
-    promoter_id = share.get('promoterId')
+    # Support both full and compact formats
+    scope = share.get('scope') or share.get('s', '')
+    event_id = share.get('eventId') or share.get('e', '')
+    share_id = share.get('shareId') or share.get('i', '')
+    promoter_id = share.get('promoterId') or share.get('p')
+    issued_at = share.get('issuedAt') or share.get('t', 0)
+    
+    parts.append(f"share.scope:{scope}")
+    parts.append(f"share.eventId:{event_id}")
+    parts.append(f"share.shareId:{share_id}")
+    
     if promoter_id:
         parts.append(f"share.promoterId:{promoter_id}")
     
-    parts.append(f"share.issuedAt:{share.get('issuedAt', 0)}")
+    parts.append(f"share.issuedAt:{issued_at}")
     
     return '\n'.join(parts)
 
@@ -165,6 +173,82 @@ def generate_yaml_payload(data: Dict[str, Any]) -> str:
     return yaml.dump(data, default_flow_style=False, sort_keys=False)
 
 
+def create_compact_qr_payload(event_id: str, event_title: str, event_start: str, 
+                               promoter_id: str, share_id: str) -> str:
+    """
+    Create a minimal signed payload for QR codes.
+    Uses short keys and JSON for compactness.
+    
+    Format: Base64(JSON({v, e:{id,t,s}, p, i, ts, sig}))
+    - v: version
+    - e: event {id, t=title, s=start}
+    - p: promoter_id
+    - i: share_id
+    - ts: timestamp (seconds)
+    - sig: signature
+    
+    Returns:
+        Base64url-encoded compact payload
+    """
+    import json
+    import time
+    
+    ts = int(time.time())
+    
+    # Create minimal payload
+    payload = {
+        'v': 1,
+        'e': {
+            'id': event_id,
+            't': event_title[:50],  # Truncate long titles
+            's': event_start,
+        },
+        'p': promoter_id,
+        'i': share_id,
+        'ts': ts,
+    }
+    
+    # Canonicalize for signing
+    canonical = f"v:1\ne.id:{event_id}\np:{promoter_id}\ni:{share_id}\nts:{ts}"
+    signature = compute_signature(canonical)
+    payload['sig'] = signature
+    
+    # Encode as compact JSON, then base64
+    json_str = json.dumps(payload, separators=(',', ':'))
+    return base64.urlsafe_b64encode(json_str.encode()).decode().rstrip('=')
+
+
+def parse_compact_qr_payload(encoded: str) -> Optional[Dict[str, Any]]:
+    """
+    Parse and verify a compact QR payload.
+    
+    Returns:
+        Parsed payload dict if valid, None if invalid
+    """
+    import json
+    
+    try:
+        # Decode base64
+        padded = encoded + '=' * (4 - len(encoded) % 4)
+        json_str = base64.urlsafe_b64decode(padded).decode()
+        payload = json.loads(json_str)
+        
+        # Extract and verify signature
+        signature = payload.pop('sig', None)
+        if not signature:
+            return None
+        
+        # Recreate canonical string
+        canonical = f"v:{payload['v']}\ne.id:{payload['e']['id']}\np:{payload['p']}\ni:{payload['i']}\nts:{payload['ts']}"
+        
+        if not verify_signature(canonical, signature):
+            return None
+        
+        return payload
+    except Exception:
+        return None
+
+
 def create_signed_yaml_payload(event_data: Dict[str, Any], share_data: Dict[str, Any]) -> str:
     """
     Create a signed YAML payload for event sharing.
@@ -186,6 +270,40 @@ def create_signed_yaml_payload(event_data: Dict[str, Any], share_data: Dict[str,
     payload['share']['sig'] = signature
     
     return generate_yaml_payload(payload)
+
+
+def create_compact_yaml_payload(event_id: str, event_title: str, event_start: str,
+                                 promoter_id: str, share_id: str) -> str:
+    """
+    Create a minimal signed YAML payload for QR codes.
+    Uses short keys but keeps full IDs for server lookup.
+    
+    Returns:
+        Compact YAML string (still human-readable)
+    """
+    import time
+    
+    ts = int(time.time())
+    
+    # Build compact payload with short keys but FULL IDs
+    # e=event, p=promoter, i=shareId, t=timestamp
+    payload = {
+        'v': 1,
+        'e': event_id,              # Full event ID (needed for lookup)
+        't': event_title[:50],      # Title (truncated for display)
+        's': event_start[:16],      # Start datetime (YYYY-MM-DDTHH:MM)
+        'p': promoter_id,           # Full promoter ID (for attribution)
+        'i': share_id,              # Full share ID (for dedup)
+        'ts': ts,
+    }
+    
+    # Canonicalize for signing
+    canonical = f"v:1\ne:{event_id}\np:{promoter_id}\ni:{share_id}\nts:{ts}"
+    signature = compute_signature(canonical)
+    payload['sig'] = signature
+    
+    # Generate block-style YAML (more readable)
+    return yaml.dump(payload, default_flow_style=False, sort_keys=False).strip()
 
 def create_organiser_invitation_token(event_id: str, promoter_id: str = None) -> dict:
     """

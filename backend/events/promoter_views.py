@@ -10,7 +10,7 @@ from django.db.models import Count
 from core.permissions import IsPromoter
 from .models import Event, EventPromoter, RSVP
 from .serializers import EventSerializer, EventStatsSerializer
-from core.utils import create_signed_yaml_payload
+from core.utils import create_compact_yaml_payload
 import time, uuid
 from core.utils import parse_organiser_invitation_token
 
@@ -31,6 +31,33 @@ def promoter_events(request):
     
     events = [ep.event for ep in event_promoters]
     serializer = EventSerializer(events, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsPromoter])
+def promoter_event_detail(request, event_id):
+    """Get a single event that the promoter is assigned to."""
+    if not hasattr(request.user, 'promoter_profile'):
+        return Response(
+            {'error': 'User does not have a promoter profile'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Verify promoter is assigned to this event
+    if not EventPromoter.objects.filter(
+        event=event,
+        promoter=request.user.promoter_profile,
+        is_active=True
+    ).exists():
+        return Response(
+            {'error': 'You are not assigned to this event'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    serializer = EventSerializer(event)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -121,27 +148,23 @@ def promoter_share_participant(request, event_id):
             status=status.HTTP_403_FORBIDDEN
         )
     
-    # Create event snapshot
-    event_data = event.to_event_snapshot()
+    share_id = str(uuid.uuid4())
+    promoter_id = str(request.user.promoter_profile.id)
     
-    # Create share metadata with promoter attribution
-    share_data = {
-        'scope': 'participant',
-        'eventId': str(event.id),
-        'shareId': str(uuid.uuid4()),
-        'promoterId': str(request.user.promoter_profile.id),
-        'issuedAt': int(time.time() * 1000),
-        'channel': 'qr'
-    }
-    
-    # Generate signed YAML payload
-    yaml_payload = create_signed_yaml_payload(event_data, share_data)
+    # Generate compact YAML payload for QR code
+    yaml_payload = create_compact_yaml_payload(
+        event_id=str(event.id),
+        event_title=event.title,
+        event_start=event.start_datetime.isoformat(),
+        promoter_id=promoter_id,
+        share_id=share_id,
+    )
     
     return Response({
         'event_id': str(event.id),
-        'promoter_id': str(request.user.promoter_profile.id),
+        'promoter_id': promoter_id,
         'yaml': yaml_payload,
-        'share_id': share_data['shareId']
+        'share_id': share_id,
     })
 
 

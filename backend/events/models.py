@@ -115,7 +115,7 @@ class Event(models.Model):
         }
     
     def to_event_snapshot(self):
-        """Convert event to snapshot format for YAML payload."""
+        """Convert event to full snapshot format for YAML payload."""
         return {
             'id': str(self.id),
             'title': self.title,
@@ -128,6 +128,18 @@ class Event(models.Model):
                 'id': str(self.organiser.id),
                 'name': f"{self.organiser.last_name}, {self.organiser.first_name}".strip() or self.organiser.email,
             },
+        }
+    
+    def to_minimal_snapshot(self):
+        """
+        Minimal event data for QR codes.
+        Just enough to identify the event and display a preview.
+        Full data syncs when participant goes online.
+        """
+        return {
+            'id': str(self.id),
+            'title': self.title,
+            'start': self.start_datetime.isoformat(),
         }
     
 

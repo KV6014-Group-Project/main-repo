@@ -1,166 +1,141 @@
-import React from "react";
-import { SafeAreaView, View, ScrollView, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useRouter } from "expo-router";
+import React, { useState, useEffect } from "react";
+import { 
+  SafeAreaView, 
+  View, 
+  ScrollView, 
+  Text, 
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { fetchPromoterEvent, Event } from "../lib/api";
 
 export default function PromoterEvent() {
   const router = useRouter();
+  const { eventId } = useLocalSearchParams<{ eventId: string }>();
+  
+  const [event, setEvent] = useState<Event | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (eventId) {
+      loadEvent();
+    }
+  }, [eventId]);
+
+  async function loadEvent() {
+    try {
+      setError(null);
+      const data = await fetchPromoterEvent(eventId!);
+      setEvent(data);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load event';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+    });
+  }
+
+  function formatTime(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-white items-center justify-center">
+        <ActivityIndicator size="large" color="#28B900" />
+        <Text className="mt-4 text-gray-500">Loading event...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !event) {
+    return (
+      <SafeAreaView className="flex-1 bg-white items-center justify-center p-5">
+        <Text className="text-red-500 text-center mb-4">{error || 'Event not found'}</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text className="text-blue-500">← Go Back</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Health Screening - Yang Community</Text>
+    <SafeAreaView className="flex-1 bg-white">
+      <ScrollView className="flex-1" contentContainerClassName="p-5">
+        <View className="bg-neutral-300 rounded-xl p-6 mb-5">
+          <Text className="text-xl font-bold">{event.title}</Text>
         </View>
 
-        <View style={styles.detailsCard}>
-          <Text style={styles.label}>Date</Text>
-          <Text style={styles.value}>Saturday, Nov 21st</Text>
+        <View className="bg-neutral-300 rounded-xl p-5 mb-5">
+          <Text className="text-sm font-bold mb-1">Date</Text>
+          <Text className="text-sm mb-4">{formatDate(event.start_datetime)}</Text>
 
-          <Text style={styles.label}>Time</Text>
-          <Text style={styles.value}>2:00 PM</Text>
-
-          <Text style={styles.label}>Location</Text>
-          <Text style={styles.value}>Community Hall</Text>
-        </View>
-
-        <View style={styles.aboutCard}>
-          <Text style={styles.aboutTitle}>About This Event</Text>
-          <Text style={styles.aboutText}>
-            A free health screening and wellness event for women in the community.
+          <Text className="text-sm font-bold mb-1">Time</Text>
+          <Text className="text-sm mb-4">
+            {formatTime(event.start_datetime)} - {formatTime(event.end_datetime)}
           </Text>
+
+          <Text className="text-sm font-bold mb-1">Location</Text>
+          <Text className="text-sm">
+            {event.location.venue}
+            {event.location.room ? `, ${event.location.room}` : ''}
+          </Text>
+          {event.location.address && (
+            <Text className="text-xs text-gray-600 mt-1">{event.location.address}</Text>
+          )}
         </View>
 
-        <View style={styles.statsCard}>
-          <Text style={styles.statsBold}>10 people</Text>
-          <Text style={styles.statsText}>registered via your link</Text>
+        {event.description && (
+          <View className="bg-neutral-100 rounded-xl p-4 mb-5">
+            <Text className="text-base font-bold mb-2">About This Event</Text>
+            <Text className="text-sm text-gray-700">{event.description}</Text>
+          </View>
+        )}
+
+        <View className="bg-[#D5E0CB] rounded-xl p-4 mb-5">
+          <Text className="text-base font-bold">-- people</Text>
+          <Text className="text-sm text-gray-700">registered via your link</Text>
         </View>
 
-        <TouchableOpacity style={styles.shareButton}>
-          <Text style={styles.shareButtonText}>View Your Share Link</Text>
+        {/* Generate QR Code Button */}
+        <TouchableOpacity 
+          className="bg-[#28B900] rounded-xl p-4 items-center mb-3"
+          onPress={() => router.push({
+            pathname: '/promoter/generate-qr',
+            params: { eventId: event.id },
+          })}
+        >
+          <Text className="text-white text-base font-bold">Generate QR Code</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.whatsappButton}>
-          <Text style={styles.whatsappButtonText}>Share On WhatsApp</Text>
+        <TouchableOpacity className="bg-[#48C44B] rounded-xl p-4 items-center mb-3">
+          <Text className="text-white text-base font-bold">Share On WhatsApp</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.downloadButton}>
-          <Text style={styles.downloadButtonText}>Download Poster</Text>
+        <TouchableOpacity className="bg-neutral-200 rounded-xl p-4 items-center mb-5">
+          <Text className="text-base font-medium">View Statistics</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backText}>← Back</Text>
+        <TouchableOpacity className="p-4 items-center" onPress={() => router.back()}>
+          <Text className="text-blue-500 text-base">← Back</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-  },
-  header: {
-    backgroundColor: "#D9D9D9",
-    borderRadius: 12,
-    padding: 24,
-    marginBottom: 20,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  detailsCard: {
-    backgroundColor: "#D9D9D9",
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  value: {
-    fontSize: 14,
-    marginBottom: 16,
-  },
-  aboutCard: {
-    backgroundColor: "#F8F8F8",
-    borderRadius: 12,
-    padding: 18,
-    marginBottom: 20,
-  },
-  aboutTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  aboutText: {
-    fontSize: 14,
-    color: "#333",
-  },
-  statsCard: {
-    backgroundColor: "#D5E0CB",
-    borderRadius: 10,
-    padding: 16,
-    marginBottom: 20,
-  },
-  statsBold: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  statsText: {
-    fontSize: 13,
-    color: "#333",
-  },
-  shareButton: {
-    backgroundColor: "#F88080",
-    borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  shareButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  whatsappButton: {
-    backgroundColor: "#48C44B",
-    borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  whatsappButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  downloadButton: {
-    backgroundColor: "#E8E8E8",
-    borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  downloadButtonText: {
-    fontSize: 15,
-    fontWeight: "500",
-  },
-  backButton: {
-    padding: 16,
-    alignItems: "center",
-  },
-  backText: {
-    color: "#007AFF",
-    fontSize: 16,
-  },
-});
