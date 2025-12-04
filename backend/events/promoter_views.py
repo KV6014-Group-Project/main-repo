@@ -10,7 +10,7 @@ from django.db.models import Count
 from core.permissions import IsPromoter
 from .models import Event, EventPromoter, RSVP
 from .serializers import EventSerializer, EventStatsSerializer
-from core.utils import create_signed_yaml_payload
+from core.utils import create_compact_yaml_payload
 import time, uuid
 from core.utils import parse_organiser_invitation_token
 
@@ -148,26 +148,23 @@ def promoter_share_participant(request, event_id):
             status=status.HTTP_403_FORBIDDEN
         )
     
-    # Use minimal event snapshot for smaller QR codes
-    event_data = event.to_minimal_snapshot()
+    share_id = str(uuid.uuid4())
+    promoter_id = str(request.user.promoter_profile.id)
     
-    # Compact share metadata
-    share_data = {
-        'scope': 'participant',
-        'eventId': str(event.id),
-        'shareId': str(uuid.uuid4()),
-        'promoterId': str(request.user.promoter_profile.id),
-        'issuedAt': int(time.time()),
-    }
-    
-    # Generate signed YAML payload
-    yaml_payload = create_signed_yaml_payload(event_data, share_data)
+    # Generate compact YAML payload for QR code
+    yaml_payload = create_compact_yaml_payload(
+        event_id=str(event.id),
+        event_title=event.title,
+        event_start=event.start_datetime.isoformat(),
+        promoter_id=promoter_id,
+        share_id=share_id,
+    )
     
     return Response({
         'event_id': str(event.id),
-        'promoter_id': str(request.user.promoter_profile.id),
+        'promoter_id': promoter_id,
         'yaml': yaml_payload,
-        'share_id': share_data['shareId'],
+        'share_id': share_id,
     })
 
 

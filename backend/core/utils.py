@@ -271,6 +271,40 @@ def create_signed_yaml_payload(event_data: Dict[str, Any], share_data: Dict[str,
     
     return generate_yaml_payload(payload)
 
+
+def create_compact_yaml_payload(event_id: str, event_title: str, event_start: str,
+                                 promoter_id: str, share_id: str) -> str:
+    """
+    Create a minimal signed YAML payload for QR codes.
+    Uses short keys but keeps full IDs for server lookup.
+    
+    Returns:
+        Compact YAML string (still human-readable)
+    """
+    import time
+    
+    ts = int(time.time())
+    
+    # Build compact payload with short keys but FULL IDs
+    # e=event, p=promoter, i=shareId, t=timestamp
+    payload = {
+        'v': 1,
+        'e': event_id,              # Full event ID (needed for lookup)
+        't': event_title[:50],      # Title (truncated for display)
+        's': event_start[:16],      # Start datetime (YYYY-MM-DDTHH:MM)
+        'p': promoter_id,           # Full promoter ID (for attribution)
+        'i': share_id,              # Full share ID (for dedup)
+        'ts': ts,
+    }
+    
+    # Canonicalize for signing
+    canonical = f"v:1\ne:{event_id}\np:{promoter_id}\ni:{share_id}\nts:{ts}"
+    signature = compute_signature(canonical)
+    payload['sig'] = signature
+    
+    # Generate block-style YAML (more readable)
+    return yaml.dump(payload, default_flow_style=False, sort_keys=False).strip()
+
 def create_organiser_invitation_token(event_id: str, promoter_id: str = None) -> dict:
     """
     Create a signed invitation token for organiser→promoter invitations.
