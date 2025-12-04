@@ -112,27 +112,93 @@ When features are merged, keep this updated.
   - [ ] Deployment instructions
 
 ## Security - Required by Alvin on 30/11/2025
-- [ ] Region-based access control
-  - [ ] Geographic location detection
-  - [ ] Region validation middleware
-  - [ ] IP-based geolocation service integration
-  - [ ] Event-specific region restrictions
-  - [ ] User region profile management
-  - [ ] Region-based filtering for event discovery
-  - [ ] Security logging for region violations
-  - [ ] Admin override capabilities for region restrictions 
-- [ ] Enhanced endpoint protection
-  - [ ] Rate limiting per endpoint
-  - [ ] API key authentication for sensitive operations
-  - [ ] CORS policy enforcement
-  - [ ] Request size limits
-  - [ ] Input sanitization and validation
-  - [ ] SQL injection prevention
-  - [ ] XSS protection headers
-  - [ ] CSRF token validation
-  - [ ] JWT token expiration and refresh
-  - [ ] IP whitelisting for admin endpoints
-  - [ ] Request signature verification
-  - [ ] Brute force protection
-  - [ ] Audit logging for all API calls 
-- 
+**High Priority (Develop now)**
+
+1. Enhanced endpoint protection
+Developers must ensure that all staff and community leader endpoints require authentication and the correct role.
+Participants and anonymous users must not be able to access these endpoints even with tools like Postman.
+
+2. Input sanitisation and validation
+Check all endpoints that accept user input (event creation, registration, RSVP).
+Reject missing fields, enforce correct formats, and strip out unsafe data to prevent broken or harmful requests.
+
+3. SQL injection prevention
+Confirm all database operations use Django ORM only.
+If any raw SQL is present, replace it with ORM queries or add parameterisation.
+
+4. CSRF token validation
+For any browser based staff screens, ensure Django’s CSRF protection remains active and that the frontend passes CSRF tokens correctly.
+
+5. XSS protection headers
+Make sure Django Security Middleware is enabled so important headers such as X Content Type Options and X XSS Protection are automatically applied.
+Escape any user provided text if it is ever rendered into HTML.
+
+6. Token or session expiry
+Ensure login tokens or sessions expire after a reasonable time instead of lasting forever.
+If using JWT, set an expiry. If using sessions, set a clear session duration.
+
+7. Brute force and rate limiting
+Add rate limiting on sensitive endpoints such as login and possibly RSVP.
+Use DRF throttling or a simple lockout after repeated failures.
+
+8. Audit logging
+Log important staff actions such as event deletion, role changes or bulk RSVP operations.
+Log who performed the action, what happened, and when.
+Do not log passwords or full tokens.
+
+**Medium Priority (Implement or document as future work)**
+
+9. CORS policy enforcement
+Restrict allowed frontend origins in production.
+For now, include a simple list, but tighten this when deploying.
+
+10. Request size limits
+Set a maximum request size to prevent abuse of upload or large payload endpoints.
+
+11. Security logging for access or region violations
+If someone repeatedly hits a forbidden endpoint or attempts an RSVP from an invalid region, record a warning log entry.
+
+12. Region based access control (future extension)
+Store an “allowed region” field on events and plan to validate it later.
+Developers can add basic placeholders now if time allows.
+
+13. Geolocation integration
+Advanced future recommendation.
+Would use an IP to country lookup if the NGO deploys to cloud.
+Not required to implement fully now.
+
+14. Region validation middleware
+Future work.
+Would check user region before allowing certain routes.
+
+**Lower Priority (Future roadmap for Log Task 4)**
+
+15. User region profile management
+Future enhancement where staff or leaders would have assigned regions.
+
+16. Region filtered event discovery
+Participants could see only events in their area.
+
+17. Admin override for region rules
+Senior staff could bypass restrictions if needed.
+
+18. IP whitelisting for admin areas
+Limit admin access to trusted networks in a real deployment.
+
+19. API key authentication for sensitive endpoints
+Future extension for internal integrations.
+
+20. Request signature verification
+Advanced security for external callbacks or webhooks.
+Not needed for this coursework.
+
+Short summary for developers
+
+Please focus on
+proper role protection on endpoints
+input validation
+no raw SQL
+CSRF + security middleware
+real token/session expiry
+basic rate limiting
+and audit logs for key actions
