@@ -4,6 +4,7 @@ Serializers for events app.
 from rest_framework import serializers
 from .models import EventStatuses, Event, EventVenues, EventPromoter, RSVP
 from users.serializers import UserSerializer, PromoterProfileSerializer
+from uuid import UUID
 
 
 class EventStatusesSerializer(serializers.ModelSerializer):
@@ -38,8 +39,8 @@ class EventSerializer(serializers.ModelSerializer):
 
 class EventCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating an event."""
-    venue = serializers.JSONField(write_only=True)
-    status = serializers.UUIDField(write_only=True)
+    location = serializers.JSONField(write_only=True, source='venue')  # Map location -> venue
+    status = serializers.CharField(write_only=True)
 
     def validate_title(self, value):
         """Ensure the title is at least 3 characters."""
@@ -47,26 +48,45 @@ class EventCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Title must be at least 3 characters long!")
         return value
     
-    def validate_venue(self, value):
-        """Ensure venue is provided."""
+    def validate_location(self, value):  # Changed from validate_venue
+        """Ensure location is provided."""
         if not isinstance(value, dict):
             raise serializers.ValidationError("Location must be a dictionary")
         
         required_keys = ['name', 'room', 'address']
         for key in required_keys:
             if key not in value:
-                raise serializers.ValidationError(f"Location must include '{key}'")
+                raise serializers.ValidationError(f"Location must include key: '{key}'")
         
         if not value.get('name', '').strip():
             raise serializers.ValidationError("Location name cannot be empty")
         
         return value
 
-    # TODO output entire entry on create, not just partial
+    def validate_status(self, value):
+        """Validate that the status exists by UUID or name."""
+        status = None
+        
+        # Try to find status by UUID first
+        try:
+            UUID(str(value))  # Validate it's a valid UUID format
+            status = EventStatuses.objects.filter(id=value).first()
+        except (ValueError, AttributeError):
+            # If not a valid UUID, try to find by name
+            status = EventStatuses.objects.filter(name__iexact=value).first()
+        
+        if not status:
+            raise serializers.ValidationError(
+                "The selected status does not exist. Please provide a valid status name or UUID."
+            )
+        
+        # Return the status object so it can be used in create()
+        return status
+
     def create(self, validated_data):
         """Create a new event with the current user as organiser."""
-        venue_data = validated_data.pop('venue')
-        status_id = validated_data.pop('status')
+        venue_data = validated_data.pop('venue')  # DRF converts 'location' to 'venue' via source
+        status = validated_data.pop('status')
         
         # Find or create venue
         venue, _ = EventVenues.objects.get_or_create(
@@ -76,15 +96,15 @@ class EventCreateSerializer(serializers.ModelSerializer):
         )
         
         validated_data['venue'] = venue
-        validated_data['status_id'] = status_id
+        validated_data['status'] = status
         
         return super().create(validated_data)
     
     def update(self, instance, validated_data):
         """Update an existing event."""
         venue_data = validated_data.pop('venue', None)
-        status_id = validated_data.pop('status', None)
-        
+        status = validated_data.pop('status', None)
+
         # Update venue if provided
         if venue_data:
             venue, _ = EventVenues.objects.get_or_create(
@@ -95,8 +115,8 @@ class EventCreateSerializer(serializers.ModelSerializer):
             instance.venue = venue
         
         # Update status if provided
-        if status_id:
-            instance.status_id = status_id
+        if status:
+            instance.status = status
         
         # Update other fields
         for attr, value in validated_data.items():
@@ -105,14 +125,16 @@ class EventCreateSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-    
+    def to_representation(self, instance):
+        return EventSerializer(instance, context=self.context).data
+
     class Meta:
         model = Event
         fields = [
             'id',
             'title', 'description',
             'start_datetime', 'end_datetime',
-            'venue',
+            'location',
             'capacity',
             'status', 'is_private', 'metadata',
         ]
