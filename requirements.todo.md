@@ -111,7 +111,7 @@ When features are merged, keep this updated.
   - [ ] User guides
   - [ ] Deployment instructions
 
-## Security — Required by Alvin on 30/11/2025
+## Security 
 
 ### High Priority (Develop now)
 
