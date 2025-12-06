@@ -2,7 +2,7 @@
 Authentication views for users app.
 """
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
@@ -19,6 +19,7 @@ from .serializers import (
 
 
 @api_view(['POST'])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def register(request):
     """Register a new user."""
@@ -37,6 +38,7 @@ def register(request):
 
 
 @api_view(['POST'])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def login(request):
     """Login a user."""
@@ -89,6 +91,7 @@ def profile(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def list_roles(request):
     """Get current roles"""
