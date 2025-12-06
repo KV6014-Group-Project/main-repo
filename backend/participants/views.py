@@ -4,7 +4,7 @@ Views for participants app.
 import json
 from datetime import datetime
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.utils import timezone
@@ -23,6 +23,7 @@ from users.models import PromoterProfile
 
 
 @api_view(['POST'])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def sync(request):
     """
@@ -220,6 +221,7 @@ def sync(request):
 
 
 @api_view(['GET'])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def events(request):
     """

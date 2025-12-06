@@ -2,7 +2,7 @@
 Views for events app.
 """
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, authentication_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
@@ -30,21 +30,42 @@ class EventViewSet(viewsets.ModelViewSet):
         return EventSerializer
     
     def get_queryset(self):
-        """Filter events to only those owned by the current user."""
+        """Filter events based on action and user."""
+        # For retrieve action with anonymous users, return all events
+        # (privacy will be checked in the retrieve method)
+        if self.action == 'retrieve' and not self.request.user.is_authenticated:
+            return Event.objects.all()
+        
+        # For authenticated users, filter to only their events
         return Event.objects.filter(organiser=self.request.user)
+
+    def get_permissions(self):
+        """Override permissions for specific actions."""
+        if self.action == 'retrieve':
+            return [AllowAny()]
+        return super().get_permissions()
     
     def perform_create(self, serializer):
         """Create event with current user as organiser."""
         serializer.save(organiser=self.request.user)
     
-    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    @action(
+        detail=False,
+        methods=['get'],
+        authentication_classes=[],
+        permission_classes=[AllowAny]
+    )
     def public(self, request):
         """Get all public events."""
         events = Event.objects.filter(is_private=False)
         serializer = self.get_serializer(events, many=True)
         return Response(serializer.data)
     
-    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[IsAuthenticated, IsOrganiser]
+    )
     def statuses(self, request):
         """Get all event statuses."""
         statuses = EventStatuses.objects.all()
@@ -57,17 +78,15 @@ class EventViewSet(viewsets.ModelViewSet):
         
         # If private, check permissions
         if event.is_private:
+            # Must be logged in
             if not request.user.is_authenticated:
                 return Response(
                     {'error': 'This event is private'}, 
                     status=status.HTTP_403_FORBIDDEN
                 )
             
-            # Must be owner or an organiser
-            if event.organiser != request.user and (
-                not hasattr(request.user, 'role') or 
-                request.user.role.name != 'organiser'
-            ):
+            # Must be owner
+            if event.organiser != request.user:
                 return Response(
                     {'error': 'This event is private'}, 
                     status=status.HTTP_403_FORBIDDEN
@@ -76,7 +95,11 @@ class EventViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(event)
         return Response(serializer.data)
     
-    @action(detail=True, methods=['get'], permission_classes=[IsOrganiserOfEvent])
+    @action(
+        detail=True,
+        methods=['get'],
+        permission_classes=[IsAuthenticated, IsOrganiserOfEvent]
+    )
     def stats(self, request, pk=None):
         """Get statistics for an event."""
         event = self.get_object()
@@ -112,7 +135,11 @@ class EventViewSet(viewsets.ModelViewSet):
         serializer = EventStatsSerializer(stats_data)
         return Response(serializer.data)
     
-    @action(detail=True, methods=['post'], permission_classes=[IsOrganiserOfEvent])
+    @action(
+        detail=True,
+        methods=['post'],
+        permission_classes=[IsAuthenticated, IsOrganiserOfEvent]
+    )
     def promoters(self, request, pk=None):
         """Add a promoter to an event."""
         event = self.get_object()
@@ -125,7 +152,7 @@ class EventViewSet(viewsets.ModelViewSet):
         
         try:
             from users.models import PromoterProfile
-            promoter_profile = PromoterProfile.objects.get(id=promoter_id)
+            promoter_profile = PromoterProfile.objects.get(user=promoter_id)
         except PromoterProfile.DoesNotExist:
             return Response(
                 {'error': 'Promoter not found'},
@@ -142,11 +169,20 @@ class EventViewSet(viewsets.ModelViewSet):
         if not created:
             event_promoter.is_active = True
             event_promoter.save()
+
+            return Response(
+                {'error': 'Promoter already added to event!'},
+                status=status.HTTP_409_CONFLICT
+            )
         
         response_serializer = EventPromoterSerializer(event_promoter)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
     
-    @action(detail=True, methods=['get'], permission_classes=[IsOrganiserOfEvent])
+    @action(
+        detail=True,
+        methods=['get'],
+        permission_classes=[IsAuthenticated, IsOrganiserOfEvent]
+    )
     def promoter_list(self, request, pk=None):
         """List promoters for an event."""
         event = self.get_object()
@@ -154,7 +190,12 @@ class EventViewSet(viewsets.ModelViewSet):
         serializer = EventPromoterSerializer(event_promoters, many=True)
         return Response(serializer.data)
     
-    @action(detail=True, methods=['delete'], url_path='promoters/(?P<promoter_id>[^/.]+)', permission_classes=[IsOrganiserOfEvent])
+    @action(
+        detail=True,
+        methods=['delete'],
+        url_path='promoters/(?P<promoter_id>[^/.]+)',
+        permission_classes=[IsOrganiserOfEvent]
+    )
     def remove_promoter(self, request, pk=None, promoter_id=None):
         """Remove a promoter from an event."""
         event = self.get_object()
@@ -167,14 +208,21 @@ class EventViewSet(viewsets.ModelViewSet):
             )
             event_promoter.is_active = False
             event_promoter.save()
-            return Response({'success': True}, status=status.HTTP_200_OK)
+            return Response({
+                'message': 'Promoter has been removed from this event.',
+            }, status=status.HTTP_200_OK)
         except EventPromoter.DoesNotExist:
             return Response(
                 {'error': 'Promoter not found for this event'},
                 status=status.HTTP_404_NOT_FOUND
             )
     
-    @action(detail=True, methods=['post'], url_path='share/organiser', permission_classes=[IsOrganiserOfEvent])
+    @action(
+        detail=True,
+        methods=['post'],
+        url_path='share/organiser',
+        permission_classes=[IsAuthenticated, IsOrganiserOfEvent]
+    )
     def share_organiser(self, request, pk=None):
         """
         Generate organiser→promoter invitation token.
@@ -229,7 +277,12 @@ class EventViewSet(viewsets.ModelViewSet):
         
         return Response(response_data)
     
-    @action(detail=True, methods=['post'], url_path='share/qr', permission_classes=[IsOrganiserOfEvent])
+    @action(
+        detail=True,
+        methods=['post'],
+        url_path='share/qr',
+        permission_classes=[IsOrganiserOfEvent]
+    )
     def share_qr(self, request, pk=None):
         """Generate QR code YAML payload for event."""
         event = self.get_object()
