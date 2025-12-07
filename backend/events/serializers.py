@@ -97,7 +97,7 @@ class EventCreateSerializer(serializers.ModelSerializer):
         
         validated_data['venue'] = venue
         validated_data['status'] = status
-        
+
         return super().create(validated_data)
     
     def update(self, instance, validated_data):

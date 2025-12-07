@@ -84,7 +84,7 @@ class Event(models.Model):
             MinValueValidator(1),
             MaxValueValidator(1000)
         ],
-        #null=True
+        null=True
     )
         
     class Meta:

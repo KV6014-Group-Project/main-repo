@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Platform,
   Switch,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -28,6 +29,7 @@ export default function CreateEvent() {
   const [startTime, setStartTime] = useState('');
   const [endDate, setEndDate] = useState('');
   const [endTime, setEndTime] = useState('');
+  const [capacity, setCapacity] = useState('');
   const [venueName, setVenueName] = useState('');
   const [venueRoom, setVenueRoom] = useState('');
   const [venueAddress, setVenueAddress] = useState('');
@@ -69,6 +71,7 @@ export default function CreateEvent() {
     if (!endDate.trim()) return 'End date is required (YYYY-MM-DD)';
     if (!endTime.trim()) return 'End time is required (HH:MM)';
     if (!venueName.trim()) return 'Venue name is required';
+    if (!capacity.trim()) return 'Capacity is required';
     if (!selectedStatusId) return 'Event status is required';
     
     // Validate date format
@@ -80,6 +83,10 @@ export default function CreateEvent() {
     if (!dateRegex.test(endDate)) return 'End date format should be YYYY-MM-DD';
     if (!timeRegex.test(endTime)) return 'End time format should be HH:MM';
     
+    // validate capacity format
+    const capacityRegex = /^\d+$/;
+    if (!capacityRegex.test(capacity)) return 'Capacity format should be a number';
+
     return null;
   }
 
@@ -99,7 +106,8 @@ export default function CreateEvent() {
         description: description.trim(),
         start_datetime: `${startDate}T${startTime}:00`,
         end_datetime: `${endDate}T${endTime}:00`,
-        venue: {
+        capacity: capacity,
+        location: {
           name: venueName.trim(),
           room: venueRoom.trim(),
           address: venueAddress.trim(),
@@ -109,9 +117,16 @@ export default function CreateEvent() {
       };
 
       const event = await createEvent(params);
-      Alert.alert('Success', 'Event created successfully!', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+
+      // Cross-platform alerts
+      if (Platform.OS === 'web') {
+        router.push(`/organiser/organiserevent?eventId=${event.id}` as any)
+      } else {
+        Alert.alert('Success', 'Event created successfully!', [
+          { text: 'OK', onPress: () => router.push(`/organiser/organiserevent?eventId=${event.id}` as any) }
+        ]);
+      }
+      
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to create event';
       setError(message);
@@ -210,12 +225,23 @@ export default function CreateEvent() {
           </View>
         </View>
 
-        {/* Venue */}
+        {/* Capacity */}
+        <View className="mb-4">
+          <Text className="text-sm font-semibold mb-2">Capacity</Text>
+          <TextInput
+            className="bg-neutral-100 p-4 rounded-xl"
+            placeholder="Enter capacity"
+            value={capacity}
+            onChangeText={setCapacity}
+          />
+        </View>
+
+        {/* Location */}
         <View className="bg-neutral-50 p-4 rounded-xl mb-4">
-          <Text className="text-base font-semibold mb-3">Venue Details</Text>
+          <Text className="text-base font-semibold mb-3">Location Details</Text>
           
           <View className="mb-3">
-            <Text className="text-sm font-medium mb-1">Venue Name *</Text>
+            <Text className="text-sm font-medium mb-1">Name *</Text>
             <TextInput
               className="bg-white p-3 rounded-lg border border-neutral-200"
               placeholder="e.g., Community Hall"

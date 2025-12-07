@@ -155,7 +155,8 @@ export type CreateEventParams = {
   description?: string;
   start_datetime: string;
   end_datetime: string;
-  venue: {
+  capacity: string;
+  location: {
     name: string;
     room: string;
     address: string;

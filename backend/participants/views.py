@@ -114,7 +114,8 @@ def sync(request):
             ).first()
             
             # Only check when creating, not updating
-            if not existing_rsvp:
+            # And no capacity = unlimited capacity
+            if event.capacity and not existing_rsvp:
                 # Count current RSVPs (excluding cancelled)
                 current_rsvps = RSVP.objects.filter(
                     event=event
