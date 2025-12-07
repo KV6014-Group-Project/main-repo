@@ -88,17 +88,18 @@ function parseYAMLPayload(data: string): ParsedEventInfo | null {
     return null;
   }
 
-  // Must have version marker or event section
-  if (!data.includes("v:") && !data.includes("event:")) {
+  // Must have version marker or event section or short keys
+  if (!data.includes("v:") && !data.includes("event:") && !data.includes("e:")) {
     return null;
   }
 
-  // Extract required fields
-  const eventId = extractYAMLField(data, "id");
-  const title = extractYAMLField(data, "title");
+  // Extract required fields (support both long and short keys)
+  const eventId = extractYAMLField(data, "id") || extractYAMLField(data, "e");
+  const title = extractYAMLField(data, "title") || extractYAMLField(data, "t");
   const startTime =
     extractYAMLField(data, "start") ||
     extractYAMLField(data, "start_datetime") ||
+    extractYAMLField(data, "s") ||
     "";
 
   // Validate required fields
@@ -114,8 +115,8 @@ function parseYAMLPayload(data: string): ParsedEventInfo | null {
   }
 
   // Extract optional fields
-  const promoterId = extractYAMLField(data, "promoterId");
-  const shareId = extractYAMLField(data, "shareId");
+  const promoterId = extractYAMLField(data, "promoterId") || extractYAMLField(data, "p");
+  const shareId = extractYAMLField(data, "shareId") || extractYAMLField(data, "i");
 
   return {
     eventId,
@@ -143,9 +144,9 @@ function parseJSONPayload(data: string): ParsedEventInfo | null {
     const event = parsed.event || parsed;
     const share = parsed.share || {};
 
-    const eventId = event.id || event.eventId;
-    const title = event.title;
-    const startTime = event.start || event.start_datetime || "";
+    const eventId = event.id || event.eventId || event.e;
+    const title = event.title || event.t;
+    const startTime = event.start || event.start_datetime || event.s || "";
 
     // Validate required fields
     if (!eventId || !title) {
@@ -163,8 +164,8 @@ function parseJSONPayload(data: string): ParsedEventInfo | null {
       eventId,
       title,
       startTime,
-      promoterId: share.promoterId || undefined,
-      shareId: share.shareId || undefined,
+      promoterId: share.promoterId || event.p || undefined,
+      shareId: share.shareId || event.i || undefined,
       raw: data,
     };
   } catch {
