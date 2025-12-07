@@ -11,7 +11,12 @@ export default function OrganiserDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const { user } = useAuth();
+  const { signOut, user } = useAuth();
+
+  async function handleSignOut() {
+    await signOut();
+    router.push('/');
+  }
 
   const loadEvents = useCallback(async () => {
     try {
@@ -143,7 +148,7 @@ export default function OrganiserDashboard() {
             <View className="flex-row justify-between items-start mb-1">
               <Text className="text-sm font-bold flex-1">
                 {event.title}
-                {event.location.venue ? ` - ${event.location.venue}` : ''}
+                {event.location.name ? ` - ${event.location.name}` : ''}
               </Text>
               <View className={`px-2 py-1 rounded-full ml-2 ${
                 event.status.name === 'published' ? 'bg-green-200' :
@@ -157,6 +162,13 @@ export default function OrganiserDashboard() {
             <Text className="text-sm text-gray-700">{formatEventTime(event.start_datetime)}</Text>
           </TouchableOpacity>
         ))}
+
+        <TouchableOpacity 
+          className="bg-neutral-200 p-4 rounded-xl items-center mt-5" 
+          onPress={handleSignOut}
+        >
+          <Text className="text-gray-700 text-base font-semibold">Sign Out</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity className="mt-5 p-4 items-center" onPress={() => router.back()}>
           <Text className="text-blue-500 text-base">← Back</Text>

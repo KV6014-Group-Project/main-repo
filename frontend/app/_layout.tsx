@@ -7,6 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from './lib/AuthContext';
 import ServerStatusIndicator from './components/ServerStatusIndicator';
+import BottomNav from './components/BottomNav';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -48,6 +49,7 @@ export default function RootLayout() {
             }}
           />
           <ServerStatusIndicator />
+          <BottomNav />
         </View>
       </AuthProvider>
     </SafeAreaProvider>

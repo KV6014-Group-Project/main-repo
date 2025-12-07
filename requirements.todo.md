@@ -84,9 +84,9 @@ When features are merged, keep this updated.
   - [ ] User management
   - [ ] Event oversight
   - [ ] System configuration
-- [ ] Role-based navigation
-  - [ ] Custom navigation per role
-  - [ ] Permission-based UI
+- [x] Role-based navigation
+  - [x] Custom navigation per role
+  - [x] Permission-based UI
   - [ ] Role switching
 
 ## Polish & Integration
@@ -143,7 +143,7 @@ When features are merged, keep this updated.
 
 ### Medium Priority (Implement or document as future work)
 
-- [ ] CORS policy enforcement
+- [x] CORS policy enforcement
   - Restrict allowed frontend origins in production.
   - For now, include a simple list, but tighten this when deploying.
 - [x] Request size limits

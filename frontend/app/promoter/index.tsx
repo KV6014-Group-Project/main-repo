@@ -28,6 +28,11 @@ export default function PromoterHome() {
   const [acceptingInvite, setAcceptingInvite] = useState(false);
   
   const { user, signOut } = useAuth();
+  
+  async function handleSignOut() {
+    await signOut();
+    router.push('/');
+  }
 
   const loadEvents = useCallback(async () => {
     try {
@@ -169,7 +174,7 @@ export default function PromoterHome() {
                   {formatEventDate(event.start_datetime)} at {formatEventTime(event.start_datetime)}
                 </Text>
                 <Text className="text-sm text-gray-500">
-                  {event.location.venue}
+                  {event.location.name}
                   {event.location.room ? `, ${event.location.room}` : ''}
                 </Text>
               </TouchableOpacity>
@@ -188,10 +193,7 @@ export default function PromoterHome() {
 
         <TouchableOpacity 
           className="bg-neutral-200 p-4 rounded-xl items-center mt-5" 
-          onPress={async () => {
-            await signOut();
-            router.replace('/welcome');
-          }}
+          onPress={handleSignOut}
         >
           <Text className="text-gray-700 text-base font-semibold">Sign Out</Text>
         </TouchableOpacity>
