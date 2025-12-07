@@ -6,6 +6,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from './lib/AuthContext';
+import { ParticipantProvider } from './lib/ParticipantContext';
 import ServerStatusIndicator from './components/ServerStatusIndicator';
 import BottomNav from './components/BottomNav';
 
@@ -29,10 +30,12 @@ export default function RootLayout() {
     return (
       <SafeAreaProvider>
         <AuthProvider onHydrated={onAuthHydrated}>
-          <View className="flex-1 items-center justify-center bg-white">
-            <StatusBar style="dark" />
-            <ActivityIndicator size="large" color="#28B900" />
-          </View>
+          <ParticipantProvider>
+            <View className="flex-1 items-center justify-center bg-white">
+              <StatusBar style="dark" />
+              <ActivityIndicator size="large" color="#28B900" />
+            </View>
+          </ParticipantProvider>
         </AuthProvider>
       </SafeAreaProvider>
     );
@@ -41,17 +44,20 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuthProvider onHydrated={onAuthHydrated}>
-        <StatusBar style="dark" />
-        <View className="flex-1 max-w-2xl mx-auto w-full">
-          <Stack
-            screenOptions={{
-              headerShown: false,
-            }}
-          />
-          <ServerStatusIndicator />
-          <BottomNav />
-        </View>
+        <ParticipantProvider>
+          <StatusBar style="dark" />
+          <View className="flex-1 max-w-2xl mx-auto w-full">
+            <Stack
+              screenOptions={{
+                headerShown: false,
+              }}
+            />
+            <ServerStatusIndicator />
+            <BottomNav />
+          </View>
+        </ParticipantProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );
 }
+

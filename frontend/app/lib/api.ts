@@ -289,3 +289,86 @@ export async function generateParticipantQR(eventId: string): Promise<QRShareRes
     method: "POST",
   });
 }
+
+// ============ Participant APIs (Device-based, no auth) ============
+
+export type SyncEntry = {
+  yaml: string;
+  local_status: "scanned" | "rsvp" | "interested";
+  scanned_at: number;
+};
+
+export type SyncEntryResult = {
+  entry_index: number;
+  success: boolean;
+  event_id: string | null;
+  rsvp_id: string | null;
+  error: string | null;
+};
+
+export type SyncResponse = {
+  device_id: string;
+  entries: SyncEntryResult[];
+  events: Event[];
+};
+
+/**
+ * Sync participant events (pending QR scans) to the server.
+ * No authentication required - uses device_id for identification.
+ */
+export async function syncParticipantEvents(
+  deviceId: string,
+  entries: SyncEntry[]
+): Promise<SyncResponse> {
+  const response = await fetch(`${API_BASE_URL}/participant/sync/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      device_id: deviceId,
+      entries,
+    }),
+  });
+
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
+
+  if (!response.ok) {
+    if (data && data.error) {
+      throw new Error(data.error);
+    }
+    throw new Error("Sync failed");
+  }
+
+  return data as SyncResponse;
+}
+
+/**
+ * Fetch events associated with a device.
+ * No authentication required - uses device_id for identification.
+ */
+export async function fetchParticipantEvents(deviceId: string): Promise<Event[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/participant/events/?device_id=${encodeURIComponent(deviceId)}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
+
+  if (!response.ok) {
+    if (data && data.error) {
+      throw new Error(data.error);
+    }
+    throw new Error("Failed to fetch events");
+  }
+
+  return data as Event[];
+}
+
