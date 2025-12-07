@@ -8,10 +8,11 @@ import {
   ActivityIndicator,
   Alert,
   Share,
+  Platform,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import * as Clipboard from 'expo-clipboard';
-import { fetchEvent, generatePromoterInvitation, Event, InvitationResponse } from "../lib/api";
+import { fetchEvent, deleteEvent, generatePromoterInvitation, Event, InvitationResponse } from "../lib/api";
 
 export default function OrganiserEvent() {
   const router = useRouter();
@@ -77,6 +78,63 @@ export default function OrganiserEvent() {
       });
     } catch (err) {
       console.error('Share failed:', err);
+    }
+  }
+
+  async function handleDeleteConfirm() {
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm(
+        `Are you sure you want to delete "${event?.title}"? This action cannot be undone.`
+      );
+      if (confirmed) {
+        await handleDelete();
+      }
+    } else {
+      Alert.alert(
+        'Delete Event',
+        `Are you sure you want to delete "${event?.title}"? This action cannot be undone.`,
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel'
+          },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: handleDelete
+          }
+        ]
+      );
+    }
+  }
+
+  async function handleDelete() {
+    if (!eventId) return;
+    
+    setLoading(true);
+    try {
+      await deleteEvent(eventId as string);
+      
+      if (Platform.OS === 'web') {
+        router.push('/organiser/organiserdashboard' as any);
+      } else {
+        Alert.alert('Success', 'Event deleted successfully', [
+          { 
+            text: 'OK', 
+            onPress: () => router.push('/organiser/organiserdashboard' as any)
+          }
+        ]);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete event';
+      
+      if (Platform.OS === 'web') {
+        alert(message); // Simple alert for web
+      } else {
+        Alert.alert('Error', message);
+      }
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -208,6 +266,23 @@ export default function OrganiserEvent() {
 
         <TouchableOpacity className="bg-neutral-200 rounded-xl p-4 items-center mb-5">
           <Text className="text-base font-medium">View Event Statistics</Text>
+        </TouchableOpacity>
+
+        {/* NOT FINAL, THIS IS JUST A TEMPLATE TO SHOW FUNCTIONALITY */}
+        <TouchableOpacity className="bg-yellow-400 rounded-xl p-4 items-center mb-5" onPress={() => router.push(`/organiser/update-event?eventId=${eventId}` as any)}>
+          <Text className="text-base font-bold">Update Event</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          className={`rounded-xl p-4 items-center mb-5 ${loading ? 'bg-red-300' : 'bg-red-400'}`}
+          onPress={handleDeleteConfirm}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text className="text-white text-base font-bold">Delete Event</Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity className="p-4 items-center" onPress={() => router.back()}>

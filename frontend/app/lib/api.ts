@@ -130,7 +130,7 @@ export type EventStatus = {
 };
 
 export type EventLocation = {
-  venue: string;
+  name: string;
   room: string;
   address: string;
 };
@@ -146,6 +146,7 @@ export type Event = {
   status: EventStatus;
   is_private: boolean;
   metadata: Record<string, unknown>;
+  capacity: string;
   created_at: string;
   updated_at: string;
 };
@@ -165,6 +166,21 @@ export type CreateEventParams = {
   is_private?: boolean;
   metadata?: Record<string, unknown>;
 };
+
+export interface UpdateEventParams {
+  title?: string;
+  description?: string;
+  start_datetime?: string;
+  end_datetime?: string;
+  capacity?: string;
+  location?: {
+    name?: string;
+    room?: string;
+    address?: string;
+  };
+  status?: string;
+  is_private?: boolean;
+}
 
 export type InvitationResponse = {
   success: boolean;
@@ -227,7 +243,7 @@ export async function createEvent(params: CreateEventParams): Promise<Event> {
   });
 }
 
-export async function updateEvent(eventId: string, params: Partial<CreateEventParams>): Promise<Event> {
+export async function updateEvent(eventId: string, params: UpdateEventParams): Promise<Event> {
   return request<Event>(`/events/${eventId}/`, {
     method: "PATCH",
     body: JSON.stringify(params),
