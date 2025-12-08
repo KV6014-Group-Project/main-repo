@@ -1,25 +1,55 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useParticipant } from '../lib/ParticipantContext';
+import { formatEventTime, parseQRPayload } from '../lib/offlineParser';
 
 export default function QRScannerComponent() {
   const [lastScanned, setLastScanned] = useState('');
-  const [scanned, setScanned] = useState(false);
+  const [pendingPayload, setPendingPayload] = useState<string | null>(null);
+  const [pendingEventTitle, setPendingEventTitle] = useState<string | null>(null);
+  const [pendingEventTime, setPendingEventTime] = useState<string | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const router = useRouter();
   const { addScannedEvent, isSyncing } = useParticipant();
+  const isConfirming = useMemo(() => pendingPayload !== null, [pendingPayload]);
+
+  const resetPendingScan = () => {
+    setPendingPayload(null);
+    setPendingEventTitle(null);
+    setPendingEventTime(null);
+  };
 
   const handleBarcodeScanned = ({ type, data }: { type: string; data: string }) => {
-    if (scanned) return;
+    if (isConfirming) return;
 
-    setScanned(true);
-    setLastScanned(data);
     console.log(`Type: ${type}, Data: ${data}`);
+    const parsed = parseQRPayload(data);
 
-    // Try to add the event to the queue
-    const success = addScannedEvent(data);
+    if (!parsed) {
+      Alert.alert(
+        "Invalid QR Code",
+        "This doesn't appear to be a valid event QR code. Please try scanning a different code.",
+        [
+          {
+            text: "Try Again",
+          },
+        ]
+      );
+      return;
+    }
+
+    setPendingPayload(data);
+    setPendingEventTitle(parsed.title);
+    setPendingEventTime(formatEventTime(parsed.startTime));
+  };
+
+  const confirmScan = () => {
+    if (!pendingPayload) return;
+
+    const success = addScannedEvent(pendingPayload);
+    setLastScanned(pendingEventTitle || pendingPayload);
 
     if (success) {
       Alert.alert(
@@ -32,23 +62,25 @@ export default function QRScannerComponent() {
           },
           {
             text: "Scan Another",
-            onPress: () => setScanned(false),
+            onPress: () => resetPendingScan(),
             style: "cancel",
           },
         ]
       );
     } else {
       Alert.alert(
-        "Invalid QR Code",
-        "This doesn't appear to be a valid event QR code. Please try scanning a different code.",
+        "Unable to Save",
+        "Something went wrong while saving this event. Please try again.",
         [
           {
-            text: "Try Again",
-            onPress: () => setScanned(false),
+            text: "Okay",
+            onPress: () => resetPendingScan(),
           },
         ]
       );
     }
+
+    resetPendingScan();
   };
 
   const goBack = () => {
@@ -87,22 +119,47 @@ export default function QRScannerComponent() {
           barcodeScannerSettings={{
             barcodeTypes: ['qr'],
           }}
-          onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+          onBarcodeScanned={isConfirming ? undefined : handleBarcodeScanned}
         />
       </View>
 
       <View className="flex-1 justify-center items-center p-5">
         <Text className="text-lg text-gray-900 text-center">
-          {lastScanned ? 'Scanned!' : 'Point the camera at an event QR code'}
+          {isConfirming
+            ? 'Confirm this event?'
+            : lastScanned
+              ? 'Scanned!'
+              : 'Point the camera at an event QR code'}
         </Text>
-        {scanned && (
-          <>
-            <Text className="mt-3 text-sm text-gray-500 text-center">Tap a button above to continue</Text>
-          </>
-        )}
-        {!scanned && (
-          <Pressable className="mt-4 py-3 px-5 rounded-lg bg-gray-200" onPress={goBack}>
-            <Text className="text-gray-700 font-semibold">Cancel</Text>
+        {isConfirming ? (
+          <View className="w-full max-w-sm mt-4 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+            <Text className="text-base font-semibold text-gray-900 text-center">
+              {pendingEventTitle || 'Unknown Event'}
+            </Text>
+            <Text className="mt-1 text-sm text-gray-500 text-center">
+              {pendingEventTime || 'Time TBD'}
+            </Text>
+            <View className="mt-5 gap-3">
+              <Pressable
+                className="bg-blue-600 py-3 px-6 rounded-lg items-center"
+                onPress={confirmScan}
+                disabled={isSyncing}
+              >
+                <Text className="text-white text-base font-semibold">
+                  {isSyncing ? 'Saving…' : 'Add to My Events'}
+                </Text>
+              </Pressable>
+              <Pressable
+                className="py-2.5 items-center border border-gray-200 rounded-lg"
+                onPress={resetPendingScan}
+              >
+                <Text className="text-gray-700 text-base font-medium">Scan Again</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <Pressable className="mt-3 py-2.5 items-center" onPress={goBack}>
+            <Text className="text-blue-600 text-base font-medium">Back</Text>
           </Pressable>
         )}
       </View>
