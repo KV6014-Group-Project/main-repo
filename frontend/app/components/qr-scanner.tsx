@@ -1,7 +1,8 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import React, { useMemo, useState } from 'react';
-import { View, Text, Pressable, Alert } from 'react-native';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
+import { View, Text, Pressable, Alert, AppState, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
 import { useParticipant } from '../lib/ParticipantContext';
 import { formatEventTime, parseQRPayload } from '../lib/offlineParser';
 
@@ -14,6 +15,28 @@ export default function QRScannerComponent() {
   const router = useRouter();
   const { addScannedEvent, isSyncing } = useParticipant();
   const isConfirming = useMemo(() => pendingPayload !== null, [pendingPayload]);
+  
+  // 1. Get navigation focus state
+  const isFocused = useIsFocused();
+  
+  // 2. Get App background/foreground state
+  const appState = useRef(AppState.currentState);
+  const [appStateVisible, setAppStateVisible] = useState(appState.current);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      appState.current = nextAppState;
+      setAppStateVisible(appState.current);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  // 3. Determine if camera should be active
+  // Only active if permissions granted, screen is focused, and app is in foreground
+  const isCameraActive = isFocused && appStateVisible === 'active' && permission?.granted;
 
   const resetPendingScan = () => {
     setPendingPayload(null);
@@ -112,15 +135,25 @@ export default function QRScannerComponent() {
 
   return (
     <View className="flex-1 w-full max-w-[600px] self-center">
-      <View className="flex-1 w-full aspect-square rounded-2xl overflow-hidden">
+      <View className="flex-1 w-full bg-black relative">
         <CameraView
-          className="flex-1 w-full"
+          style={StyleSheet.absoluteFill}
           facing="back"
+          active={isCameraActive}
           barcodeScannerSettings={{
             barcodeTypes: ['qr'],
           }}
           onBarcodeScanned={isConfirming ? undefined : handleBarcodeScanned}
         />
+        {/* QR Code scanning overlay */}
+        <View className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <View className="w-48 h-48 border-2 border-white rounded-lg opacity-50">
+            <View className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-blue-400 rounded-tl-lg" />
+            <View className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-blue-400 rounded-tr-lg" />
+            <View className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-blue-400 rounded-bl-lg" />
+            <View className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-blue-400 rounded-br-lg" />
+          </View>
+        </View>
       </View>
 
       <View className="flex-1 justify-center items-center p-5">
