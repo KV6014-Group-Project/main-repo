@@ -191,6 +191,14 @@ export default function PromoterHome() {
           </TouchableOpacity>
         )}
 
+        {/* Analytics Button */}
+        <TouchableOpacity 
+          className="bg-blue-600 p-4 rounded-xl items-center mb-3"
+          onPress={() => router.push('/promoter/promoter-analytics')}
+        >
+          <Text className="text-white text-base font-semibold">📊 View Analytics</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity 
           className="bg-neutral-200 p-4 rounded-xl items-center mt-5" 
           onPress={handleSignOut}
