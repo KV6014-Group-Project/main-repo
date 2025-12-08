@@ -1,9 +1,43 @@
 import * as React from 'react';
-import { SafeAreaView, ScrollView, View, TouchableOpacity, Text } from "react-native";
+import { SafeAreaView, ScrollView, View, TouchableOpacity, Text, ActivityIndicator } from "react-native";
 import { useRouter, Stack } from "expo-router";
+import { useAuth } from "../lib/AuthContext";
+import { useParticipant } from "../lib/ParticipantContext";
 
 export default function AuthIndexScreen() {
   const router = useRouter();
+  const { user, isHydrated } = useAuth();
+  const { profile, isLoading: participantLoading } = useParticipant();
+
+  React.useEffect(() => {
+    if (!isHydrated || participantLoading) {
+      return;
+    }
+
+    if (profile) {
+      router.replace("/participant");
+      return;
+    }
+
+    const roleName = user?.role?.name?.toLowerCase();
+    if (roleName === "organiser") {
+      router.replace("/organiser");
+      return;
+    }
+
+    if (roleName === "promoter") {
+      router.replace("/promoter");
+      return;
+    }
+  }, [isHydrated, participantLoading, profile, user, router]);
+
+  if (!isHydrated || participantLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-white items-center justify-center">
+        <ActivityIndicator size="large" color="#28B900" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <>

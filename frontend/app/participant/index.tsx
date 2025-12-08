@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useParticipant, LocalEvent } from '../lib/ParticipantContext';
 import { formatEventTime } from '../lib/offlineParser';
@@ -34,9 +34,22 @@ export default function ParticipantHome() {
     await syncEvents();
   };
 
-  const handleSignOut = async () => {
-    await clearProfile();
-    router.replace('/welcome');
+  const handleDeleteDeviceData = () => {
+    Alert.alert(
+      'Delete device data?',
+      'This will remove your participant details and local event history from this device. You will need to re-enter your details next time.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Yes, delete',
+          style: 'destructive',
+          onPress: async () => {
+            await clearProfile();
+            router.replace('/welcome');
+          },
+        },
+      ],
+    );
   };
 
   if (isLoading) {
@@ -116,12 +129,12 @@ export default function ParticipantHome() {
           <Text className="text-gray-700 text-base font-semibold">Add Event with QR</Text>
         </TouchableOpacity>
 
-        {/* Sign Out Button */}
+        {/* Delete Device Data Button */}
         <TouchableOpacity
           className="bg-neutral-200 p-4 rounded-xl items-center mt-5"
-          onPress={handleSignOut}
+          onPress={handleDeleteDeviceData}
         >
-          <Text className="text-gray-700 text-base font-semibold">Sign Out</Text>
+          <Text className="text-gray-700 text-base font-semibold">Delete Device Data</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

@@ -1,17 +1,23 @@
-import React, { useState } from "react";
-import { SafeAreaView, ScrollView, View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
+import React, { useState, useEffect } from "react";
+import { SafeAreaView, ScrollView, View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import { useRouter, Stack } from "expo-router";
 import { useParticipant } from "../lib/ParticipantContext";
 
 export default function ParticipantScreen() {
   const router = useRouter();
-  const { saveProfile } = useParticipant();
+  const { profile, saveProfile, isLoading } = useParticipant();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && profile) {
+      router.replace("/participant");
+    }
+  }, [isLoading, profile, router]);
 
   const handleContinue = async () => {
     // Basic validation
@@ -48,6 +54,17 @@ export default function ParticipantScreen() {
   const handleBack = () => {
     router.back();
   };
+
+  if (isLoading || profile) {
+    return (
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView className="flex-1 bg-white items-center justify-center">
+          <ActivityIndicator size="large" color="#28B900" />
+        </SafeAreaView>
+      </>
+    );
+  }
 
   return (
     <>
