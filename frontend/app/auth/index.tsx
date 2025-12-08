@@ -36,6 +36,8 @@ export default function AuthIndexScreen() {
                 <Text className="text-base font-semibold">Promoter</Text>
                 <Text className="text-sm text-gray-400 mt-1">Share events with your community</Text>
               </TouchableOpacity>
+
+
             </View>
           </View>
         </ScrollView>
