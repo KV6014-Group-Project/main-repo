@@ -2,7 +2,9 @@ import { getAuthToken, AuthUser, AuthRole } from "./AuthContext";
 
 export type { AuthUser, AuthRole };
 
-export const API_BASE_URL = "http://localhost:8000/api";
+const fallbackApiBaseUrl = "http://localhost:8000/api";
+export const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ?? fallbackApiBaseUrl;
 
 type AuthResponse = {
   user: AuthUser;
