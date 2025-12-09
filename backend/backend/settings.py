@@ -27,10 +27,18 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1", "::1"]
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:8081",
+    "https://*.ngrok-free.app",
+    "https://*.ngrok.io",
+]
+
 
 # Application definition
 
 INSTALLED_APPS = [
+    'core', # Moved to top to override runserver command
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -43,7 +51,6 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'corsheaders',
     # Local apps
-    'core',
     'users',
     'events',
     'participants',
@@ -204,6 +211,7 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'ngrok-skip-browser-warning',
 ]
 
 # SECURITY SETTINGS

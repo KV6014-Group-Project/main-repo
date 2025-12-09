@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useParticipant, LocalEvent } from '../lib/ParticipantContext';
 import { formatEventTime } from '../lib/offlineParser';
@@ -35,21 +35,35 @@ export default function ParticipantHome() {
   };
 
   const handleDeleteDeviceData = () => {
-    Alert.alert(
-      'Delete device data?',
-      'This will remove your participant details and local event history from this device. You will need to re-enter your details next time.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Yes, delete',
-          style: 'destructive',
-          onPress: async () => {
-            await clearProfile();
-            router.replace('/welcome');
+    const confirmed = Platform.OS === 'web'
+      ? window.confirm('Delete device data?\n\nThis will remove your participant details and local event history from this device. You will need to re-enter your details next time.')
+      : null;
+
+    // For web, use confirm
+    if (Platform.OS === 'web') {
+      if (confirmed) {
+        performDelete();
+      }
+    } else {
+      // For mobile, use Alert
+      Alert.alert(
+        'Delete device data?',
+        'This will remove your participant details and local event history from this device. You will need to re-enter your details next time.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Yes, delete',
+            style: 'destructive',
+            onPress: performDelete,
           },
-        },
-      ],
-    );
+        ],
+      );
+    }
+  };
+
+  const performDelete = async () => {
+    await clearProfile();
+    router.replace('/welcome');
   };
 
   if (isLoading) {
@@ -155,8 +169,11 @@ type DisplayEvent = {
 function getMergedEvents(localEvents: LocalEvent[], serverEvents: Event[]): DisplayEvent[] {
   const eventMap = new Map<string, DisplayEvent>();
 
+  // Ensure serverEvents is an array
+  const events = Array.isArray(serverEvents) ? serverEvents : [];
+
   // Add server events (canonical, confirmed)
-  for (const event of serverEvents) {
+  for (const event of events) {
     eventMap.set(event.id, {
       id: event.id,
       title: event.title,
