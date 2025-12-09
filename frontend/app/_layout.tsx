@@ -5,8 +5,8 @@ import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
-import { AuthProvider } from './lib/AuthContext';
-import { ParticipantProvider } from './lib/ParticipantContext';
+import { AuthProvider } from '../lib/AuthContext';
+import { ParticipantProvider } from '../lib/ParticipantContext';
 import ServerStatusIndicator from './components/ServerStatusIndicator';
 import BottomNav from './components/BottomNav';
 

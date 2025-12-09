@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { SafeAreaView, View, Image, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
-import { useAuth } from "./lib/AuthContext";
-import { useParticipant } from "./lib/ParticipantContext";
+import { useAuth } from "../lib/AuthContext";
+import { useParticipant } from "../lib/ParticipantContext";
 
 export default function WelcomeScreen() {
   const router = useRouter();
