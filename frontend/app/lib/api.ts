@@ -24,6 +24,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true", // Skip ngrok interstitial page
     ...(options.headers || {}),
   };
 
@@ -37,7 +38,15 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   });
 
   const text = await response.text();
-  const data = text ? JSON.parse(text) : null;
+  let data: unknown = null;
+
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = null;
+    }
+  }
 
   if (!response.ok) {
     if (data && typeof data === "object") {
@@ -61,7 +70,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
         throw new Error(messages.join("\n"));
       }
     }
-    throw new Error("Request failed");
+    throw new Error(text || "Request failed");
   }
 
   return data as T;
@@ -225,13 +234,39 @@ export type AcceptInvitationResponse = {
 // ============ Organiser Event APIs ============
 
 export async function fetchEventStatuses(): Promise<EventStatus[]> {
-  const response = await request<EventStatus[] | PaginatedResponse<EventStatus>>("/events/statuses/");
-  return Array.isArray(response) ? response : response.results;
+  const response = await request<EventStatus[] | PaginatedResponse<EventStatus> | null>("/events/statuses/");
+
+  if (!response) {
+    return [];
+  }
+
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  if (Array.isArray(response.results)) {
+    return response.results;
+  }
+
+  return [];
 }
 
 export async function fetchOrganiserEvents(): Promise<Event[]> {
-  const response = await request<Event[] | PaginatedResponse<Event>>("/events/");
-  return Array.isArray(response) ? response : response.results;
+  const response = await request<Event[] | PaginatedResponse<Event> | null>("/events/");
+
+  if (!response) {
+    return [];
+  }
+
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  if (Array.isArray(response.results)) {
+    return response.results;
+  }
+
+  return [];
 }
 
 export async function fetchEvent(eventId: string): Promise<Event> {
@@ -334,13 +369,21 @@ export async function syncParticipantEvents(
   });
 
   const text = await response.text();
-  const data = text ? JSON.parse(text) : null;
+  let data: unknown = null;
+
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = null;
+    }
+  }
 
   if (!response.ok) {
-    if (data && data.error) {
-      throw new Error(data.error);
+    if (data && typeof data === "object" && "error" in data && typeof (data as any).error === "string") {
+      throw new Error((data as any).error);
     }
-    throw new Error("Sync failed");
+    throw new Error(text || "Sync failed");
   }
 
   return data as SyncResponse;
@@ -362,13 +405,21 @@ export async function fetchParticipantEvents(deviceId: string): Promise<Event[]>
   );
 
   const text = await response.text();
-  const data = text ? JSON.parse(text) : null;
+  let data: unknown = null;
+
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = null;
+    }
+  }
 
   if (!response.ok) {
-    if (data && data.error) {
-      throw new Error(data.error);
+    if (data && typeof data === "object" && "error" in data && typeof (data as any).error === "string") {
+      throw new Error((data as any).error);
     }
-    throw new Error("Failed to fetch events");
+    throw new Error(text || "Failed to fetch events");
   }
 
   return data as Event[];
