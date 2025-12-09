@@ -1,23 +1,16 @@
 """
 Views for participants app.
 """
-import json
 from datetime import datetime
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.utils import timezone
 from core.utils import parse_yaml_payload, verify_yaml_payload
-from core.views import BaseAPIView
 from .models import DeviceProfile
-from .serializers import (
-    DeviceProfileSerializer,
-    ParticipantSyncSerializer,
-    SyncEntryResponseSerializer,
-    ParticipantSyncResponseSerializer,
-)
-from events.models import Event, RSVP, RSVPStatuses, RSVPSources, EventStatuses, EventVenues, EventPromoter
+from .serializers import ParticipantSyncSerializer, ParticipantSyncResponseSerializer
+from events.models import Event, RSVP, RSVPStatuses, RSVPSources, EventStatuses, EventPromoter
 from events.serializers import EventSerializer
 from users.models import PromoterProfile
 

@@ -6,7 +6,7 @@ from rest_framework.decorators import action, authentication_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
-from django.db.models import Count, Q
+from django.db.models import Count
 from core.permissions import IsOrganiser, IsOrganiserOfEvent
 from .models import Event, EventStatuses, EventPromoter, RSVP
 from .serializers import (

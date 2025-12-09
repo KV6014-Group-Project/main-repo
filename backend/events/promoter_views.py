@@ -1,18 +1,17 @@
 """
 Promoter-specific views for events app.
 """
+import uuid
+from django.db.models import Count
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import get_object_or_404
-from django.db.models import Count
+from rest_framework.response import Response
 from core.permissions import IsPromoter
+from core.utils import create_compact_yaml_payload, parse_organiser_invitation_token
 from .models import Event, EventPromoter, RSVP
 from .serializers import EventSerializer, EventStatsSerializer
-from core.utils import create_compact_yaml_payload
-import time, uuid
-from core.utils import parse_organiser_invitation_token
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsPromoter])
