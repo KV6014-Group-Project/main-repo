@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { fetchPromoterEvent, Event } from "../lib/api";
+import { fetchPromoterEvent, Event } from "../../lib/api";
 
 export default function PromoterEvent() {
   const router = useRouter();
@@ -93,7 +93,7 @@ export default function PromoterEvent() {
 
           <Text className="text-sm font-bold mb-1">Location</Text>
           <Text className="text-sm">
-            {event.location.venue}
+            {event.location.name}
             {event.location.room ? `, ${event.location.room}` : ''}
           </Text>
           {event.location.address && (

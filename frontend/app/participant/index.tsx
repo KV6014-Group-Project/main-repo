@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useParticipant, LocalEvent } from '../lib/ParticipantContext';
-import { formatEventTime } from '../lib/offlineParser';
-import { Event } from '../lib/api';
+import { useParticipant, LocalEvent } from '../../lib/ParticipantContext';
+import { formatEventTime } from '../../lib/offlineParser';
+import { Event } from '../../lib/api';
 
 export default function ParticipantHome() {
   const router = useRouter();

@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import * as Clipboard from 'expo-clipboard';
-import { fetchEvent, deleteEvent, generatePromoterInvitation, Event, InvitationResponse } from "../lib/api";
+import { fetchEvent, deleteEvent, generatePromoterInvitation, Event, InvitationResponse } from "../../lib/api";
 
 export default function OrganiserEvent() {
   const router = useRouter();
@@ -201,7 +201,7 @@ export default function OrganiserEvent() {
 
           <Text className="text-sm font-bold mb-1">Location</Text>
           <Text className="text-sm">
-            {event.location.venue}
+            {event.location.name}
             {event.location.room ? `, ${event.location.room}` : ''}
           </Text>
           {event.location.address && (

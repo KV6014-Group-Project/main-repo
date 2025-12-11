@@ -12,8 +12,8 @@ import {
   Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { fetchPromoterEvents, acceptPromoterInvitation, Event } from '../lib/api';
-import { useAuth } from '../lib/AuthContext';
+import { fetchPromoterEvents, acceptPromoterInvitation, Event } from '../../lib/api';
+import { useAuth } from '../../lib/AuthContext';
 
 export default function PromoterHome() {
   const router = useRouter();

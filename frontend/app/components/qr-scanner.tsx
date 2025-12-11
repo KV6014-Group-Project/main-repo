@@ -3,8 +3,8 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { View, Text, Pressable, Alert, AppState, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useIsFocused } from '@react-navigation/native';
-import { useParticipant } from '../lib/ParticipantContext';
-import { formatEventTime, parseQRPayload } from '../lib/offlineParser';
+import { useParticipant } from '../../lib/ParticipantContext';
+import { formatEventTime, parseQRPayload } from '../../lib/offlineParser';
 
 export default function QRScannerComponent() {
   const [lastScanned, setLastScanned] = useState('');

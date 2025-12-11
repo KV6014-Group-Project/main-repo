@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { SafeAreaView, ScrollView, View, TouchableOpacity, Text, ActivityIndicator } from "react-native";
 import { useRouter, Stack } from "expo-router";
-import { useAuth } from "../lib/AuthContext";
-import { useParticipant } from "../lib/ParticipantContext";
+import { useAuth } from "../../lib/AuthContext";
+import { useParticipant } from "../../lib/ParticipantContext";
 
 export default function AuthIndexScreen() {
   const router = useRouter();

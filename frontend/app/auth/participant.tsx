@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { SafeAreaView, ScrollView, View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import { useRouter, Stack } from "expo-router";
-import { useParticipant } from "../lib/ParticipantContext";
+import { useParticipant } from "../../lib/ParticipantContext";
 
 export default function ParticipantScreen() {
   const router = useRouter();
