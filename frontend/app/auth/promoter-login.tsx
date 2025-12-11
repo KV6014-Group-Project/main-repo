@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
-import { login } from '../lib/api';
-import { useAuth } from '../lib/AuthContext';
+import { login } from '../../lib/api';
+import { useAuth } from '../../lib/AuthContext';
 
 export default function PromoterLogin() {
   const router = useRouter();

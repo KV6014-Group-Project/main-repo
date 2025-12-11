@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
-import { fetchOrganiserEvents, Event } from '../lib/api';
-import { useAuth } from '../lib/AuthContext';
+import { fetchOrganiserEvents, Event } from '../../lib/api';
+import { useAuth } from '../../lib/AuthContext';
 
 export default function OrganiserDashboard() {
   const router = useRouter();

@@ -52,7 +52,19 @@ class EventViewSet(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=['get'],
-        permission_classes=[IsAuthenticated]
+        authentication_classes=[],
+        permission_classes=[AllowAny]
+    )
+    def public(self, request):
+        """Get all public events."""
+        events = Event.objects.filter(is_private=False)
+        serializer = self.get_serializer(events, many=True)
+        return Response(serializer.data)
+    
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[IsAuthenticated, IsOrganiser]
     )
     def statuses(self, request):
         """Get all event statuses."""
@@ -260,22 +272,136 @@ class EventViewSet(viewsets.ModelViewSet):
                 'promoter_id': str(promoter_profile.id),
                 'email': promoter_profile.user.email,
                 'name': f"{promoter_profile.user.first_name} {promoter_profile.user.last_name}".strip() 
-                        or promoter_profile.user.email,
-            }
-        
-        return Response(response_data)
     
-    @action(
-        detail=True,
-        methods=['post'],
-        url_path='share/qr',
-        permission_classes=[IsOrganiserOfEvent]
+    # Check if link already exists
+    event_promoter, created = EventPromoter.objects.get_or_create(
+        event=event,
+        promoter=promoter_profile,
+        defaults={'is_active': True}
     )
-    def share_qr(self, request, pk=None):
-        """Generate QR code YAML payload for event."""
-        event = self.get_object()
-        # TODO: Full implementation in Phase 2 with YAML generation
+    
+    if not created:
+        event_promoter.is_active = True
+        event_promoter.save()
+
+        return Response(
+            {'error': 'Promoter already added to event!'},
+            status=status.HTTP_409_CONFLICT
+        )
+    
+    response_serializer = EventPromoterSerializer(event_promoter)
+    return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
+@action(
+    detail=True,
+    methods=['get'],
+    permission_classes=[IsAuthenticated, IsOrganiserOfEvent]
+)
+def promoter_list(self, request, pk=None):
+    """List promoters for an event."""
+    event = self.get_object()
+    event_promoters = EventPromoter.objects.filter(event=event, is_active=True)
+    serializer = EventPromoterSerializer(event_promoters, many=True)
+    return Response(serializer.data)
+
+@action(
+    detail=True,
+    methods=['delete'],
+    url_path='promoters/(?P<promoter_id>[^/.]+)',
+    permission_classes=[IsOrganiserOfEvent]
+)
+def remove_promoter(self, request, pk=None, promoter_id=None):
+    """Remove a promoter from an event."""
+    event = self.get_object()
+    
+    try:
+        event_promoter = EventPromoter.objects.get(
+            event=event,
+            promoter_id=promoter_id,
+            is_active=True
+        )
+        event_promoter.is_active = False
+        event_promoter.save()
         return Response({
-            'event_id': str(event.id),
-            'message': 'QR code generation will be implemented in Phase 2',
-        }, status=status.HTTP_501_NOT_IMPLEMENTED)
+            'message': 'Promoter has been removed from this event.',
+        }, status=status.HTTP_200_OK)
+    except EventPromoter.DoesNotExist:
+        return Response(
+            {'error': 'Promoter not found for this event'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+@action(
+    detail=True,
+    methods=['post'],
+    url_path='share/organiser',
+    permission_classes=[IsAuthenticated, IsOrganiserOfEvent]
+)
+def share_organiser(self, request, pk=None):
+    """
+    Generate organiser→promoter invitation token.
+    
+    Optionally specify a promoter_id to create a targeted invitation.
+    If no ID provided, creates a generic invitation any promoter can accept.
+    """
+    from core.utils import create_organiser_invitation_token
+    from users.models import PromoterProfile
+    
+    event = self.get_object()
+    promoter_id = request.data.get('promoter_id')
+    
+    # Optional: Validate promoter exists
+    promoter_profile = None
+    if promoter_id:
+        try:
+            promoter_profile = PromoterProfile.objects.select_related('user').get(id=promoter_id)
+        except PromoterProfile.DoesNotExist:
+            return Response(
+                {'error': f'Promoter not found with ID: {promoter_id}'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+    
+    # Generate token
+    token_data = create_organiser_invitation_token(
+        event_id=str(event.id),
+        promoter_id=str(promoter_id) if promoter_id else None
+    )
+    
+    # Build response
+    response_data = {
+        'success': True,
+        'event_id': str(event.id),
+        'event_title': event.title,
+        'token': token_data['token'],
+        'share_id': token_data['share_id'],
+        'issued_at': token_data['issued_at'],
+        'expires_at': token_data['expires_at'],
+        'expires_in_days': 7,
+        'share_url': f"{request.scheme}://{request.get_host()}/promoter/accept?token={token_data['token']}"
+    }
+    
+    # Add promoter info if targeted
+    if promoter_profile:
+        response_data['targeted_to'] = {
+            'promoter_id': str(promoter_profile.id),
+            'email': promoter_profile.user.email,
+            'name': f"{promoter_profile.user.first_name} {promoter_profile.user.last_name}".strip() 
+                    or promoter_profile.user.email,
+        }
+    
+    return Response(response_data)
+
+@action(
+    detail=True,
+    methods=['post'],
+    url_path='share/qr',
+    permission_classes=[IsOrganiserOfEvent]
+)
+def share_qr(self, request, pk=None):
+    """Generate QR code YAML payload for event."""
+    event = self.get_object()
+    # TODO: Full implementation in Phase 2 with YAML generation
+    return Response({
+        'event_id': str(event.id),
+        'message': 'QR code generation will be implemented in Phase 2',
+    }, status=status.HTTP_501_NOT_IMPLEMENTED)

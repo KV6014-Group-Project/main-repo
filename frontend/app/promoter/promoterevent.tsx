@@ -8,13 +8,14 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { fetchPromoterEvent, Event } from "../lib/api";
+import { fetchPromoterEvent, fetchPromoterEventStats, Event, EventStats } from "../../lib/api";
 
 export default function PromoterEvent() {
   const router = useRouter();
   const { eventId } = useLocalSearchParams<{ eventId: string }>();
   
   const [event, setEvent] = useState<Event | null>(null);
+  const [stats, setStats] = useState<EventStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,8 +28,12 @@ export default function PromoterEvent() {
   async function loadEvent() {
     try {
       setError(null);
-      const data = await fetchPromoterEvent(eventId!);
-      setEvent(data);
+      const [eventData, statsData] = await Promise.all([
+        fetchPromoterEvent(eventId!),
+        fetchPromoterEventStats(eventId!),
+      ]);
+      setEvent(eventData);
+      setStats(statsData);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load event';
       setError(message);
@@ -93,7 +98,7 @@ export default function PromoterEvent() {
 
           <Text className="text-sm font-bold mb-1">Location</Text>
           <Text className="text-sm">
-            {event.location.venue}
+            {event.location.name}
             {event.location.room ? `, ${event.location.room}` : ''}
           </Text>
           {event.location.address && (
@@ -109,7 +114,7 @@ export default function PromoterEvent() {
         )}
 
         <View className="bg-[#D5E0CB] rounded-xl p-4 mb-5">
-          <Text className="text-base font-bold">-- people</Text>
+          <Text className="text-base font-bold">{stats?.total_rsvps || 0} people</Text>
           <Text className="text-sm text-gray-700">registered via your link</Text>
         </View>
 

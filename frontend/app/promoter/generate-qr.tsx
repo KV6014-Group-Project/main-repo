@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { fetchPromoterEvent, generateParticipantQR, Event, QRShareResponse } from '../lib/api';
+import { fetchPromoterEvent, generateParticipantQR, Event, QRShareResponse } from '../../lib/api';
 import QRCodeDisplay from '../components/QRCodeDisplay';
 
 export default function GenerateQR() {
@@ -109,7 +109,7 @@ export default function GenerateQR() {
             {formatDate(event.start_datetime)} at {formatTime(event.start_datetime)}
           </Text>
           <Text className="text-sm text-gray-600">
-            {event.location.venue}
+            {event.location.name}
             {event.location.room ? `, ${event.location.room}` : ''}
           </Text>
         </View>

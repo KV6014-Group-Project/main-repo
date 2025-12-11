@@ -1,6 +1,6 @@
 import React from "react";
 import { Text, View } from "react-native";
-import { checkServerConnection } from "../lib/api";
+import { checkServerConnection } from "../../lib/api";
 
 const POLL_INTERVAL_MS = 15000;
 

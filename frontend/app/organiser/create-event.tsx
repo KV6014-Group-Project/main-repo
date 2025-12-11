@@ -17,7 +17,7 @@ import {
   fetchEventStatuses, 
   EventStatus,
   CreateEventParams 
-} from '../lib/api';
+} from '../../lib/api';
 
 export default function CreateEvent() {
   const router = useRouter();

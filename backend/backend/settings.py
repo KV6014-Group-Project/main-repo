@@ -25,12 +25,20 @@ SECRET_KEY = 'django-insecure-&bd*(bor!_@3l3a9b&%^nu=h7pozdl0z#_1)+v0!4k@=kz(acn
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1", "::1"]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:8081",
+    "https://*.ngrok-free.app",
+    "https://*.ngrok.io",
+]
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'core', # Moved to top to override runserver command
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -43,7 +51,6 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'corsheaders',
     # Local apps
-    'core',
     'users',
     'events',
     'participants',
@@ -173,11 +180,14 @@ SPECTACULAR_SETTINGS = {
 }
 
 # CORS configuration
+
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:8081",  # Expo default
     "http://127.0.0.1:3000",
     "http://127.0.0.1:8081",
+    "https://*"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -201,6 +211,7 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'ngrok-skip-browser-warning',
 ]
 
 # SECURITY SETTINGS

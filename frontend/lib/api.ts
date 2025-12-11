@@ -2,7 +2,9 @@ import { getAuthToken, AuthUser, AuthRole } from "./AuthContext";
 
 export type { AuthUser, AuthRole };
 
-export const API_BASE_URL = "http://localhost:8000/api";
+const fallbackApiBaseUrl = "http://localhost:8000/api";
+export const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ?? fallbackApiBaseUrl;
 
 type AuthResponse = {
   user: AuthUser;
@@ -22,6 +24,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true", // Skip ngrok interstitial page
     ...(options.headers || {}),
   };
 
@@ -35,7 +38,15 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   });
 
   const text = await response.text();
-  const data = text ? JSON.parse(text) : null;
+  let data: unknown = null;
+
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = null;
+    }
+  }
 
   if (!response.ok) {
     if (data && typeof data === "object") {
@@ -59,7 +70,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
         throw new Error(messages.join("\n"));
       }
     }
-    throw new Error("Request failed");
+    throw new Error(text || "Request failed");
   }
 
   return data as T;
@@ -223,13 +234,39 @@ export type AcceptInvitationResponse = {
 // ============ Organiser Event APIs ============
 
 export async function fetchEventStatuses(): Promise<EventStatus[]> {
-  const response = await request<EventStatus[] | PaginatedResponse<EventStatus>>("/events/statuses/");
-  return Array.isArray(response) ? response : response.results;
+  const response = await request<EventStatus[] | PaginatedResponse<EventStatus> | null>("/events/statuses/");
+
+  if (!response) {
+    return [];
+  }
+
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  if (Array.isArray(response.results)) {
+    return response.results;
+  }
+
+  return [];
 }
 
 export async function fetchOrganiserEvents(): Promise<Event[]> {
-  const response = await request<Event[] | PaginatedResponse<Event>>("/events/");
-  return Array.isArray(response) ? response : response.results;
+  const response = await request<Event[] | PaginatedResponse<Event> | null>("/events/");
+
+  if (!response) {
+    return [];
+  }
+
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  if (Array.isArray(response.results)) {
+    return response.results;
+  }
+
+  return [];
 }
 
 export async function fetchEvent(eventId: string): Promise<Event> {
@@ -289,3 +326,154 @@ export async function generateParticipantQR(eventId: string): Promise<QRShareRes
     method: "POST",
   });
 }
+
+export type EventStats = {
+  total_rsvps: number;
+  total_interested: number;
+  total_cancelled: number;
+  by_promoter: Record<string, number>;
+  by_source: Record<string, number>;
+};
+
+export async function fetchPromoterEventStats(eventId: string): Promise<EventStats> {
+  return request<EventStats>(`/promoter/events/${eventId}/stats/`);
+}
+
+export async function fetchEventStats(eventId: string): Promise<EventStats> {
+  return request<EventStats>(`/events/${eventId}/stats/`);
+}
+
+// ============ Participant APIs (Device-based, no auth) ============
+
+export type SyncEntry = {
+  yaml: string;
+  local_status: "scanned" | "rsvp" | "interested";
+  scanned_at: number;
+};
+
+export type SyncEntryResult = {
+  entry_index: number;
+  success: boolean;
+  event_id: string | null;
+  rsvp_id: string | null;
+  error: string | null;
+};
+
+export type SyncResponse = {
+  device_id: string;
+  entries: SyncEntryResult[];
+  events: Event[];
+};
+
+/**
+ * Sync participant events (pending QR scans) to the server.
+ * No authentication required - uses device_id for identification.
+ */
+export async function syncParticipantEvents(
+  deviceId: string,
+  entries: SyncEntry[]
+): Promise<SyncResponse> {
+  const response = await fetch(`${API_BASE_URL}/participant/sync/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      device_id: deviceId,
+      entries,
+    }),
+  });
+
+  const text = await response.text();
+  let data: unknown = null;
+
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = null;
+    }
+  }
+
+  if (!response.ok) {
+    if (data && typeof data === "object" && "error" in data && typeof (data as any).error === "string") {
+      throw new Error((data as any).error);
+    }
+    throw new Error(text || "Sync failed");
+  }
+
+  return data as SyncResponse;
+}
+
+/**
+ * Fetch events associated with a device.
+ * No authentication required - uses device_id for identification.
+ */
+export async function fetchParticipantEvents(deviceId: string): Promise<Event[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/participant/events/?device_id=${encodeURIComponent(deviceId)}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const text = await response.text();
+  let data: unknown = null;
+
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = null;
+    }
+  }
+
+  if (!response.ok) {
+    if (data && typeof data === "object" && "error" in data && typeof (data as any).error === "string") {
+      throw new Error((data as any).error);
+    }
+    throw new Error(text || "Failed to fetch events");
+  }
+
+  return data as Event[];
+}
+
+/**
+ * Delete device profile and all associated RSVPs.
+ * No authentication required - uses device_id for identification.
+ */
+export async function deleteParticipantDevice(deviceId: string): Promise<{ message: string; rsvps_deleted: number }> {
+  const response = await fetch(
+    `${API_BASE_URL}/participant/delete/?device_id=${encodeURIComponent(deviceId)}`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const text = await response.text();
+  let data: unknown = null;
+
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = null;
+    }
+  }
+
+  if (!response.ok) {
+    if (data && typeof data === "object" && "error" in data && typeof (data as any).error === "string") {
+      throw new Error((data as any).error);
+    }
+    throw new Error(text || "Failed to delete device");
+  }
+
+  return data as { message: string; rsvps_deleted: number };
+}
+

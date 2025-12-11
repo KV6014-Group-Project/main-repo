@@ -13,4 +13,5 @@ dependencies = [
     "django-environ>=0.11.0",
     "drf-spectacular>=0.29.0",
     "geoip2>=5.2.0",
+    "pyngrok>=7.5.0",
 ]

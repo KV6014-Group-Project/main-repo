@@ -1,21 +1,64 @@
-import React from 'react';
-import { SafeAreaView, ScrollView, View, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-
-const outreachSummary = {
-  peopleHelped: 120,
-  audience: 'women',
-  benefit: 'free health screenings',
-};
+import { fetchPromoterEvents, fetchPromoterEventStats, EventStats } from '../../lib/api';
+import { useAuth } from '../../lib/AuthContext';
 
 export default function PromoterImpact() {
   const router = useRouter();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [totalStats, setTotalStats] = useState({
+    totalRsvps: 0,
+    totalEvents: 0,
+    totalShares: 0,
+  });
+
+  useEffect(() => {
+    loadTotalStats();
+  }, []);
+
+  async function loadTotalStats() {
+    try {
+      const events = await fetchPromoterEvents();
+      let totalRsvps = 0;
+      
+      for (const event of events) {
+        const stats = await fetchPromoterEventStats(event.id);
+        totalRsvps += stats.total_rsvps;
+      }
+
+      setTotalStats({
+        totalRsvps,
+        totalEvents: events.length,
+        totalShares: 0, // TODO: Add share tracking when backend supports it
+      });
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-white items-center justify-center">
+        <ActivityIndicator size="large" color="#28B900" />
+        <Text className="mt-4 text-gray-500">Loading your impact...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView className="flex-1" contentContainerClassName="p-5">
         <View className="bg-neutral-300 rounded-2xl p-6 mb-5">
-          <Text className="text-3xl font-bold text-center">JOHN DOE</Text>
+          <Text className="text-3xl font-bold text-center">
+            {user?.first_name && user?.last_name 
+              ? `${user.first_name} ${user.last_name}` 
+              : user?.email || 'PROMOTER'
+            }
+          </Text>
           <Text className="text-sm text-gray-600 text-center mt-2">Your efforts are helping your community stay healthy.</Text>
         </View>
 
@@ -23,17 +66,17 @@ export default function PromoterImpact() {
           <Text className="text-lg font-bold mb-4">YOUR TOTAL IMPACT</Text>
           
           <View className="flex-row items-center mb-3">
-            <Text className="text-base font-bold mr-2 text-red-500">120</Text>
+            <Text className="text-base font-bold mr-2 text-red-500">{totalStats.totalRsvps}</Text>
             <Text className="text-sm">Participants Registered</Text>
           </View>
           
           <View className="flex-row items-center mb-3">
-            <Text className="text-base font-bold mr-2 text-green-600">250</Text>
+            <Text className="text-base font-bold mr-2 text-green-600">{totalStats.totalShares}</Text>
             <Text className="text-sm">WhatsApp Shares</Text>
           </View>
           
           <View className="flex-row items-center mb-3">
-            <Text className="text-base font-bold mr-2 text-red-700">10</Text>
+            <Text className="text-base font-bold mr-2 text-red-700">{totalStats.totalEvents}</Text>
             <Text className="text-sm">Events Promoted</Text>
           </View>
         </View>
@@ -64,8 +107,8 @@ export default function PromoterImpact() {
           <Text className="text-xl">💡</Text>
           <Text className="text-sm text-gray-700 flex-1">
             Your outreach helped{' '}
-            <Text className="font-semibold text-[#E2004E]">{outreachSummary.peopleHelped} {outreachSummary.audience}</Text>{' '}
-            access {outreachSummary.benefit}.
+            <Text className="font-semibold text-[#E2004E]">{totalStats.totalRsvps} people</Text>{' '}
+            access health services through your events.
           </Text>
         </View>
 

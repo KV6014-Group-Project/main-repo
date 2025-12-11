@@ -1,23 +1,16 @@
 """
 Views for participants app.
 """
-import json
 from datetime import datetime
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.utils import timezone
-from core.utils import parse_yaml_payload, verify_yaml_payload
-from core.views import BaseAPIView
+from core.utils import parse_yaml_payload, verify_yaml_payload, normalize_yaml_payload_for_sync
 from .models import DeviceProfile
-from .serializers import (
-    DeviceProfileSerializer,
-    ParticipantSyncSerializer,
-    SyncEntryResponseSerializer,
-    ParticipantSyncResponseSerializer,
-)
-from events.models import Event, RSVP, RSVPStatuses, RSVPSources, EventStatuses, EventVenues, EventPromoter
+from .serializers import ParticipantSyncSerializer, ParticipantSyncResponseSerializer
+from events.models import Event, RSVP, RSVPStatuses, RSVPSources, EventStatuses, EventPromoter
 from events.serializers import EventSerializer
 from users.models import PromoterProfile
 
@@ -88,8 +81,9 @@ def sync(request):
                 continue
             
             # Extract event and share data
-            event_data = yaml_data.get('event', {})
-            share_data = yaml_data.get('share', {})
+            normalized_data = normalize_yaml_payload_for_sync(yaml_data)
+            event_data = normalized_data.get('event', {})
+            share_data = normalized_data.get('share', {})
             
             event_id = event_data.get('id') or share_data.get('eventId')
             if not event_id:
@@ -249,3 +243,36 @@ def events(request):
     
     event_serializer = EventSerializer(events, many=True)
     return Response(event_serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def delete_device(request):
+    """
+    Delete device profile and all associated RSVPs.
+    This deregisters the participant from all events.
+    """
+    device_id = request.query_params.get('device_id')
+    if not device_id:
+        return Response(
+            {'error': 'device_id parameter is required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        device_profile = DeviceProfile.objects.get(device_id=device_id)
+    except DeviceProfile.DoesNotExist:
+        # Device doesn't exist, consider it successful
+        return Response({'message': 'Device not found, already deleted'}, status=status.HTTP_200_OK)
+    
+    # Delete all RSVPs for this device
+    rsvps_deleted = RSVP.objects.filter(device=device_profile).delete()[0]
+    
+    # Delete the device profile
+    device_profile.delete()
+    
+    return Response({
+        'message': 'Device data deleted successfully',
+        'rsvps_deleted': rsvps_deleted
+    }, status=status.HTTP_200_OK)

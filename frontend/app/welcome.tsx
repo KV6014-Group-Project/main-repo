@@ -1,9 +1,46 @@
-import React from "react";
-import { SafeAreaView, View, Image, Text, TouchableOpacity } from "react-native";
+import React, { useEffect, useState } from "react";
+import { SafeAreaView, View, Image, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
+import { useAuth } from "../lib/AuthContext";
+import { useParticipant } from "../lib/ParticipantContext";
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { user, isHydrated } = useAuth();
+  const { profile, isLoading: participantLoading } = useParticipant();
+  const [checkingRole, setCheckingRole] = useState(true);
+
+  useEffect(() => {
+    if (!isHydrated || participantLoading) {
+      return;
+    }
+
+    if (profile) {
+      router.replace("/participant");
+      return;
+    }
+
+    const roleName = user?.role?.name?.toLowerCase();
+    if (roleName === "organiser") {
+      router.replace("/organiser");
+      return;
+    }
+
+    if (roleName === "promoter") {
+      router.replace("/promoter");
+      return;
+    }
+
+    setCheckingRole(false);
+  }, [isHydrated, participantLoading, profile, user, router]);
+
+  if (checkingRole) {
+    return (
+      <SafeAreaView className="flex-1 bg-white items-center justify-center">
+        <ActivityIndicator size="large" color="#28B900" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white">
