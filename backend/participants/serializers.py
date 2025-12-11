@@ -47,5 +47,5 @@ class ParticipantSyncResponseSerializer(serializers.Serializer):
     """Serializer for participant sync response."""
     device_id = serializers.CharField()
     entries = SyncEntryResponseSerializer(many=True)
-    events = EventSerializer(many=True, required=False)
+    events = serializers.ListField(child=serializers.DictField(), required=False)
 

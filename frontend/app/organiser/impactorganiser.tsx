@@ -1,15 +1,69 @@
-import React from 'react';
-import { SafeAreaView, ScrollView, View, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import { fetchOrganiserEvents, fetchEventStats, Event, EventStats } from '../../lib/api';
+import { useAuth } from '../../lib/AuthContext';
 
 export default function OrganiserImpact() {
   const router = useRouter();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [totalStats, setTotalStats] = useState({
+    totalRsvps: 0,
+    totalEvents: 0,
+    totalShares: 0,
+  });
+  const [recentEvents, setRecentEvents] = useState<Array<Event & { stats?: EventStats }>>([]);
+
+  useEffect(() => {
+    loadTotalStats();
+  }, []);
+
+  async function loadTotalStats() {
+    try {
+      const events = await fetchOrganiserEvents();
+      let totalRsvps = 0;
+      
+      const eventsWithStats = await Promise.all(
+        events.slice(0, 5).map(async (event: Event) => {
+          const stats = await fetchEventStats(event.id);
+          totalRsvps += stats.total_rsvps;
+          return { ...event, stats };
+        })
+      );
+
+      setTotalStats({
+        totalRsvps,
+        totalEvents: events.length,
+        totalShares: 0, // TODO: Add share tracking when backend supports it
+      });
+      setRecentEvents(eventsWithStats);
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-white items-center justify-center">
+        <ActivityIndicator size="large" color="#28B900" />
+        <Text className="mt-4 text-gray-500">Loading your impact...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView className="flex-1" contentContainerClassName="p-5">
         <View className="bg-neutral-300 rounded-2xl p-6 mb-5">
-          <Text className="text-3xl font-bold text-center">JOHN DOE</Text>
+          <Text className="text-3xl font-bold text-center">
+            {user?.first_name && user?.last_name 
+              ? `${user.first_name} ${user.last_name}` 
+              : user?.email || 'ORGANISER'
+            }
+          </Text>
           <Text className="text-sm text-gray-600 text-center mt-2">Your efforts are helping your community stay healthy.</Text>
         </View>
 
@@ -17,17 +71,17 @@ export default function OrganiserImpact() {
           <Text className="text-lg font-bold mb-4">YOUR TOTAL IMPACT</Text>
           
           <View className="flex-row items-center mb-3">
-            <Text className="text-base font-bold mr-2 text-red-500">120</Text>
+            <Text className="text-base font-bold mr-2 text-red-500">{totalStats.totalRsvps}</Text>
             <Text className="text-sm">Participants Registered</Text>
           </View>
           
           <View className="flex-row items-center mb-3">
-            <Text className="text-base font-bold mr-2 text-green-600">250</Text>
+            <Text className="text-base font-bold mr-2 text-green-600">{totalStats.totalShares}</Text>
             <Text className="text-sm">WhatsApp Shares</Text>
           </View>
           
           <View className="flex-row items-center mb-3">
-            <Text className="text-base font-bold mr-2 text-red-700">10</Text>
+            <Text className="text-base font-bold mr-2 text-red-700">{totalStats.totalEvents}</Text>
             <Text className="text-sm">Events Promoted</Text>
           </View>
         </View>
@@ -44,15 +98,12 @@ export default function OrganiserImpact() {
 
         <Text className="text-lg font-bold mb-3">Recent Events</Text>
         
-        <View className="bg-neutral-200 rounded-xl p-4 flex-row justify-between items-center mb-3">
-          <Text className="text-sm font-medium flex-1">Health Screening – Community Hall</Text>
-          <Text className="text-base font-bold">50</Text>
-        </View>
-        
-        <View className="bg-neutral-200 rounded-xl p-4 flex-row justify-between items-center mb-3">
-          <Text className="text-sm font-medium flex-1">Women Wellness Workshop</Text>
-          <Text className="text-base font-bold">30</Text>
-        </View>
+        {recentEvents.map((event, index) => (
+          <View key={event.id} className="bg-neutral-200 rounded-xl p-4 flex-row justify-between items-center mb-3">
+            <Text className="text-sm font-medium flex-1">{event.title}</Text>
+            <Text className="text-base font-bold">{event.stats?.total_rsvps || 0}</Text>
+          </View>
+        ))}
 
         <TouchableOpacity className="p-4 items-center mt-5" onPress={() => router.back()}>
           <Text className="text-blue-500 text-base">← Back</Text>

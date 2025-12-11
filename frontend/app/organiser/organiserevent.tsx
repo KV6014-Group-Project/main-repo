@@ -12,13 +12,14 @@ import {
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import * as Clipboard from 'expo-clipboard';
-import { fetchEvent, deleteEvent, generatePromoterInvitation, Event, InvitationResponse } from "../../lib/api";
+import { fetchEvent, deleteEvent, generatePromoterInvitation, fetchEventStats, Event, InvitationResponse, EventStats } from "../../lib/api";
 
 export default function OrganiserEvent() {
   const router = useRouter();
   const { eventId } = useLocalSearchParams<{ eventId: string }>();
   
   const [event, setEvent] = useState<Event | null>(null);
+  const [stats, setStats] = useState<EventStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [inviteLoading, setInviteLoading] = useState(false);
   const [invitation, setInvitation] = useState<InvitationResponse | null>(null);
@@ -33,8 +34,12 @@ export default function OrganiserEvent() {
   async function loadEvent() {
     try {
       setError(null);
-      const data = await fetchEvent(eventId!);
-      setEvent(data);
+      const [eventData, statsData] = await Promise.all([
+        fetchEvent(eventId!),
+        fetchEventStats(eventId!),
+      ]);
+      setEvent(eventData);
+      setStats(statsData);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load event';
       setError(message);
@@ -263,6 +268,39 @@ export default function OrganiserEvent() {
             </View>
           )}
         </View>
+
+        {stats && (
+          <View className="bg-neutral-100 rounded-xl p-5 mb-5">
+            <Text className="text-lg font-bold mb-4">Event Statistics</Text>
+            
+            <View className="flex-row justify-between mb-3">
+              <Text className="text-sm">Total RSVPs</Text>
+              <Text className="text-base font-bold">{stats.total_rsvps}</Text>
+            </View>
+            
+            <View className="flex-row justify-between mb-3">
+              <Text className="text-sm">Interested</Text>
+              <Text className="text-base font-bold text-blue-600">{stats.total_interested}</Text>
+            </View>
+            
+            <View className="flex-row justify-between mb-3">
+              <Text className="text-sm">Cancelled</Text>
+              <Text className="text-base font-bold text-red-600">{stats.total_cancelled}</Text>
+            </View>
+            
+            {Object.keys(stats.by_source).length > 0 && (
+              <View className="mt-4 pt-4 border-t border-neutral-300">
+                <Text className="text-sm font-bold mb-2">By Source</Text>
+                {Object.entries(stats.by_source).map(([source, count]) => (
+                  <View key={source} className="flex-row justify-between mb-1">
+                    <Text className="text-xs capitalize">{source}</Text>
+                    <Text className="text-xs font-bold">{count}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
 
         <TouchableOpacity className="bg-neutral-200 rounded-xl p-4 items-center mb-5">
           <Text className="text-base font-medium">View Event Statistics</Text>

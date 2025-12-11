@@ -82,6 +82,17 @@ def verify_signature(data: str, signature: str) -> bool:
         return False
 
 
+def _is_compact_yaml_data(data: Dict[str, Any]) -> bool:
+    """
+    Determine if the payload is the compact QR format.
+    """
+    return (
+        'share' not in data
+        and 'event' not in data
+        and all(key in data for key in ('e', 'p', 'i', 'ts'))
+    )
+
+
 def canonicalize_yaml_data(data: Dict[str, Any]) -> str:
     """
     Canonicalize YAML data for signing.
@@ -96,7 +107,14 @@ def canonicalize_yaml_data(data: Dict[str, Any]) -> str:
     parts = []
     
     parts.append(f"v:{data.get('v', 1)}")
-    
+
+    if _is_compact_yaml_data(data):
+        parts.append(f"e:{data.get('e', '')}")
+        parts.append(f"p:{data.get('p', '')}")
+        parts.append(f"i:{data.get('i', '')}")
+        parts.append(f"ts:{data.get('ts', 0)}")
+        return '\n'.join(parts)
+
     event = data.get('event', {})
     parts.append(f"event.id:{event.get('id', '')}")
     
@@ -119,6 +137,32 @@ def canonicalize_yaml_data(data: Dict[str, Any]) -> str:
     parts.append(f"share.issuedAt:{issued_at}")
     
     return '\n'.join(parts)
+
+
+def normalize_yaml_payload_for_sync(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Normalize payload so sync logic can rely on ``event`` and ``share`` keys.
+    """
+    if _is_compact_yaml_data(data):
+        event_id = data.get('e', '')
+        return {
+            'v': data.get('v', 1),
+            'event': {
+                'id': event_id,
+                'title': data.get('t', ''),
+                'start': data.get('s', ''),
+            },
+            'share': {
+                'eventId': event_id,
+                'shareId': data.get('i', ''),
+                'promoterId': data.get('p', ''),
+                'issuedAt': data.get('ts', 0),
+                'scope': 'qr',
+                'channel': 'qr',
+            },
+        }
+
+    return data
 
 
 def sign_yaml_payload(data: Dict[str, Any]) -> str:
@@ -145,17 +189,21 @@ def verify_yaml_payload(data: Dict[str, Any]) -> bool:
     Returns:
         True if signature is valid, False otherwise
     """
-    share = data.get('share', {})
-    signature = share.get('sig', '')
-    
+    share = data.get('share')
+    signature = ''
+    data_copy = data.copy()
+
+    if share:
+        signature = share.get('sig', '')
+        share_copy = share.copy()
+        share_copy.pop('sig', None)
+        data_copy['share'] = share_copy
+    else:
+        signature = data_copy.pop('sig', '')
+
     if not signature:
         return False
-    
-    data_copy = data.copy()
-    share_copy = share.copy()
-    share_copy.pop('sig', None)
-    data_copy['share'] = share_copy
-    
+
     canonical = canonicalize_yaml_data(data_copy)
     return verify_signature(canonical, signature)
 

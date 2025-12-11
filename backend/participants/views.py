@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from core.utils import parse_yaml_payload, verify_yaml_payload
+from core.utils import parse_yaml_payload, verify_yaml_payload, normalize_yaml_payload_for_sync
 from .models import DeviceProfile
 from .serializers import ParticipantSyncSerializer, ParticipantSyncResponseSerializer
 from events.models import Event, RSVP, RSVPStatuses, RSVPSources, EventStatuses, EventPromoter
@@ -81,8 +81,9 @@ def sync(request):
                 continue
             
             # Extract event and share data
-            event_data = yaml_data.get('event', {})
-            share_data = yaml_data.get('share', {})
+            normalized_data = normalize_yaml_payload_for_sync(yaml_data)
+            event_data = normalized_data.get('event', {})
+            share_data = normalized_data.get('share', {})
             
             event_id = event_data.get('id') or share_data.get('eventId')
             if not event_id:

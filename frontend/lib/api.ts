@@ -327,6 +327,22 @@ export async function generateParticipantQR(eventId: string): Promise<QRShareRes
   });
 }
 
+export type EventStats = {
+  total_rsvps: number;
+  total_interested: number;
+  total_cancelled: number;
+  by_promoter: Record<string, number>;
+  by_source: Record<string, number>;
+};
+
+export async function fetchPromoterEventStats(eventId: string): Promise<EventStats> {
+  return request<EventStats>(`/promoter/events/${eventId}/stats/`);
+}
+
+export async function fetchEventStats(eventId: string): Promise<EventStats> {
+  return request<EventStats>(`/events/${eventId}/stats/`);
+}
+
 // ============ Participant APIs (Device-based, no auth) ============
 
 export type SyncEntry = {
