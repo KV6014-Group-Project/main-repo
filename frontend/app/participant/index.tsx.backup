@@ -21,7 +21,6 @@ export default function ParticipantHome() {
   } = useParticipant();
   
   const [isDeleting, setIsDeleting] = React.useState(false);
-  const [isActuallyOnline, setIsActuallyOnline] = React.useState(true);
 
   // Merge local and server events for display
   const displayEvents = getMergedEvents(localEvents, serverEvents);
@@ -33,29 +32,6 @@ export default function ParticipantHome() {
       refreshServerEvents();
     }
   }, [isOnline, isLoading]);
-
-  // Check real-time connection status
-  useEffect(() => {
-    const checkConnection = async () => {
-      try {
-        const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8000/api'}/core/public-key/`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        setIsActuallyOnline(response.ok);
-      } catch (error) {
-        setIsActuallyOnline(false);
-      }
-    };
-
-    // Check immediately
-    checkConnection();
-
-    // Check every 10 seconds
-    const interval = setInterval(checkConnection, 10000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const handleSync = async () => {
     await syncEvents();
@@ -122,14 +98,33 @@ export default function ParticipantHome() {
   };
 
   const handleDeleteDeviceData = async () => {
-    // Early return if not online (button should be disabled, but double-check)
-    if (!isActuallyOnline) {
-      return;
-    }
-    
     setIsDeleting(true);
     
     try {
+      // Check connection in real-time
+      try {
+        const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8000/api'}/core/public-key/`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!response.ok) {
+          throw new Error();
+        }
+      } catch (error) {
+        const message = Platform.OS === 'web' 
+          ? 'You must be connected to the internet to delete device data. This ensures you are deregistered from all events.'
+          : 'Cannot Delete Device Data\n\nYou must be connected to the internet to delete device data. This ensures you are deregistered from all events.';
+        
+        if (Platform.OS === 'web') {
+          alert(message);
+        } else {
+          Alert.alert('Cannot Delete Device Data', message, [{ text: 'OK', style: 'default' }]);
+        }
+        setIsDeleting(false);
+        return;
+      }
+
       const confirmed = Platform.OS === 'web'
         ? window.confirm('Delete device data?\n\nThis will remove your participant details, deregister you from all events, and clear your local event history from this device. You will need to re-enter your details next time.')
         : null;
@@ -138,6 +133,8 @@ export default function ParticipantHome() {
       if (Platform.OS === 'web') {
         if (confirmed) {
           await performDelete();
+        } else {
+          setIsDeleting(false);
         }
       } else {
         // For mobile, use Alert
@@ -145,11 +142,7 @@ export default function ParticipantHome() {
           'Delete device data?',
           'This will remove your participant details, deregister you from all events, and clear your local event history from this device. You will need to re-enter your details next time.',
           [
-            { 
-              text: 'Cancel', 
-              style: 'cancel',
-              onPress: () => setIsDeleting(false),
-            },
+            { text: 'Cancel', style: 'cancel' },
             {
               text: 'Yes, delete',
               style: 'destructive',
@@ -159,12 +152,7 @@ export default function ParticipantHome() {
         );
       }
     } catch (error) {
-      console.error('Error in handleDeleteDeviceData:', error);
-    } finally {
-      // Always reset loading state for web
-      if (Platform.OS === 'web') {
-        setIsDeleting(false);
-      }
+      setIsDeleting(false);
     }
   };
 
@@ -184,8 +172,8 @@ export default function ParticipantHome() {
 
         {/* Connection Status */}
         <View className="flex-row items-center justify-center mb-4">
-          <View className={`w-2 h-2 rounded-full mr-2 ${isActuallyOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
-          <Text className="text-sm text-gray-500">{isActuallyOnline ? 'Online' : 'Offline'}</Text>
+          <View className={`w-2 h-2 rounded-full mr-2 ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+          <Text className="text-sm text-gray-500">{isOnline ? 'Online' : 'Offline'}</Text>
         </View>
 
         {/* Profile Info */}
@@ -247,20 +235,20 @@ export default function ParticipantHome() {
 
         {/* Delete Device Data Button */}
         <TouchableOpacity
-          className={`p-4 rounded-xl items-center mt-5 ${isActuallyOnline ? 'bg-neutral-200' : 'bg-gray-100'}`}
+          className={`p-4 rounded-xl items-center mt-5 ${isOnline ? 'bg-neutral-200' : 'bg-gray-100'}`}
           onPress={handleDeleteDeviceData}
-          disabled={!isActuallyOnline || isDeleting}
+          disabled={!isOnline || isDeleting}
         >
           {isDeleting ? (
             <ActivityIndicator size="small" color="#6B7280" />
           ) : (
-            <Text className={`${isActuallyOnline ? 'text-gray-700' : 'text-gray-400'} text-base font-semibold`}>
+            <Text className={`${isOnline ? 'text-gray-700' : 'text-gray-400'} text-base font-semibold`}>
               Delete Device Data
             </Text>
           )}
         </TouchableOpacity>
         
-        {!isActuallyOnline && (
+        {!isOnline && (
           <Text className="text-xs text-gray-500 text-center mt-2">
             Device deletion requires an internet connection
           </Text>

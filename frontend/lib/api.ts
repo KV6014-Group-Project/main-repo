@@ -441,3 +441,39 @@ export async function fetchParticipantEvents(deviceId: string): Promise<Event[]>
   return data as Event[];
 }
 
+/**
+ * Delete device profile and all associated RSVPs.
+ * No authentication required - uses device_id for identification.
+ */
+export async function deleteParticipantDevice(deviceId: string): Promise<{ message: string; rsvps_deleted: number }> {
+  const response = await fetch(
+    `${API_BASE_URL}/participant/delete/?device_id=${encodeURIComponent(deviceId)}`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const text = await response.text();
+  let data: unknown = null;
+
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = null;
+    }
+  }
+
+  if (!response.ok) {
+    if (data && typeof data === "object" && "error" in data && typeof (data as any).error === "string") {
+      throw new Error((data as any).error);
+    }
+    throw new Error(text || "Failed to delete device");
+  }
+
+  return data as { message: string; rsvps_deleted: number };
+}
+
