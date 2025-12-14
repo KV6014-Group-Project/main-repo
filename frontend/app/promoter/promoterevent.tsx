@@ -6,8 +6,10 @@ import {
   Text, 
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import * as Clipboard from 'expo-clipboard';
 import { fetchPromoterEvent, fetchPromoterEventStats, Event, EventStats } from "../../lib/api";
 
 export default function PromoterEvent() {
@@ -129,12 +131,18 @@ export default function PromoterEvent() {
           <Text className="text-white text-base font-bold">Generate QR Code</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity className="bg-[#48C44B] rounded-xl p-4 items-center mb-3">
-          <Text className="text-white text-base font-bold">Share On WhatsApp</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity className="bg-neutral-200 rounded-xl p-4 items-center mb-5">
-          <Text className="text-base font-medium">View Statistics</Text>
+        <TouchableOpacity 
+          className="bg-[#48C44B] rounded-xl p-4 items-center mb-3"
+          onPress={async () => {
+            try {
+              await Clipboard.setStringAsync(`Check out this event: ${event.title}`);
+              Alert.alert('Copied!', 'Event link copied to clipboard');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to copy link');
+            }
+          }}
+        >
+          <Text className="text-white text-base font-bold">Copy Link</Text>
         </TouchableOpacity>
 
         <TouchableOpacity className="p-4 items-center" onPress={() => router.back()}>

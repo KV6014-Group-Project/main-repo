@@ -30,7 +30,7 @@ export type ParticipantProfile = {
     firstName: string;
     lastName: string;
     email: string;
-    phone?: string;
+    phone: string;
 };
 
 export type LocalEventStatus = "pending" | "synced" | "error";

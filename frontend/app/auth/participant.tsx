@@ -21,8 +21,8 @@ export default function ParticipantScreen() {
 
   const handleContinue = async () => {
     // Basic validation
-    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
-      Alert.alert("Missing Information", "Please fill in your first name, last name, and email.");
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !phone.trim()) {
+      Alert.alert("Missing Information", "Please fill in your first name, last name, email, and phone number.");
       return;
     }
 
@@ -39,7 +39,7 @@ export default function ParticipantScreen() {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim(),
-        phone: phone.trim() || undefined,
+        phone: phone.trim(),
       });
 
       // Navigate to participant home
@@ -110,7 +110,7 @@ export default function ParticipantScreen() {
           </View>
 
           <View className="mb-5">
-            <Text className="text-base font-medium mb-2 text-gray-700">Phone (optional)</Text>
+            <Text className="text-base font-medium mb-2 text-gray-700">Phone</Text>
             <TextInput
               className="border border-gray-300 p-3 rounded-lg text-base"
               placeholder="Enter phone number"
