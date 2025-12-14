@@ -14,7 +14,6 @@ export default function OrganiserAnalytics() {
   const stats = [
     { id: 1, title: "Participants Signed Up", value: "2,847" },
     { id: 2, title: "Events Created", value: "156" },
-    { id: 3, title: "Cancer Detections", value: "43" },
   ];
 
   const data = [
@@ -45,21 +44,6 @@ export default function OrganiserAnalytics() {
     { label: 'Oct', value: 10 },
     { label: 'Nov', value: 8 },
     { label: 'Dec', value: 6 },
-  ];
-
-  const detectionData = [
-    { label: 'Jan', value: 2 },
-    { label: 'Feb', value: 2 },
-    { label: 'Mar', value: 3 },
-    { label: 'Apr', value: 4 },
-    { label: 'May', value: 4 },
-    { label: 'Jun', value: 6 },
-    { label: 'Jul', value: 7 },
-    { label: 'Aug', value: 7 },
-    { label: 'Sep', value: 5 },
-    { label: 'Oct', value: 3 },
-    { label: 'Nov', value: 2 },
-    { label: 'Dec', value: 3 },
   ];
 
   return (
@@ -116,20 +100,6 @@ export default function OrganiserAnalytics() {
           spacing={20}
           barBorderRadius={4}
           yAxisLabelTexts={['0', '4', '8', '12', '16']}
-          noOfSections={4}
-          isAnimated
-        />
-
-        <Text className="text-lg font-bold mt-8 mb-4 text-center">Cancer Detections in Events / Month</Text>
-        <BarChart
-          data={detectionData}
-          frontColor={'#28B900'}
-          barWidth={12}
-          width={screenWidth - 40}
-          initialSpacing={5}
-          spacing={20}
-          barBorderRadius={4}
-          yAxisLabelTexts={['0', '3', '6', '9', '12']}
           noOfSections={4}
           isAnimated
         />
