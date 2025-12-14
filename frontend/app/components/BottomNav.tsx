@@ -28,13 +28,23 @@ export default function BottomNav() {
   const tabs = [
     {
       name: 'Home',
-      path: user?.role?.name === 'organiser' ? '/organiser' : '/',
+      path:
+        user?.role?.name === 'organiser'
+          ? '/organiser'
+          : user?.role?.name === 'promoter'
+            ? '/promoter'
+            : '/',
       icon: 'home',
       iconOutline: 'home-outline'
     },
     {
       name: 'Events',
-      path: user?.role?.name === 'organiser' ? '/organiser/events' : '/events',
+      path:
+        user?.role?.name === 'organiser'
+          ? '/organiser/events'
+          : user?.role?.name === 'promoter'
+            ? '/promoter/events'
+            : '/events',
       icon: 'calendar',
       iconOutline: 'calendar-outline'
     },
@@ -44,7 +54,7 @@ export default function BottomNav() {
         user?.role?.name === 'organiser'
           ? '/organiser/profile'
           : user?.role?.name === 'promoter'
-            ? '/promoter'
+            ? '/promoter/profile'
             : '/participant',
       icon: 'person',
       iconOutline: 'person-outline'
@@ -64,9 +74,9 @@ export default function BottomNav() {
         }}
       >
         {tabs.map((tab) => {
-          const isOrganiser = user?.role?.name === 'organiser';
+          const roleName = user?.role?.name;
 
-          const isActive = isOrganiser
+          const isActive = roleName === 'organiser'
             ? (
                 (tab.path === '/organiser' &&
                   pathname.startsWith('/organiser') &&
@@ -75,7 +85,16 @@ export default function BottomNav() {
                 (tab.path === '/organiser/events' && pathname.startsWith('/organiser/events')) ||
                 (tab.path === '/organiser/profile' && pathname.startsWith('/organiser/profile'))
               )
-            : pathname === tab.path;
+            : roleName === 'promoter'
+              ? (
+                  (tab.path === '/promoter' &&
+                    pathname.startsWith('/promoter') &&
+                    !pathname.startsWith('/promoter/events') &&
+                    !pathname.startsWith('/promoter/profile')) ||
+                  (tab.path === '/promoter/events' && pathname.startsWith('/promoter/events')) ||
+                  (tab.path === '/promoter/profile' && pathname.startsWith('/promoter/profile'))
+                )
+              : pathname === tab.path;
 
           return (
             <TouchableOpacity
