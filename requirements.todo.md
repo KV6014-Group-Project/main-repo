@@ -25,7 +25,7 @@ When features are merged, keep this updated.
 - [x] Event creation and management
   - [x] Event creation form — `create-event.tsx` with title, dates, venue, capacity
   - [x] Event listing and details — `organiserdashboard.tsx` lists events, `organiserevent.tsx` shows details
-  - [ ] Event editing interface — UI for editing existing events (backend supports PATCH)
+  - [x] Event editing interface — `update-event.tsx` with full form for editing existing events
 - [ ] Promoter management per event
   - [ ] Add/remove promoters — backend endpoints exist, UI pending
   - [ ] Promoter listing — backend `promoter_list` endpoint exists
@@ -47,17 +47,17 @@ When features are merged, keep this updated.
 - [x] QR code generation and scanning
   - [x] QR code creation — `QRCodeDisplay.tsx` component
   - [x] Camera integration — `qr-scanner.tsx` with expo-camera
-  - [ ] QR code parsing — client-side YAML parsing and offline storage pending
+  - [x] QR code parsing — `offlineParser.ts` parses YAML/JSON payloads, stores in `ParticipantContext`
 
 ## Participant Experience
-- [ ] Offline participant sync *(backend sync + RSVP creation done; client-side offline storage/sync logic still pending)*
-  - [ ] Offline data storage
-  - [ ] Sync queue management
-  - [ ] Conflict resolution
-- [ ] Offline event storage
-  - [ ] Local event cache
-  - [ ] Offline RSVP tracking
-  - [ ] Data persistence
+- [x] Offline participant sync — `ParticipantContext.tsx` handles full offline-first flow
+  - [x] Offline data storage — AsyncStorage persistence via `LOCAL_EVENTS_KEY`
+  - [x] Sync queue management — `syncEvents()` batches pending events to backend
+  - [x] Conflict resolution — deduplication by eventId, status tracking (pending/synced/error)
+- [x] Offline event storage — `ParticipantContext.tsx` with AsyncStorage
+  - [x] Local event cache — `localEvents` state persisted to `LOCAL_EVENTS_KEY`
+  - [x] Offline RSVP tracking — `LocalEvent` type tracks status, scannedAt, syncedAt
+  - [x] Data persistence — AsyncStorage hydration on mount, auto-persist on change
 - [x] RSVP tracking and attribution
   - [x] RSVP status management — RSVPStatuses FK (rsvp, interested, cancelled)
   - [x] Promoter attribution — RSVP model stores promoter FK from QR scan
@@ -76,9 +76,9 @@ When features are merged, keep this updated.
   - [x] RSVP counts by status — `stats` endpoint returns total_rsvps, total_interested, total_cancelled
   - [x] Promoter performance metrics — `by_promoter` dict in stats response
   - [x] Event engagement analytics — `by_source` breakdown (qr, link, offline_sync)
-- [ ] Statistics dashboard
-  - [ ] Visual analytics
-  - [ ] Real-time updates
+- [x] Statistics dashboard
+  - [x] Visual analytics — `organiser-analytics.tsx` with BarChart components
+  - [x] Real-time updates — pull-to-refresh, data from `fetchEventStats()` API
   - [ ] Export functionality
 - [ ] Admin interface
   - [ ] User management
@@ -90,18 +90,18 @@ When features are merged, keep this updated.
   - [ ] Role switching
 
 ## Polish & Integration
-- [ ] Offline sync handling
-  - [ ] Robust sync logic
-  - [ ] Network detection
-  - [ ] Sync status indicators
+- [x] Offline sync handling — `ParticipantContext.tsx` with full offline-first architecture
+  - [x] Robust sync logic — `syncEvents()` with error handling, status tracking per entry
+  - [x] Network detection — `checkServerConnection()` API, `isOnline` state, periodic checks
+  - [x] Sync status indicators — connection dot in participant UI, `isSyncing` state, pending count badge
 - [x] Error states and loading
   - [x] Loading indicators — ActivityIndicator in dashboard screens
   - [x] Error messages — error state handling with retry options
-  - [ ] Recovery flows
+  - [x] Recovery flows — retry buttons on error states, pull-to-refresh throughout
 - [ ] Environment setup
-  - [ ] Development configuration
+  - [x] Development configuration — `.env.example` for frontend, `settings.py` configured
   - [ ] Production deployment
-  - [ ] Environment variables
+  - [x] Environment variables — `EXPO_PUBLIC_API_BASE_URL` documented in `.env.example`
 - [ ] Testing coverage
   - [ ] Unit tests
   - [ ] Integration tests
