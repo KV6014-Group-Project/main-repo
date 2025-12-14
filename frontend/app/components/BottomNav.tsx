@@ -28,13 +28,13 @@ export default function BottomNav() {
   const tabs = [
     {
       name: 'Home',
-      path: '/',
+      path: user?.role?.name === 'organiser' ? '/organiser' : '/',
       icon: 'home',
       iconOutline: 'home-outline'
     },
     {
       name: 'Events',
-      path: '/events',
+      path: user?.role?.name === 'organiser' ? '/organiser/events' : '/events',
       icon: 'calendar',
       iconOutline: 'calendar-outline'
     },
@@ -42,7 +42,7 @@ export default function BottomNav() {
       name: 'Profile',
       path:
         user?.role?.name === 'organiser'
-          ? '/organiser/organiserdashboard'
+          ? '/organiser/profile'
           : user?.role?.name === 'promoter'
             ? '/promoter'
             : '/participant',
