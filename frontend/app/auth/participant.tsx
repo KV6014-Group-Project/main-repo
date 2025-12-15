@@ -5,7 +5,7 @@ import { useParticipant } from "../../lib/ParticipantContext";
 
 export default function ParticipantScreen() {
   const router = useRouter();
-  const { profile, saveProfile, isLoading } = useParticipant();
+  const { profile, saveProfile, isLoading, otpVerified, setOtpVerified } = useParticipant();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -15,9 +15,14 @@ export default function ParticipantScreen() {
 
   useEffect(() => {
     if (!isLoading && profile) {
+      if (!otpVerified) {
+        router.replace('/auth/participant-otp' as any);
+        return;
+      }
+
       router.replace("/participant");
     }
-  }, [isLoading, profile, router]);
+  }, [isLoading, otpVerified, profile, router]);
 
   const handleContinue = async () => {
     // Basic validation
@@ -35,6 +40,8 @@ export default function ParticipantScreen() {
 
     setIsSubmitting(true);
     try {
+      await setOtpVerified(false);
+
       await saveProfile({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -42,8 +49,8 @@ export default function ParticipantScreen() {
         phone: phone.trim(),
       });
 
-      // Navigate to participant home
-      router.replace('/participant');
+      // Navigate to OTP step
+      router.replace('/auth/participant-otp' as any);
     } catch (error) {
       Alert.alert("Error", "Failed to save your profile. Please try again.");
     } finally {

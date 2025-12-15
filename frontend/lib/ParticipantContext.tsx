@@ -52,6 +52,7 @@ export type LocalEvent = {
 type ParticipantContextValue = {
     // State
     profile: ParticipantProfile | null;
+    otpVerified: boolean;
     localEvents: LocalEvent[];
     serverEvents: Event[];
     isLoading: boolean;
@@ -60,6 +61,7 @@ type ParticipantContextValue = {
 
     // Actions
     saveProfile: (profile: ParticipantProfile) => Promise<void>;
+    setOtpVerified: (verified: boolean) => Promise<void>;
     clearProfile: () => Promise<void>;
     addScannedEvent: (payload: string) => boolean;
     syncEvents: () => Promise<void>;
@@ -70,6 +72,7 @@ type ParticipantContextValue = {
 
 const PROFILE_KEY = "participant_profile";
 const LOCAL_EVENTS_KEY = "participant_local_events";
+const OTP_VERIFIED_KEY = "participant_otp_verified";
 
 // ============ Context ============
 
@@ -98,6 +101,7 @@ type ParticipantProviderProps = {
 
 export function ParticipantProvider({ children }: ParticipantProviderProps) {
     const [profile, setProfile] = useState<ParticipantProfile | null>(null);
+    const [otpVerified, setOtpVerifiedState] = useState(true);
     const [localEvents, setLocalEvents] = useState<LocalEvent[]>([]);
     const [serverEvents, setServerEvents] = useState<Event[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -108,9 +112,10 @@ export function ParticipantProvider({ children }: ParticipantProviderProps) {
     useEffect(() => {
         async function hydrate() {
             try {
-                const [profileJson, eventsJson] = await Promise.all([
+                const [profileJson, eventsJson, storedOtpVerified] = await Promise.all([
                     AsyncStorage.getItem(PROFILE_KEY),
                     AsyncStorage.getItem(LOCAL_EVENTS_KEY),
+                    AsyncStorage.getItem(OTP_VERIFIED_KEY),
                 ]);
 
                 if (profileJson) {
@@ -119,6 +124,12 @@ export function ParticipantProvider({ children }: ParticipantProviderProps) {
 
                 if (eventsJson) {
                     setLocalEvents(JSON.parse(eventsJson));
+                }
+
+                if (storedOtpVerified === null) {
+                    setOtpVerifiedState(true);
+                } else {
+                    setOtpVerifiedState(storedOtpVerified === "true");
                 }
 
                 // Check server connection
@@ -152,14 +163,21 @@ export function ParticipantProvider({ children }: ParticipantProviderProps) {
         []
     );
 
+    const setOtpVerified = useCallback(async (verified: boolean): Promise<void> => {
+        setOtpVerifiedState(verified);
+        await AsyncStorage.setItem(OTP_VERIFIED_KEY, verified ? "true" : "false");
+    }, []);
+
     // Clear profile
     const clearProfile = useCallback(async (): Promise<void> => {
         setProfile(null);
+        setOtpVerifiedState(true);
         setLocalEvents([]);
         setServerEvents([]);
         await Promise.all([
             AsyncStorage.removeItem(PROFILE_KEY),
             AsyncStorage.removeItem(LOCAL_EVENTS_KEY),
+            AsyncStorage.removeItem(OTP_VERIFIED_KEY),
         ]);
     }, []);
 
@@ -319,12 +337,14 @@ export function ParticipantProvider({ children }: ParticipantProviderProps) {
     const value = useMemo<ParticipantContextValue>(
         () => ({
             profile,
+            otpVerified,
             localEvents,
             serverEvents,
             isLoading,
             isSyncing,
             isOnline,
             saveProfile,
+            setOtpVerified,
             clearProfile,
             addScannedEvent,
             syncEvents,
@@ -332,12 +352,14 @@ export function ParticipantProvider({ children }: ParticipantProviderProps) {
         }),
         [
             profile,
+            otpVerified,
             localEvents,
             serverEvents,
             isLoading,
             isSyncing,
             isOnline,
             saveProfile,
+            setOtpVerified,
             clearProfile,
             addScannedEvent,
             syncEvents,

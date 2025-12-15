@@ -25,12 +25,16 @@ type AuthContextValue = {
   user: AuthUser | null;
   /** The auth token, or null if not logged in */
   token: string | null;
+  /** True once OTP step has been completed (fake OTP gating) */
+  otpVerified: boolean;
   /** True while hydrating auth state from storage */
   isLoading: boolean;
   /** True once hydration is complete */
   isHydrated: boolean;
   /** Sign in with token and user object (typically after login/register API call) */
   signIn: (token: string, user: AuthUser) => Promise<void>;
+  /** Mark OTP as verified/unverified and persist */
+  setOtpVerified: (verified: boolean) => Promise<void>;
   /** Sign out and clear stored credentials */
   signOut: () => Promise<void>;
 };
@@ -39,6 +43,7 @@ type AuthContextValue = {
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
+const OTP_VERIFIED_KEY = 'auth_otp_verified';
 
 // ============ Secure Storage Helpers ============
 
@@ -96,6 +101,7 @@ type AuthProviderProps = {
 export function AuthProvider({ children, onHydrated }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [otpVerified, setOtpVerifiedState] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -105,9 +111,10 @@ export function AuthProvider({ children, onHydrated }: AuthProviderProps) {
 
     async function hydrate() {
       try {
-        const [storedToken, storedUserJson] = await Promise.all([
+        const [storedToken, storedUserJson, storedOtpVerified] = await Promise.all([
           getSecureItem(TOKEN_KEY),
           getSecureItem(USER_KEY),
+          getSecureItem(OTP_VERIFIED_KEY),
         ]);
 
         if (!isMounted) return;
@@ -117,6 +124,12 @@ export function AuthProvider({ children, onHydrated }: AuthProviderProps) {
           setToken(storedToken);
           setUser(storedUser);
           inMemoryToken = storedToken;
+        }
+
+        if (storedOtpVerified === null) {
+          setOtpVerifiedState(true);
+        } else {
+          setOtpVerifiedState(storedOtpVerified === 'true');
         }
       } catch (error) {
         // If storage read fails, start with no auth
@@ -150,16 +163,23 @@ export function AuthProvider({ children, onHydrated }: AuthProviderProps) {
     ]);
   }, []);
 
+  const setOtpVerified = useCallback(async (verified: boolean) => {
+    setOtpVerifiedState(verified);
+    await setSecureItem(OTP_VERIFIED_KEY, verified ? 'true' : 'false');
+  }, []);
+
   const signOut = useCallback(async () => {
     // Clear memory
     inMemoryToken = null;
     setToken(null);
     setUser(null);
+    setOtpVerifiedState(true);
 
     // Clear storage
     await Promise.all([
       deleteSecureItem(TOKEN_KEY),
       deleteSecureItem(USER_KEY),
+      deleteSecureItem(OTP_VERIFIED_KEY),
     ]);
   }, []);
 
@@ -167,12 +187,14 @@ export function AuthProvider({ children, onHydrated }: AuthProviderProps) {
     () => ({
       user,
       token,
+      otpVerified,
       isLoading,
       isHydrated,
       signIn,
+      setOtpVerified,
       signOut,
     }),
-    [user, token, isLoading, isHydrated, signIn, signOut]
+    [user, token, otpVerified, isLoading, isHydrated, signIn, setOtpVerified, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

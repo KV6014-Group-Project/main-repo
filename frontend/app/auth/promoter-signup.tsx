@@ -6,7 +6,7 @@ import { useAuth } from '../../lib/AuthContext';
 
 export default function PromoterSignup() {
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, setOtpVerified } = useAuth();
   const [firstName, setFirstName] = React.useState('');
   const [lastName, setLastName] = React.useState('');
   const [email, setEmail] = React.useState('');
@@ -42,11 +42,13 @@ export default function PromoterSignup() {
 
       await signIn(response.token, response.user);
 
+      await setOtpVerified(false);
+
       const roleName = response.user.role?.name;
       if (roleName === 'promoter') {
-        router.replace('/promoter');
+        router.replace({ pathname: '/auth/email-otp' as any, params: { role: 'promoter' } } as any);
       } else if (roleName === 'organiser') {
-        router.replace('/organiser');
+        router.replace({ pathname: '/auth/email-otp' as any, params: { role: 'organiser' } } as any);
       } else {
         router.replace('/');
       }

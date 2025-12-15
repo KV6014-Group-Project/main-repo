@@ -10,6 +10,7 @@ export default function ParticipantHome() {
   const router = useRouter();
   const {
     profile,
+    otpVerified,
     localEvents,
     serverEvents,
     isLoading,
@@ -22,6 +23,12 @@ export default function ParticipantHome() {
   
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [isActuallyOnline, setIsActuallyOnline] = React.useState(true);
+
+  useEffect(() => {
+    if (!isLoading && profile && !otpVerified) {
+      router.replace('/auth/participant-otp' as any);
+    }
+  }, [isLoading, otpVerified, profile, router]);
 
   // Merge local and server events for display
   const displayEvents = getMergedEvents(localEvents, serverEvents);

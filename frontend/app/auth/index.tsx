@@ -6,7 +6,7 @@ import { useParticipant } from "../../lib/ParticipantContext";
 
 export default function AuthIndexScreen() {
   const router = useRouter();
-  const { user, isHydrated } = useAuth();
+  const { user, isHydrated, otpVerified } = useAuth();
   const { profile, isLoading: participantLoading } = useParticipant();
 
   React.useEffect(() => {
@@ -21,15 +21,25 @@ export default function AuthIndexScreen() {
 
     const roleName = user?.role?.name?.toLowerCase();
     if (roleName === "organiser") {
+      if (!otpVerified) {
+        router.replace({ pathname: '/auth/email-otp' as any, params: { role: 'organiser' } } as any);
+        return;
+      }
+
       router.replace("/organiser");
       return;
     }
 
     if (roleName === "promoter") {
+      if (!otpVerified) {
+        router.replace({ pathname: '/auth/email-otp' as any, params: { role: 'promoter' } } as any);
+        return;
+      }
+
       router.replace("/promoter");
       return;
     }
-  }, [isHydrated, participantLoading, profile, user, router]);
+  }, [isHydrated, participantLoading, profile, user, router, otpVerified]);
 
   if (!isHydrated || participantLoading) {
     return (

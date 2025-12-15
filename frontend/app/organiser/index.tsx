@@ -14,11 +14,18 @@ import { useAuth } from '../../lib/AuthContext';
 
 export default function OrganiserHome() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, otpVerified } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const roleName = user?.role?.name?.toLowerCase();
+    if (roleName === 'organiser' && !otpVerified) {
+      router.replace({ pathname: '/auth/email-otp' as any, params: { role: 'organiser' } } as any);
+    }
+  }, [otpVerified, router, user?.role?.name]);
 
   const displayName = useMemo(() => {
     if (!user) return 'Organiser';
@@ -159,7 +166,7 @@ export default function OrganiserHome() {
           </TouchableOpacity>
           <TouchableOpacity
             className="flex-1 bg-neutral-200 rounded-xl p-4 items-center"
-            onPress={() => router.push('/organiser/events')}
+            onPress={() => router.push('/organiser/events' as any)}
           >
             <Text className="text-gray-800 text-base font-bold">View all</Text>
           </TouchableOpacity>
@@ -167,7 +174,7 @@ export default function OrganiserHome() {
 
         <TouchableOpacity
           className="bg-blue-600 rounded-xl p-4 items-center mb-5"
-          onPress={() => router.push('/organiser/organiser-analytics')}
+          onPress={() => router.push('/organiser/organiser-analytics' as any)}
         >
           <Text className="text-white text-base font-bold">View Analytics</Text>
         </TouchableOpacity>

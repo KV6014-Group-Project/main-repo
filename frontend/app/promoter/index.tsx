@@ -28,7 +28,14 @@ export default function PromoterHome() {
   const [invitationToken, setInvitationToken] = useState('');
   const [acceptingInvite, setAcceptingInvite] = useState(false);
   
-  const { user } = useAuth();
+  const { user, otpVerified } = useAuth();
+
+  useEffect(() => {
+    const roleName = user?.role?.name?.toLowerCase();
+    if (roleName === 'promoter' && !otpVerified) {
+      router.replace({ pathname: '/auth/email-otp' as any, params: { role: 'promoter' } } as any);
+    }
+  }, [otpVerified, router, user?.role?.name]);
 
   const loadEvents = useCallback(async () => {
     try {
@@ -202,7 +209,7 @@ export default function PromoterHome() {
         <View className="flex-row gap-3 mb-5">
           <TouchableOpacity
             className="flex-1 bg-neutral-200 rounded-xl p-4 items-center"
-            onPress={() => router.push('/promoter/events')}
+            onPress={() => router.push('/promoter/events' as any)}
           >
             <Text className="text-gray-800 text-base font-bold">View all events</Text>
           </TouchableOpacity>
