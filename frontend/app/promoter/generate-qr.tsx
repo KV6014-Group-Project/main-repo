@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -7,10 +7,17 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { captureRef } from 'react-native-view-shot';
+import html2canvas from 'html2canvas';
+import * as Sharing from 'expo-sharing';
+import * as MediaLibrary from 'expo-media-library';
+import * as Clipboard from 'expo-clipboard';
 import { fetchPromoterEvent, generateParticipantQR, Event, QRShareResponse } from '../../lib/api';
 import QRCodeDisplay from '../components/QRCodeDisplay';
+import EventPoster from '../components/EventPoster';
 
 export default function GenerateQR() {
   const router = useRouter();
@@ -21,6 +28,9 @@ export default function GenerateQR() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [savingPoster, setSavingPoster] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const posterRef = useRef<View>(null);
 
   useEffect(() => {
     if (eventId) {
@@ -72,6 +82,89 @@ export default function GenerateQR() {
       minute: '2-digit',
       hour12: true,
     });
+  }
+
+  function generateShareableLink(): string {
+    if (!qrData) return '';
+    // Encode the YAML payload as base64 for URL safety
+    const encoded = btoa(qrData.yaml);
+    // Create a deep link that participants can use
+    return `rose://join?token=${encoded}`;
+  }
+
+  async function handleCopyLink() {
+    const link = generateShareableLink();
+    if (!link) return;
+
+    try {
+      await Clipboard.setStringAsync(link);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 3000);
+    } catch (err) {
+      Alert.alert('Error', 'Failed to copy link to clipboard');
+    }
+  }
+
+  async function handleSavePoster() {
+    if (!posterRef.current || !event || !qrData) return;
+
+    setSavingPoster(true);
+    try {
+      const isWeb = Platform.OS === 'web';
+      const fileName = `${event.title.replace(/[^a-z0-9]/gi, '_')}_poster.png`;
+
+      if (isWeb) {
+        // For web, use html2canvas instead of react-native-view-shot
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const element = (posterRef.current as any);
+        const canvas = await html2canvas(element, {
+          backgroundColor: '#ffffff',
+          scale: 2,
+        });
+        const dataUrl = canvas.toDataURL('image/png');
+
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        Alert.alert('Success', 'Poster downloaded!');
+      } else {
+        // For mobile, use react-native-view-shot
+        const uri = await captureRef(posterRef.current, {
+          format: 'png',
+          quality: 1,
+          result: 'tmpfile',
+        });
+
+        // For mobile, show share/save options
+        const isAvailable = await Sharing.isAvailableAsync();
+        if (isAvailable) {
+          await Sharing.shareAsync(uri, {
+            mimeType: 'image/png',
+            dialogTitle: 'Share Event Poster',
+          });
+        } else {
+          // Fallback to saving to media library
+          const { status } = await MediaLibrary.requestPermissionsAsync();
+          if (status === 'granted') {
+            await MediaLibrary.saveToLibraryAsync(uri);
+            Alert.alert('Success', 'Poster saved to your photo library!');
+          } else {
+            Alert.alert('Permission Required', 'Please grant permission to save images.');
+          }
+        }
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to save poster';
+      Alert.alert('Error', message);
+      if (Platform.OS === 'web') {
+        window.alert(message);
+      }
+    } finally {
+      setSavingPoster(false);
+    }
   }
 
   if (loading) {
@@ -128,7 +221,7 @@ export default function GenerateQR() {
             
             <View className="mt-4 bg-green-50 p-4 rounded-xl">
               <Text className="text-green-800 text-center text-sm">
-                ✓ QR Code generated successfully
+                QR Code generated successfully
               </Text>
               <Text className="text-green-600 text-center text-xs mt-1">
                 Share ID: {qrData.share_id.slice(0, 8)}...
@@ -141,6 +234,42 @@ export default function GenerateQR() {
             >
               <Text className="text-white text-base font-bold">Generate New QR Code</Text>
             </TouchableOpacity>
+
+            {/* Copy Link Button */}
+            <TouchableOpacity
+              className={`rounded-xl p-4 items-center mt-3 border-2 ${linkCopied ? 'border-green-500 bg-green-50' : 'border-blue-500 bg-white'}`}
+              onPress={handleCopyLink}
+            >
+              <Text className={`text-base font-bold ${linkCopied ? 'text-green-600' : 'text-blue-500'}`}>
+                {linkCopied ? 'Link Copied!' : 'Copy Shareable Link'}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Download Poster Button */}
+            <TouchableOpacity
+              className={`rounded-xl p-4 items-center mt-3 border-2 border-[#28B900] ${savingPoster ? 'bg-gray-100' : 'bg-white'}`}
+              onPress={handleSavePoster}
+              disabled={savingPoster}
+            >
+              {savingPoster ? (
+                <ActivityIndicator color="#28B900" />
+              ) : (
+                <Text className="text-[#28B900] text-base font-bold">Download Event Poster</Text>
+              )}
+            </TouchableOpacity>
+
+            {/* Hidden Poster for Capture */}
+            <View style={{ position: 'absolute', left: 0, top: 0, opacity: 0, pointerEvents: 'none' }}>
+              <EventPoster
+                ref={posterRef}
+                qrValue={qrData.yaml}
+                eventTitle={event.title}
+                eventDate={formatDate(event.start_datetime)}
+                eventTime={formatTime(event.start_datetime)}
+                eventLocation={event.location.name}
+                eventRoom={event.location.room}
+              />
+            </View>
           </View>
         ) : (
           <View className="mb-6">

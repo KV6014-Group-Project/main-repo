@@ -76,7 +76,7 @@ export default function QRScannerComponent() {
 
     if (success) {
       Alert.alert(
-        "Event Added! 🎉",
+        "Event Added!",
         "The event has been added to your list. It will sync when you're online.",
         [
           {
