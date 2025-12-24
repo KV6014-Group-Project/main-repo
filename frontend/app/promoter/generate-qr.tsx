@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  SafeAreaView,
   ScrollView,
   View,
   Text,
@@ -9,15 +8,18 @@ import {
   Alert,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { captureRef } from 'react-native-view-shot';
-import html2canvas from 'html2canvas';
 import * as Sharing from 'expo-sharing';
 import * as MediaLibrary from 'expo-media-library';
 import * as Clipboard from 'expo-clipboard';
 import { fetchPromoterEvent, generateParticipantQR, Event, QRShareResponse } from '../../lib/api';
 import QRCodeDisplay from '../components/QRCodeDisplay';
 import EventPoster from '../components/EventPoster';
+
+// Only import html2canvas on web platform
+const html2canvas = Platform.OS === 'web' ? require('html2canvas') : null;
 
 export default function GenerateQR() {
   const router = useRouter();
@@ -113,13 +115,19 @@ export default function GenerateQR() {
       const isWeb = Platform.OS === 'web';
       const fileName = `${event.title.replace(/[^a-z0-9]/gi, '_')}_poster.png`;
 
-      if (isWeb) {
+      if (isWeb && html2canvas) {
         // For web, use html2canvas instead of react-native-view-shot
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const element = (posterRef.current as any);
+        // Ensure React is available for html2canvas by setting it globally if needed
+        if (typeof window !== 'undefined' && !(window as any).React) {
+          (window as any).React = React;
+        }
         const canvas = await html2canvas(element, {
           backgroundColor: '#ffffff',
           scale: 2,
+          useCORS: true,
+          allowTaint: true,
         });
         const dataUrl = canvas.toDataURL('image/png');
 
