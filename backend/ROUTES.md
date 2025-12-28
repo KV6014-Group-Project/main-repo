@@ -1,5 +1,6 @@
 # API Endpoints Documentation
 
+<!-- #region Signing Public Key -->
 ## **Signing Public Key**
 
 <details>
@@ -16,48 +17,26 @@ Status: 200:
 }
 ```
 </details>
+<!-- #endregion -->
 
+<!-- #region User Routes -->
 ## **1. User Routes**
-
-<details>
-<summary>GET /api/users/roles/</summary>
-
-**Description:** Get all available user roles.
-
-**JSON Output:**
-```json
-[
-    {
-        "id": "db8a2c13-e296-45bf-94c0-d44718812dba",
-        "name": "organiser",
-        "description": "The organisers for events."
-    },
-    {
-        "id": "78b1d6c9-52ce-4819-9ca0-959be7e693d6",
-        "name": "promoter",
-        "description": "The promoters for events."
-    }
-]
-```
-</details>
 
 <details>
 <summary>POST /api/users/register/</summary>
 
 **Description:** Register a new user account.
 
-**JSON Input:**
-
-Required:
+**JSON Input (required):**
 ```json
 {
-    "email": "test@gmail.com",
-    "password": "ThisIsAStrongPassword123!",
-    "role": "db8a2c13-e296-45bf-94c0-d44718812dba"
+    "email": "user@example.com",
+    "password": "StrongPassword123!",
+    "role": "role-uuid"
 }
 ```
 
-Optional:
+**JSON Input (optional):**
 ```json
 {
     "first_name": "John",
@@ -66,40 +45,20 @@ Optional:
 }
 ```
 
-**JSON Output:**
-
-Status: 201:
+**JSON Output (201 Created):**
 ```json
 {
-    "user": {
-        "id": "0b21c840-42af-40f9-a6ab-8aaa385eb161",
-        "email": "test@gmail.com",
-        "role": {
-            "id": "db8a2c13-e296-45bf-94c0-d44718812dba",
-            "name": "organiser",
-            "description": "The organisers for events."
-        },
-        "first_name": "John",
-        "last_name": "Doe",
-        "phone": "",
-        "date_joined": "2025-11-21T09:56:34.393684Z"
-    },
-    "token": "6bedf24ae3ddb81565df1d99c04598551e6b54a3"
+    "user": { ... },
+    "token": "user-auth-token"
 }
 ```
 
-Status: 400:
+**JSON Output (400 Bad Request):**
 ```json
 {
-    "email": [
-        "This field may not be blank."
-    ],
-    "password": [
-        "Password must be at least 8 characters long."
-    ],
-    "role": [
-        "Must be a valid UUID."
-    ]
+    "email": ["This field may not be blank."],
+    "password": ["Password must be at least 8 characters long."],
+    "role": ["Must be a valid UUID."]
 }
 ```
 </details>
@@ -107,41 +66,25 @@ Status: 400:
 <details>
 <summary>POST /api/users/login/</summary>
 
-**Description:** Login with email and password.
+**Description:** Login a user with email and password.
 
-**JSON Input:**
-
-Required:
+**JSON Input (required):**
 ```json
 {
-    "email": "test@gmail.com",
-    "password": "ThisIsAStrongPassword123!"
+    "email": "user@example.com",
+    "password": "StrongPassword123!"
 }
 ```
 
-**JSON Output:**
-
-Status: 200:
+**JSON Output (200 OK):**
 ```json
 {
-    "user": {
-        "id": "587d15b5-ff06-42d9-9aed-18b849dcb3c2",
-        "email": "test1@gmail.com",
-        "role": {
-            "id": "db8a2c13-e296-45bf-94c0-d44718812dba",
-            "name": "organiser",
-            "description": "The organisers for events."
-        },
-        "first_name": "John",
-        "last_name": "Doe",
-        "phone": "",
-        "date_joined": "2025-11-13T07:35:10.945262Z"
-    },
-    "token": "b0909b15bd3a6fb7c9d37f448512f12c05a783cb"
+    "user": { ... },
+    "token": "user-auth-token"
 }
 ```
 
-Status: 401:
+**JSON Output (401 Unauthorized):**
 ```json
 {
     "error": "Invalid credentials"
@@ -150,148 +93,151 @@ Status: 401:
 </details>
 
 <details>
-<summary>GET /api/users/profile/</summary>
+<summary>POST /api/users/logout/</summary>
 
-**Description:** Get current user profile.
+**Description:** Logout a user by deleting their authentication token.
 
-**Headers:** `Authorization: Token <your-token>`
+**Headers:** Authorization: Token &lt;user-token&gt;
 
-**JSON Output:**
-
-Status: 200:
+**JSON Output (200 OK):**
 ```json
 {
-    "id": "587d15b5-ff06-42d9-9aed-18b849dcb3c2",
-    "email": "test1@gmail.com",
-    "role": {
-        "id": "db8a2c13-e296-45bf-94c0-d44718812dba",
-        "name": "organiser",
-        "description": "The organisers for events."
-    },
-    "first_name": "John",
-    "last_name": "Doe",
-    "phone": "",
-    "date_joined": "2025-11-13T07:35:10.945262Z"
-}
-```
-
-Status: 403:
-```json
-{
-    "detail": "Invalid token."
+    "success": true,
+    "message": "Logged out successfully"
 }
 ```
 </details>
 
-## **2. Events Routes**
+<details>
+<summary>GET /api/users/profile/</summary>
+
+**Description:** Retrieve the currently authenticated user's profile.
+
+**Headers:** Authorization: Token &lt;user-token&gt;
+
+**JSON Output (200 OK):**
+```json
+{
+    "id": "user-uuid",
+    "email": "user@example.com",
+    "first_name": "John",
+    "last_name": "Doe",
+    "phone": "07912345678",
+    "role": {
+        "id": "role-uuid",
+        "name": "organiser",
+        "description": "The organisers for events."
+    },
+    "date_joined": "2025-11-28T12:34:56.789Z"
+}
+```
+</details>
 
 <details>
-<summary>GET /api/events/statuses/</summary>
+<summary>GET /api/users/roles/</summary>
 
-**Description:** Get all event statuses (draft, published, cancelled, etc.).
+**Description:** Get a list of all available user roles.
 
-**JSON Output:**
-
-Status: 200:
+**JSON Output (200 OK):**
 ```json
 [
     {
-        "id": "0932d594-96d5-44a6-9695-c74236a53381",
-        "name": "draft",
-        "description": "Event is in draft status"
+        "id": "role-uuid-1",
+        "name": "organiser",
+        "description": "The organisers for events."
     },
     {
-        "id": "3dcfe1b8-0549-48b0-84e4-6680a03343f4",
-        "name": "published",
-        "description": "Event is live and visible"
-    },
-    {
-        "id": "7a8d2e4f-1234-5678-abcd-ef1234567890",
-        "name": "cancelled",
-        "description": "Event has been cancelled"
+        "id": "role-uuid-2",
+        "name": "promoter",
+        "description": "The promoters for events."
     }
 ]
 ```
 </details>
+
+<details>
+<summary>DELETE /api/users/delete/</summary>
+
+**Description:** Delete the authenticated user's account. Password is required.
+
+**Headers:** Authorization: Token &lt;user-token&gt;
+
+**JSON Input:**
+```json
+{
+    "password": "StrongPassword123!"
+}
+```
+
+**JSON Output (200 OK):**
+```json
+{
+    "message": "Account user@example.com has been permanently deleted"
+}
+```
+
+**JSON Output (400/401 Bad Request):**
+```json
+{
+    "error": "Password is required to delete account"
+}
+```
+```json
+{
+    "error": "Incorrect password"
+}
+```
+</details>
+<!-- #endregion -->
+
+<!-- #region Event Routes -->
+## **2. Event Routes**
 
 <details>
 <summary>GET /api/events/</summary>
 
-**Description:** List all public events (no authentication required).
+**Description:** List all events. Authenticated users see their own events; anonymous users see all public events.
 
-**JSON Output:**
-
-Status: 200:
+**JSON Output (200 OK):**
 ```json
 [
     {
-        "id": "d8bca38a-8f7b-41a2-9686-4a9311a1f8ca",
-        "organiser": {
-            "id": "2df54594-b3dc-449d-b291-d7489693dd4e",
-            "email": "test@gmail.com",
-            "role": {
-                "id": "62e356ba-a6b7-47da-b3dc-2a78be8560f9",
-                "name": "organiser",
-                "description": "The organisers for events."
-            },
-            "first_name": "",
-            "last_name": "",
-            "phone": "",
-            "date_joined": "2025-11-25T04:09:49.657551Z"
-        },
+        "id": "event-uuid",
         "title": "Event 1",
-        "description": "",
-        "start_datetime": "2025-11-29T09:00:00Z",
-        "end_datetime": "2025-11-30T18:00:00Z",
-        "location": {
-            "name": "Name 1",
-            "room": "Room 1",
-            "address": "Address 1"
-        },
-        "status": {
-            "id": "3dcfe1b8-0549-48b0-84e4-6680a03343f4",
-            "name": "published",
-            "description": "Event is live and visible"
-        },
-        "is_private": false,
-        "metadata": {},
-        "created_at": "2025-11-25T04:53:34.960756Z",
-        "updated_at": "2025-11-25T04:53:34.960767Z"
+        "description": "...",
+        "start_datetime": "...",
+        "end_datetime": "...",
+        "organiser": { ... },
+        "status": { ... },
+        "is_private": false
     }
 ]
-```
-
-Status: 200 (empty):
-```json
-[]
 ```
 </details>
 
 <details>
-<summary>POST /api/events/create/</summary>
+<summary>POST /api/events/</summary>
 
-**Description:** Create a new event (organisers only).
+**Description:** Create a new event. Organiser only.
 
-**Headers:** `Authorization: Token <your-token>`
+**Headers:** Authorization: Token &lt;user-token&gt;
 
-**JSON Input:**
-
-Required:
+**JSON Input (required):**
 ```json
 {
     "title": "Event 1",
-    "start_datetime": "2025-11-29T09:00:00Z",
-    "end_datetime": "2025-11-30T18:00:00Z",
-    "status": "3dcfe1b8-0549-48b0-84e4-6680a03343f4",
+    "start_datetime": "...",
+    "end_datetime": "...",
+    "status": "status-uuid",
     "venue": {
-        "name": "Convention Center",
-        "room": "Main Hall",
-        "address": "123 Main St"
+        "name": "Venue Name",
+        "room": "Room 1",
+        "address": "123 Street"
     }
 }
 ```
 
-Optional:
+**JSON Input (optional):**
 ```json
 {
     "description": "Event description",
@@ -300,128 +246,52 @@ Optional:
 }
 ```
 
-**JSON Output:**
-
-Status: 201:
+**JSON Output (201 Created):**
 ```json
 {
-    "id": "919b9feb-bf37-4aca-9813-7e22c09519cb",
-    "organiser": {
-        "id": "2df54594-b3dc-449d-b291-d7489693dd4e",
-        "email": "test@gmail.com",
-        "role": {
-            "id": "62e356ba-a6b7-47da-b3dc-2a78be8560f9",
-            "name": "organiser",
-            "description": "The organisers for events."
-        },
-        "first_name": "",
-        "last_name": "",
-        "phone": "",
-        "date_joined": "2025-11-25T04:09:49.657551Z"
-    },
+    "id": "event-uuid",
     "title": "Event 1",
-    "description": "",
-    "start_datetime": "2025-11-29T09:00:00Z",
-    "end_datetime": "2025-11-30T18:00:00Z",
-    "location": {
-        "name": "Convention Center",
-        "room": "Main Hall",
-        "address": "123 Main St"
-    },
-    "status": {
-        "id": "3dcfe1b8-0549-48b0-84e4-6680a03343f4",
-        "name": "published",
-        "description": "Event is live and visible"
-    },
-    "is_private": false,
-    "metadata": {},
-    "created_at": "2025-11-25T05:46:36.658632Z",
-    "updated_at": "2025-11-25T05:46:36.658642Z"
-}
-```
-
-Status: 400:
-```json
-{
-    "title": [
-        "This field is required."
-    ],
-    "start_datetime": [
-        "This field is required."
-    ],
-    "end_datetime": [
-        "This field is required."
-    ]
+    "organiser": { ... },
+    "location": { ... },
+    "status": { ... },
+    "is_private": false
 }
 ```
 </details>
 
 <details>
-<summary>GET /api/events/:event_id/</summary>
+<summary>GET /api/events/:id/</summary>
 
-**Description:** Get a single event by ID. Public events can be viewed by anyone. Private events require authentication and ownership.
+**Description:** Retrieve a single event. Public events are visible to anyone; private events require authentication and ownership.
 
-**JSON Output:**
+**Headers (private event):** Authorization: Token &lt;user-token&gt;
 
-Status: 200:
+**JSON Output (200 OK):**
 ```json
 {
-    "id": "919b9feb-bf37-4aca-9813-7e22c09519cb",
-    "organiser": {
-        "id": "2df54594-b3dc-449d-b291-d7489693dd4e",
-        "email": "test@gmail.com",
-        "role": {
-            "id": "62e356ba-a6b7-47da-b3dc-2a78be8560f9",
-            "name": "organiser",
-            "description": "The organisers for events."
-        },
-        "first_name": "",
-        "last_name": "",
-        "phone": "",
-        "date_joined": "2025-11-25T04:09:49.657551Z"
-    },
-    "title": "Event 2",
-    "description": "",
-    "start_datetime": "2025-11-29T09:00:00Z",
-    "end_datetime": "2025-11-30T18:00:00Z",
-    "location": {
-        "name": "Convention Center",
-        "room": "Main Hall",
-        "address": "123 Main St"
-    },
-    "status": {
-        "id": "3dcfe1b8-0549-48b0-84e4-6680a03343f4",
-        "name": "published",
-        "description": "Event is live and visible"
-    },
-    "is_private": false,
-    "metadata": {},
-    "created_at": "2025-11-25T05:46:36.658632Z",
-    "updated_at": "2025-11-25T05:46:36.658642Z"
+    "id": "event-uuid",
+    "title": "Event 1",
+    "organiser": { ... },
+    "status": { ... },
+    "is_private": false
 }
 ```
 
-Status: 403 (private event):
+**JSON Output (403 Forbidden, private event):**
 ```json
 {
     "error": "This event is private"
 }
 ```
-
-Status: 404:
-```json
-{
-    "detail": "Not found."
-}
-```
 </details>
 
 <details>
-<summary>PUT/PATCH /api/events/:event_id/update/</summary>
+<summary>PUT /api/events/:id/</summary>
+<summary>PATCH /api/events/:id/</summary>
 
-**Description:** Update an event (owner only). PUT for full update, PATCH for partial update.
+**Description:** Update an event. Organiser only.
 
-**Headers:** `Authorization: Token <your-token>`
+**Headers:** Authorization: Token &lt;user-token&gt;
 
 **JSON Input (partial update example):**
 ```json
@@ -431,87 +301,395 @@ Status: 404:
 }
 ```
 
-**JSON Output:**
-
-Status: 200:
+**JSON Output (200 OK):**
 ```json
 {
-    "id": "919b9feb-bf37-4aca-9813-7e22c09519cb",
-    "organiser": {...},
+    "id": "event-uuid",
     "title": "Updated Event Title",
-    "description": "",
-    "start_datetime": "2025-11-29T09:00:00Z",
-    "end_datetime": "2025-11-30T18:00:00Z",
-    "location": {...},
-    "status": {...},
     "is_private": true,
-    "metadata": {},
-    "created_at": "2025-11-25T05:46:36.658632Z",
-    "updated_at": "2025-11-25T07:30:12.123456Z"
+    "organiser": { ... },
+    "status": { ... }
+}
+```
+</details>
+
+<details>
+<summary>DELETE /api/events/:id/</summary>
+
+**Description:** Delete an event. Organiser only.
+
+**Headers:** Authorization: Token &lt;user-token&gt;
+
+**JSON Output (204 No Content)**
+```json
+{}
+```
+</details>
+
+<details>
+<summary>GET /api/events/statuses/</summary>
+
+**Description:** List all event statuses.
+
+**JSON Output (200 OK):**
+```json
+[
+    {"id": "status-uuid", "name": "draft", "description": "..."},
+    {"id": "status-uuid", "name": "published", "description": "..."}
+]
+```
+</details>
+
+<details>
+<summary>GET /api/events/:id/stats/</summary>
+
+**Description:** Get event statistics (RSVP counts, by promoter, by source). Organiser only.
+
+**Headers:** Authorization: Token &lt;user-token&gt;
+
+**JSON Output (200 OK):**
+```json
+{
+    "total_rsvps": 10,
+    "total_interested": 5,
+    "total_cancelled": 2,
+    "by_promoter": { "promoter@example.com": 4 },
+    "by_source": { "email": 6, "social": 4 }
+}
+```
+</details>
+
+<details>
+<summary>POST /api/events/:id/promoters/</summary>
+
+**Description:** Add a promoter to an event.
+
+**Headers:** Authorization: Token &lt;user-token&gt;
+
+**JSON Input:**
+```json
+{
+    "promoter_id": "promoter-uuid"
 }
 ```
 
-Status: 400:
+**JSON Output (201 Created):**
 ```json
 {
-    "title": [
-        "Title must be at least 3 characters long!"
+    "id": "event-promoter-uuid",
+    "promoter": { ... },
+    "event": { ... }
+}
+```
+</details>
+
+<details>
+<summary>GET /api/events/:id/promoter_list/</summary>
+
+**Description:** List active promoters for an event.
+
+**Headers:** Authorization: Token &lt;user-token&gt;
+
+**JSON Output (200 OK):**
+```json
+[
+    { "id": "promoter-uuid", "user": { ... } }
+]
+```
+</details>
+
+<details>
+<summary>DELETE /api/events/:id/promoters/:promoter_id/</summary>
+
+**Description:** Remove a promoter from an event.
+
+**Headers:** Authorization: Token &lt;user-token&gt;
+
+**JSON Output (200 OK):**
+```json
+{
+    "message": "Promoter has been removed from this event."
+}
+```
+</details>
+
+<details>
+<summary>POST /api/events/:id/share/organiser/</summary>
+
+**Description:** Generate organiser→promoter invitation token.
+
+**Headers:** Authorization: Token &lt;user-token&gt;
+
+**JSON Input (optional):**
+```json
+{
+    "promoter_id": "promoter-uuid"
+}
+```
+
+**JSON Output (200 OK):**
+```json
+{
+    "success": true,
+    "event_id": "event-uuid",
+    "token": "invitation-token",
+    "share_id": "share-uuid"
+}
+```
+</details>
+
+<details>
+<summary>POST /api/events/:id/share/qr/</summary>
+
+**Description:** Generate QR code YAML payload for event (placeholder, Phase 2).
+
+**Headers:** Authorization: Token &lt;user-token&gt;
+
+**JSON Output (501 Not Implemented):**
+```json
+{
+    "event_id": "event-uuid",
+    "message": "QR code generation will be implemented in Phase 2"
+}
+```
+</details>
+<!-- #endregion -->
+
+<!-- #region Promoter Event Routes -->
+## **3. Promoter Event Routes**
+
+<details>
+<summary>GET /promoter/events/</summary>
+
+**Description:** List events where the authenticated user is assigned as a promoter.
+
+**Headers:** Authorization: Token &lt;user-token&gt;
+
+**JSON Output (200 OK):**
+```json
+[
+    {
+        "id": "event-uuid",
+        "title": "Event 1",
+        "description": "...",
+        "start_datetime": "...",
+        "end_datetime": "...",
+        "organiser": { ... },
+        "status": { ... },
+        "is_private": false
+    }
+]
+```
+</details>
+
+<details>
+<summary>GET /promoter/events/:event_id/</summary>
+
+**Description:** Retrieve a single event assigned to the authenticated promoter.
+
+**Headers:** Authorization: Token &lt;user-token&gt;
+
+**JSON Output (200 OK):**
+```json
+{
+    "id": "event-uuid",
+    "title": "Event 1",
+    "organiser": { ... },
+    "status": { ... },
+    "is_private": false
+}
+```
+
+**JSON Output (403 Forbidden, not assigned):**
+```json
+{
+    "error": "You are not assigned to this event"
+}
+```
+</details>
+
+<details>
+<summary>POST /promoter/accept/</summary>
+
+**Description:** Accept an organiser invitation token to join an event as a promoter.
+
+**Headers:** Authorization: Token &lt;user-token&gt;
+
+**JSON Input:**
+```json
+{
+    "token": "invitation-token"
+}
+```
+
+**JSON Output (200 OK/201 Created):**
+```json
+{
+    "success": true,
+    "message": "Successfully joined event!",
+    "created": true,
+    "event": { ... },
+    "link": { ... },
+    "share_id": "share-uuid",
+    "was_targeted": true
+}
+```
+</details>
+
+<details>
+<summary>POST /promoter/events/:event_id/share/participant/</summary>
+
+**Description:** Generate participant-facing share token / YAML payload for the promoter.
+
+**Headers:** Authorization: Token &lt;user-token&gt;
+
+**JSON Output (200 OK):**
+```json
+{
+    "event_id": "event-uuid",
+    "promoter_id": "promoter-uuid",
+    "yaml": "compact YAML payload",
+    "share_id": "share-uuid"
+}
+```
+</details>
+
+<details>
+<summary>GET /promoter/events/:event_id/stats/</summary>
+
+**Description:** Get statistics for an event filtered to the promoter's attributed RSVPs.
+
+**Headers:** Authorization: Token &lt;user-token&gt;
+
+**JSON Output (200 OK):**
+```json
+{
+    "total_rsvps": 10,
+    "total_interested": 5,
+    "total_cancelled": 2,
+    "by_promoter": {},
+    "by_source": { "email": 6, "social": 4 }
+}
+```
+</details>
+<!-- #endregion -->
+
+<!-- #region Participant Routes -->
+## **4. Participant Routes**
+
+<details>
+<summary>POST /api/participant/sync/</summary>
+
+**Description:** Sync participant entries (YAML or token) and create/update RSVPs.
+
+**JSON Input:**
+```json
+{
+    "device_id": "device-uuid",
+    "entries": [
+        {
+            "yaml": "compact YAML payload",
+            "local_status": "rsvp",
+            "scanned_at": 1700000000000
+        }
     ]
 }
 ```
 
-Status: 404 (not owner):
+**JSON Output (200 OK):**
 ```json
 {
-    "detail": "Not found."
+    "device_id": "device-uuid",
+    "entries": [
+        {
+            "entry_index": 0,
+            "success": true,
+            "event_id": "event-uuid",
+            "rsvp_id": "rsvp-uuid",
+            "error": null
+        }
+    ],
+    "events": [
+        {
+            "id": "event-uuid",
+            "title": "Event 1",
+            "start_datetime": "...",
+            "end_datetime": "...",
+            "organiser": { ... },
+            "status": { ... },
+            "is_private": false
+        }
+    ]
 }
 ```
 </details>
 
 <details>
-<summary>DELETE /api/events/:event_id/delete/</summary>
+<summary>GET /api/participant/events/</summary>
 
-**Description:** Delete an event (owner only).
+**Description:** Retrieve all events associated with a given device_id.
 
-**Headers:** `Authorization: Token <your-token>`
+**Query Parameters:**
+```ini
+device_id=&lt;device-uuid&gt;
+```
 
-**JSON Output:**
+**JSON Output (200 OK):**
+```json
+[
+    {
+        "id": "event-uuid",
+        "title": "Event 1",
+        "start_datetime": "...",
+        "end_datetime": "...",
+        "organiser": { ... },
+        "status": { ... },
+        "is_private": false
+    }
+]
+```
 
-Status: 204 (no content)
-
-Status: 404 (not owner):
+**JSON Output (400/404):**
 ```json
 {
-    "detail": "Not found."
+    "error": "device_id parameter is required"
+}
+```
+```json
+{
+    "error": "Device not found"
 }
 ```
 </details>
-
-## **3. Promoter Routes**
 
 <details>
-<summary>POST /api/events/:event_id/share/participant/</summary>
+<summary>DELETE /api/participant/delete/</summary>
 
-**Description:** Generate a signed YAML payload for participants to scan (promoters only, must be assigned to event).
+**Description:** Delete device profile and all associated RSVPs (deregistration).
 
-**Headers:** `Authorization: Token <your-token>`
+**Query Parameters:**
+```ini
+device_id=&lt;device-uuid&gt;
+```
 
-**JSON Output:**
-
-Status: 200:
+**JSON Output (200 OK):**
 ```json
 {
-    "event_id": "919b9feb-bf37-4aca-9813-7e22c09519cb",
-    "promoter_id": "abc123-promoter-uuid",
-    "yaml": "v: 1\nevent:\n  id: '919b9feb-bf37-4aca-9813-7e22c09519cb'\n  title: 'Event 1'\n  ...",
-    "share_id": "def456-share-uuid"
+    "message": "Device data deleted successfully",
+    "rsvps_deleted": 5
 }
 ```
 
-Status: 403:
+**JSON Output (400/200 if not found):**
 ```json
 {
-    "error": "Promoter is not assigned to this event"
+    "error": "device_id parameter is required"
 }
 ```
-</details>
+```json
+{
+    "message": "Device not found, already deleted"
+}
+```
+<details>
+<!-- #endregion -->
