@@ -226,6 +226,10 @@ ALLOWED_COUNTRIES = ['MY']
 # HMAC Signing Secret (in production, use environment variable)
 #HMAC_SECRET_KEY = SECRET_KEY  # For development; use separate key in production
 
-ED25519_PRIVATE_KEY = '''-----BEGIN PRIVATE KEY-----
+fED25519_PRIVATE_KEY = '''-----BEGIN PRIVATE KEY-----
 MC4CAQAwBQYDK2VwBCIEIPaAsM+7+wSC777M3zDRuJMPa6yfIuUJbZH2tNjzlAE6
+-----END PRIVATE KEY-----'''
+
+ED25519_PRIVATE_KEY = '''-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VwBCIEIFZ0P7W8yKJc0rJHqY4x6z9wX1A0v2mY8zPZx5n6Y0xP
 -----END PRIVATE KEY-----'''

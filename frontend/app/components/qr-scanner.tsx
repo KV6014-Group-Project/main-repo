@@ -5,12 +5,14 @@ import { useRouter } from 'expo-router';
 import { useIsFocused } from '@react-navigation/native';
 import { useParticipant } from '../../lib/ParticipantContext';
 import { formatEventTime, parseQRPayload } from '../../lib/offlineParser';
+import { verifyQRSignature, initializePublicKey } from '../../lib/qrVerification';
 
 export default function QRScannerComponent() {
   const [lastScanned, setLastScanned] = useState('');
   const [pendingPayload, setPendingPayload] = useState<string | null>(null);
   const [pendingEventTitle, setPendingEventTitle] = useState<string | null>(null);
   const [pendingEventTime, setPendingEventTime] = useState<string | null>(null);
+  const [scanningPaused, setScanningPaused] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const router = useRouter();
   const { addScannedEvent, isSyncing } = useParticipant();
@@ -19,6 +21,11 @@ export default function QRScannerComponent() {
   const isFocused = useIsFocused();
   const appState = useRef(AppState.currentState);
   const [appStateVisible, setAppStateVisible] = useState(appState.current);
+
+  // Initialize public key on mount
+  useEffect(() => {
+    initializePublicKey();
+  }, []);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {
@@ -31,32 +38,70 @@ export default function QRScannerComponent() {
     };
   }, []);
 
-  // Camera is active if focused, foreground, and (on web OR has permission on mobile)
   const isCameraActive = Platform.OS === 'web' 
-    ? isFocused && appStateVisible === 'active'
-    : isFocused && appStateVisible === 'active' && permission?.granted;
+    ? isFocused && appStateVisible === 'active' && !scanningPaused
+    : isFocused && appStateVisible === 'active' && permission?.granted && !scanningPaused;
 
   const resetPendingScan = () => {
     setPendingPayload(null);
     setPendingEventTitle(null);
     setPendingEventTime(null);
+    setLastScanned('');
+    setScanningPaused(false);
   };
 
   const handleBarcodeScanned = ({ type, data }: { type: string; data: string }) => {
-    if (isConfirming) return;
+    if (isConfirming || scanningPaused) return;
 
-    console.log(`Type: ${type}, Data: ${data}`);
-    const parsed = parseQRPayload(data);
+    // Prevent scanning the same QR code multiple times
+    if (data === lastScanned) {
+      return;
+    }
 
-    if (!parsed) {
+    console.log(`Scanned QR code`);
+    
+    // Step 1: Verify cryptographic signature
+    const isValidSignature = verifyQRSignature(data);
+    
+    if (!isValidSignature) {
+      setLastScanned(data);
+      setScanningPaused(true);
       Alert.alert(
-        "Invalid QR Code",
-        "This doesn't appear to be a valid event QR code. Please try scanning a different code.",
-        [{ text: "Try Again" }]
+        "Invalid QR Code ⚠️",
+        "This QR code's signature is invalid. It may have been tampered with.",
+        [{ 
+          text: "Try Again", 
+          onPress: () => {
+            setLastScanned('');
+            setScanningPaused(false);
+          }
+        }]
       );
       return;
     }
 
+    // Step 2: Parse event information
+    const parsed = parseQRPayload(data);
+
+    if (!parsed) {
+      setLastScanned(data);
+      setScanningPaused(true);
+      Alert.alert(
+        "Invalid QR Code",
+        "This doesn't appear to be a valid event QR code.",
+        [{ 
+          text: "Try Again", 
+          onPress: () => {
+            setLastScanned('');
+            setScanningPaused(false);
+          }
+        }]
+      );
+      return;
+    }
+
+    // Step 3: Success - show confirmation
+    setLastScanned(data);
     setPendingPayload(data);
     setPendingEventTitle(parsed.title);
     setPendingEventTime(formatEventTime(parsed.startTime));
@@ -99,7 +144,6 @@ export default function QRScannerComponent() {
     router.replace('/participant');
   };
 
-  // On web, permissions aren't needed upfront
   if (Platform.OS !== 'web') {
     if (!permission) {
       return (
@@ -134,7 +178,7 @@ export default function QRScannerComponent() {
           barcodeScannerSettings={{
             barcodeTypes: ['qr'],
           }}
-          onBarcodeScanned={isConfirming ? undefined : handleBarcodeScanned}
+          onBarcodeScanned={isConfirming || scanningPaused ? undefined : handleBarcodeScanned}
         />
         
         {/* QR Code scanning overlay */}
@@ -151,7 +195,7 @@ export default function QRScannerComponent() {
         {Platform.OS === 'web' && (
           <View className="absolute top-4 left-0 right-0 items-center">
             <View className="bg-black/70 px-4 py-2 rounded-full">
-              <Text className="text-white text-sm">Allow camera access when prompted</Text>
+              <Text className="text-white text-sm">Point camera at QR code</Text>
             </View>
           </View>
         )}
@@ -168,6 +212,9 @@ export default function QRScannerComponent() {
         
         {isConfirming ? (
           <View className="w-full max-w-sm mt-4 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+            <View className="bg-green-50 rounded-lg p-2 mb-3">
+              <Text className="text-green-700 text-xs text-center">✓ Verified Signature</Text>
+            </View>
             <Text className="text-base font-semibold text-gray-900 text-center">
               {pendingEventTitle || 'Unknown Event'}
             </Text>

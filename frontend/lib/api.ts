@@ -132,6 +132,15 @@ export async function checkServerConnection(): Promise<boolean> {
   }
 }
 
+export type PublicKeyResponse = {
+  public_key: string;
+};
+
+export async function getPublicKey(): Promise<string> {
+  const response = await request<PublicKeyResponse>("/core/public-key/");
+  return response.public_key;
+}
+
 // ============ Event Types ============
 
 export type EventStatus = {
