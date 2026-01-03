@@ -66,17 +66,24 @@ export default function QRScannerComponent() {
     if (!isValidSignature) {
       setLastScanned(data);
       setScanningPaused(true);
-      Alert.alert(
-        "Invalid QR Code ⚠️",
-        "This QR code's signature is invalid. It may have been tampered with.",
-        [{ 
-          text: "Try Again", 
-          onPress: () => {
-            setLastScanned('');
-            setScanningPaused(false);
-          }
-        }]
-      );
+      
+      if (Platform.OS === 'web') {
+        alert("Invalid QR Code ⚠️\n\nThis QR code's signature is invalid. It may have been tampered with.");
+        setLastScanned('');
+        setScanningPaused(false);
+      } else {
+        Alert.alert(
+          "Invalid QR Code ⚠️",
+          "This QR code's signature is invalid. It may have been tampered with.",
+          [{ 
+            text: "Try Again", 
+            onPress: () => {
+              setLastScanned('');
+              setScanningPaused(false);
+            }
+          }]
+        );
+      }
       return;
     }
 
@@ -86,17 +93,24 @@ export default function QRScannerComponent() {
     if (!parsed) {
       setLastScanned(data);
       setScanningPaused(true);
-      Alert.alert(
-        "Invalid QR Code",
-        "This doesn't appear to be a valid event QR code.",
-        [{ 
-          text: "Try Again", 
-          onPress: () => {
-            setLastScanned('');
-            setScanningPaused(false);
-          }
-        }]
-      );
+      
+      if (Platform.OS === 'web') {
+        alert("Invalid QR Code\n\nThis doesn't appear to be a valid event QR code.");
+        setLastScanned('');
+        setScanningPaused(false);
+      } else {
+        Alert.alert(
+          "Invalid QR Code",
+          "This doesn't appear to be a valid event QR code.",
+          [{ 
+            text: "Try Again", 
+            onPress: () => {
+              setLastScanned('');
+              setScanningPaused(false);
+            }
+          }]
+        );
+      }
       return;
     }
 
@@ -114,30 +128,46 @@ export default function QRScannerComponent() {
     setLastScanned(pendingEventTitle || pendingPayload);
 
     if (success) {
-      Alert.alert(
-        "Event Added! 🎉",
-        "The event has been added to your list. It will sync when you're online.",
-        [
-          {
-            text: "View Events",
-            onPress: () => router.replace('/participant'),
-          },
-          {
-            text: "Scan Another",
-            onPress: () => resetPendingScan(),
-            style: "cancel",
-          },
-        ]
-      );
+      if (Platform.OS === 'web') {
+        const viewEvents = confirm("Event Added! 🎉\n\nThe event has been added to your list. It will sync when you're online.\n\nClick OK to view events, or Cancel to scan another.");
+        if (viewEvents) {
+          router.replace('/participant');
+        } else {
+          resetPendingScan();
+        }
+      } else {
+        Alert.alert(
+          "Event Added! 🎉",
+          "The event has been added to your list. It will sync when you're online.",
+          [
+            {
+              text: "View Events",
+              onPress: () => router.replace('/participant'),
+            },
+            {
+              text: "Scan Another",
+              onPress: () => resetPendingScan(),
+              style: "cancel",
+            },
+          ]
+        );
+      }
     } else {
-      Alert.alert(
-        "Unable to Save",
-        "Something went wrong while saving this event. Please try again.",
-        [{ text: "Okay", onPress: () => resetPendingScan() }]
-      );
+      if (Platform.OS === 'web') {
+        alert("Unable to Save\n\nSomething went wrong while saving this event. Please try again.");
+        resetPendingScan();
+      } else {
+        Alert.alert(
+          "Unable to Save",
+          "Something went wrong while saving this event. Please try again.",
+          [{ text: "Okay", onPress: () => resetPendingScan() }]
+        );
+      }
     }
 
-    resetPendingScan();
+    if (Platform.OS !== 'web') {
+      resetPendingScan();
+    }
   };
 
   const goBack = () => {
