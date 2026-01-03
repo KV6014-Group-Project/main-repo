@@ -3,7 +3,7 @@ import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, ActivityIndicat
 import { useRouter } from 'expo-router';
 import { useParticipant, LocalEvent } from '../../lib/ParticipantContext';
 import { formatEventTime } from '../../lib/offlineParser';
-import { Event, deleteParticipantDevice } from '../../lib/api';
+import { Event, deleteParticipantDevice, checkServerConnection } from '../../lib/api';
 import { getDeviceId, resetDeviceId } from '../../lib/device';
 
 export default function ParticipantHome() {
@@ -41,18 +41,10 @@ export default function ParticipantHome() {
     }
   }, [isOnline, isLoading]);
 
-  // Check real-time connection status
   useEffect(() => {
     const checkConnection = async () => {
-      try {
-        const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8000/api'}/core/public-key/`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        setIsActuallyOnline(response.ok);
-      } catch (error) {
-        setIsActuallyOnline(false);
-      }
+      const ok = await checkServerConnection();
+      setIsActuallyOnline(ok);
     };
 
     // Check immediately

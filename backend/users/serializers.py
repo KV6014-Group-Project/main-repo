@@ -17,11 +17,25 @@ class RolesSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for User model."""
     role = RolesSerializer(read_only=True)
+    promoter_id = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'role', 'first_name', 'last_name', 'phone', 'date_joined']
+        fields = ['id', 'promoter_id', 'email', 'role', 'first_name', 'last_name', 'phone', 'date_joined']
         read_only_fields = ['id', 'date_joined']
+    
+    def get_promoter_id(self, obj):
+        """Return promoter profile ID if user is a promoter, else None."""
+        if obj.role.name == 'promoter':
+            try:
+                return obj.promoter_profile.id  # ← Changed from promoterprofile
+            except PromoterProfile.DoesNotExist:
+                # Profile doesn't exist, optionally create it
+                profile = PromoterProfile.objects.create(user=obj)
+                return profile.id
+        
+        return None
+
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):

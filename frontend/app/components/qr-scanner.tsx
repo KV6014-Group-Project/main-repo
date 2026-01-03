@@ -1,6 +1,6 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import { View, Text, Pressable, Alert, AppState, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Alert, AppState, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useIsFocused } from '@react-navigation/native';
 import { useParticipant } from '../../lib/ParticipantContext';
@@ -16,10 +16,7 @@ export default function QRScannerComponent() {
   const { addScannedEvent, isSyncing } = useParticipant();
   const isConfirming = useMemo(() => pendingPayload !== null, [pendingPayload]);
   
-  // 1. Get navigation focus state
   const isFocused = useIsFocused();
-  
-  // 2. Get App background/foreground state
   const appState = useRef(AppState.currentState);
   const [appStateVisible, setAppStateVisible] = useState(appState.current);
 
@@ -34,9 +31,10 @@ export default function QRScannerComponent() {
     };
   }, []);
 
-  // 3. Determine if camera should be active
-  // Only active if permissions granted, screen is focused, and app is in foreground
-  const isCameraActive = isFocused && appStateVisible === 'active' && permission?.granted;
+  // Camera is active if focused, foreground, and (on web OR has permission on mobile)
+  const isCameraActive = Platform.OS === 'web' 
+    ? isFocused && appStateVisible === 'active'
+    : isFocused && appStateVisible === 'active' && permission?.granted;
 
   const resetPendingScan = () => {
     setPendingPayload(null);
@@ -54,11 +52,7 @@ export default function QRScannerComponent() {
       Alert.alert(
         "Invalid QR Code",
         "This doesn't appear to be a valid event QR code. Please try scanning a different code.",
-        [
-          {
-            text: "Try Again",
-          },
-        ]
+        [{ text: "Try Again" }]
       );
       return;
     }
@@ -94,12 +88,7 @@ export default function QRScannerComponent() {
       Alert.alert(
         "Unable to Save",
         "Something went wrong while saving this event. Please try again.",
-        [
-          {
-            text: "Okay",
-            onPress: () => resetPendingScan(),
-          },
-        ]
+        [{ text: "Okay", onPress: () => resetPendingScan() }]
       );
     }
 
@@ -110,27 +99,29 @@ export default function QRScannerComponent() {
     router.replace('/participant');
   };
 
-  // Handle permission states
-  if (!permission) {
-    return (
-      <View className="flex-1 w-full max-w-[600px] self-center justify-center items-center p-5">
-        <Text className="text-center text-base text-gray-700 mb-3">Requesting camera permission...</Text>
-      </View>
-    );
-  }
+  // On web, permissions aren't needed upfront
+  if (Platform.OS !== 'web') {
+    if (!permission) {
+      return (
+        <View className="flex-1 w-full max-w-[600px] self-center justify-center items-center p-5">
+          <Text className="text-center text-base text-gray-700 mb-3">Requesting camera permission...</Text>
+        </View>
+      );
+    }
 
-  if (!permission.granted) {
-    return (
-      <View className="flex-1 w-full max-w-[600px] self-center justify-center items-center p-5">
-        <Text className="text-center text-base text-gray-700 mb-3">Camera access is needed to scan QR codes.</Text>
-        <Pressable className="bg-blue-600 py-3 px-6 rounded-lg items-center mb-2" onPress={requestPermission}>
-          <Text className="text-white text-base font-semibold">Enable Camera</Text>
-        </Pressable>
-        <Pressable className="py-2.5 items-center" onPress={goBack}>
-          <Text className="text-blue-600 text-base font-medium">Go Back</Text>
-        </Pressable>
-      </View>
-    );
+    if (!permission.granted) {
+      return (
+        <View className="flex-1 w-full max-w-[600px] self-center justify-center items-center p-5">
+          <Text className="text-center text-base text-gray-700 mb-3">Camera access is needed to scan QR codes.</Text>
+          <Pressable className="bg-blue-600 py-3 px-6 rounded-lg items-center mb-2" onPress={requestPermission}>
+            <Text className="text-white text-base font-semibold">Enable Camera</Text>
+          </Pressable>
+          <Pressable className="py-2.5 items-center" onPress={goBack}>
+            <Text className="text-blue-600 text-base font-medium">Go Back</Text>
+          </Pressable>
+        </View>
+      );
+    }
   }
 
   return (
@@ -145,6 +136,7 @@ export default function QRScannerComponent() {
           }}
           onBarcodeScanned={isConfirming ? undefined : handleBarcodeScanned}
         />
+        
         {/* QR Code scanning overlay */}
         <View className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <View className="w-48 h-48 border-2 border-white rounded-lg opacity-50">
@@ -154,6 +146,15 @@ export default function QRScannerComponent() {
             <View className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-blue-400 rounded-br-lg" />
           </View>
         </View>
+
+        {/* Web-specific instruction */}
+        {Platform.OS === 'web' && (
+          <View className="absolute top-4 left-0 right-0 items-center">
+            <View className="bg-black/70 px-4 py-2 rounded-full">
+              <Text className="text-white text-sm">Allow camera access when prompted</Text>
+            </View>
+          </View>
+        )}
       </View>
 
       <View className="flex-1 justify-center items-center p-5">
@@ -164,6 +165,7 @@ export default function QRScannerComponent() {
               ? 'Scanned!'
               : 'Point the camera at an event QR code'}
         </Text>
+        
         {isConfirming ? (
           <View className="w-full max-w-sm mt-4 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
             <Text className="text-base font-semibold text-gray-900 text-center">

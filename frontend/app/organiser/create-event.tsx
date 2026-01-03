@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -41,6 +41,8 @@ export default function CreateEvent() {
   const [loading, setLoading] = useState(false);
   const [loadingStatuses, setLoadingStatuses] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     loadStatuses();
@@ -93,7 +95,12 @@ export default function CreateEvent() {
   async function handleCreate() {
     const validationError = validateForm();
     if (validationError) {
-      Alert.alert('Validation Error', validationError);
+      if (Platform.OS === 'web') {
+        setError(validationError);
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      } else {
+        Alert.alert('Validation Error', validationError);
+      }
       return;
     }
 
@@ -117,7 +124,6 @@ export default function CreateEvent() {
       };
 
       const event = await createEvent(params);
-
       // Cross-platform alerts
       if (Platform.OS === 'web') {
         router.push(`/organiser/organiserevent?eventId=${event.id}` as any)
@@ -147,7 +153,11 @@ export default function CreateEvent() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="flex-1" contentContainerClassName="p-5">
+      <ScrollView 
+        className="flex-1"
+        contentContainerClassName="p-5"
+        ref={scrollViewRef}
+      >
         <Text className="text-2xl font-bold text-center mb-6">Create Event</Text>
 
         {error && (

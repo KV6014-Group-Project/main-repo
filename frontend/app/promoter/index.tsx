@@ -10,6 +10,7 @@ import {
   TextInput,
   Alert,
   Modal,
+  Platform
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { acceptPromoterInvitation, Event, EventStats, fetchPromoterEvents, fetchPromoterEventStats } from '../../lib/api';
@@ -22,12 +23,17 @@ export default function PromoterHome() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tokenError, setTokenError] = useState<string | null>(null);
   
   // Accept invitation modal
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [invitationToken, setInvitationToken] = useState('');
   const [acceptingInvite, setAcceptingInvite] = useState(false);
   
+  // Success modal
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalMessage, setModalMessage] = useState<string>('');
+
   const { user, otpVerified } = useAuth();
 
   useEffect(() => {
@@ -78,26 +84,44 @@ export default function PromoterHome() {
 
   async function handleAcceptInvitation() {
     if (!invitationToken.trim()) {
-      Alert.alert('Error', 'Please enter an invitation token');
+      if (Platform.OS === 'web') {
+        setTokenError('Please enter an invitation token!');
+      } else {
+        Alert.alert('Error', 'Please enter an invitation token');
+      }
       return;
     }
 
     setAcceptingInvite(true);
     try {
       const result = await acceptPromoterInvitation(invitationToken.trim());
-      Alert.alert('Success!', result.message, [
-        { 
-          text: 'OK', 
-          onPress: () => {
-            setShowAcceptModal(false);
-            setInvitationToken('');
-            loadEvents();
+      
+      if(Platform.OS === 'web') {
+        setTokenError(null);
+        window.alert(result.message)
+        setShowAcceptModal(false);
+        setInvitationToken('');
+        loadEvents();
+      } else {
+        Alert.alert('Success!', result.message, [
+          { 
+            text: 'OK', 
+            onPress: () => {
+              setShowAcceptModal(false);
+              setInvitationToken('');
+              loadEvents();
+            }
           }
-        }
-      ]);
+        ]);
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to accept invitation';
-      Alert.alert('Error', message);
+      
+      if (Platform.OS === 'web') {
+        setTokenError(message)
+      } else {
+        Alert.alert('Error', message);
+      }
     } finally {
       setAcceptingInvite(false);
     }
@@ -283,6 +307,12 @@ export default function PromoterHome() {
             <Text className="text-sm text-gray-500 mb-4">
               Paste the invitation token you received from an organiser
             </Text>
+
+            {tokenError ? (
+              <View className="bg-red-100 p-3 rounded-lg mb-4">
+                <Text className="text-red-700">{tokenError}</Text>
+              </View>
+            ): null}
 
             <TextInput
               className="bg-neutral-100 p-4 rounded-xl mb-4"
