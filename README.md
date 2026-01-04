@@ -1,37 +1,80 @@
 # Event Management App
-### Overview
-Built with React Native and Django REST Framework. This app allows users to create, manage, and RSVP to events. 
 
-### Contribution
-Feel free to fork the repository and submit pull requests. For major changes, please open an issue first to discuss what you would like to change.
+A mobile application for creating, managing, and RSVPing to events with a focus on Offline-first and QR code based attendance tracking. Built with **React Native (Expo)** and **Django REST Framework**.
 
-## Frameworks/Tools
-### Frontend
-- **React Native** – Mobile application for participant registration and community leader tracking.
+## Tech Stack
+
+| Layer    | Technology                     |
+|----------|-------------------------------|
+| Frontend | React Native, Expo, NativeWind |
+| Backend  | Django, Django REST Framework  |
+| Database | SQLite                         |
+
+## Prerequisites
+
+- **Python** 3.13+
+- **Node.js** 18+
+- **Bun** (recommended) or npm
+
+## Getting Started
 
 ### Backend
-- **Django** – Handles authentication and API endpoints.
 
-### Database
-- **SQLite** – Lightweight relational database for storing RSVPs, events, and leader information.
-## Django Backend
+```bash
+cd backend
 
-This product includes GeoLite2 data created by MaxMind, available from
-https://www.maxmind.com
-
-The backend is built using Django REST Framework. I would recommend using the UV package manager for managing dependencies and virtual environments.
-to install UV, run the following command:
-```
+# Install UV package manager (if not installed)
 pip install uv
-```
 
-Then to update dependencies, use:
-```
-uv update
-```
+# Install dependencies
+uv sync
 
-Then to run the development server, use:
-```
+# Run development server
 uv run python manage.py runserver
 ```
 
+> **Mobile Development & ngrok**: The backend includes an integrated ngrok tunnel to make your local API accessible to physical mobile devices. 
+> To enable it:
+> 1. Set `USE_NGROK=true` in your `backend/.env` file.
+> 2. (Optional) Add your `NGROK_AUTHTOKEN=` for longer sessions and custom domains.
+> 3. Running `manage.py runserver` will automatically start the tunnel and update your frontend's environment configuration.
+
+
+### Frontend
+
+```bash
+cd frontend
+
+# Install dependencies
+bun install  # or: npm install
+
+# Start Expo development server
+bun run dev  # or: npm run dev
+```
+
+## Dependencies
+
+### Backend (Python)
+- django >= 5.2.7
+- djangorestframework >= 3.15.0
+- django-cors-headers >= 4.3.0
+- django-environ >= 0.11.0
+- drf-spectacular >= 0.29.0
+- geoip2 >= 5.2.0
+- pyngrok >= 7.5.0
+- cryptography >= 42.0.0
+- pyyaml >= 6.0.1
+
+### Frontend (Node.js)
+- expo ~54.0
+- react 19.1.0
+- react-native 0.81.5
+- expo-router ~6.0
+- expo-camera ~17.0
+- nativewind ^4.1
+- react-native-qrcode-svg ^6.3
+- react-native-reanimated ~4.1
+
+## Attribution
+
+This product includes GeoLite2 data created by MaxMind, available from [maxmind.com](https://www.maxmind.com).
