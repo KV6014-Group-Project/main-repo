@@ -125,7 +125,7 @@ export default function OrganiserDashboard() {
           className="bg-blue-600 rounded-xl p-4 items-center mb-4"
           onPress={() => router.push('/organiser/organiser-analytics')}
         >
-          <Text className="text-white text-base font-bold">📊 View Analytics</Text>
+          <Text className="text-white text-base font-bold">View Analytics</Text>
         </TouchableOpacity>
 
         <Text className="text-base font-bold mb-4">Your Events</Text>

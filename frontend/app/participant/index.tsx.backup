@@ -319,9 +319,9 @@ function getMergedEvents(localEvents: LocalEvent[], serverEvents: Event[]): Disp
 
 function EventCard({ event }: { event: DisplayEvent }) {
   const statusConfig = {
-    pending: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: '⏳ Pending' },
-    synced: { bg: 'bg-green-100', text: 'text-green-700', label: '✓ Registered' },
-    error: { bg: 'bg-red-100', text: 'text-red-700', label: '⚠ Error' },
+    pending: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Pending' },
+    synced: { bg: 'bg-green-100', text: 'text-green-700', label: 'Registered' },
+    error: { bg: 'bg-red-100', text: 'text-red-700', label: 'Error' },
   };
 
   const config = statusConfig[event.status];
@@ -337,10 +337,10 @@ function EventCard({ event }: { event: DisplayEvent }) {
 
       <View className="gap-1">
         <Text className="text-sm text-gray-500">
-          🕐 {formatEventTime(event.startTime)}
+          {formatEventTime(event.startTime)}
         </Text>
         {event.location && (
-          <Text className="text-sm text-gray-500">📍 {event.location}</Text>
+          <Text className="text-sm text-gray-500">{event.location}</Text>
         )}
         {event.status === 'error' && event.errorMessage && (
           <Text className="text-sm text-red-500 mt-1">{event.errorMessage}</Text>

@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, ActivityIndicator, Alert, Platform, TextInput, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useParticipant, LocalEvent } from '../../lib/ParticipantContext';
 import { formatEventTime } from '../../lib/offlineParser';
@@ -19,10 +19,14 @@ export default function ParticipantHome() {
     syncEvents,
     refreshServerEvents,
     clearProfile,
+    addScannedEvent,
   } = useParticipant();
   
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [isActuallyOnline, setIsActuallyOnline] = React.useState(true);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkInput, setLinkInput] = useState('');
+  const [isAddingFromLink, setIsAddingFromLink] = useState(false);
 
   useEffect(() => {
     if (!isLoading && profile && !otpVerified) {
@@ -66,6 +70,48 @@ export default function ParticipantHome() {
 
   const handleSync = async () => {
     await syncEvents();
+  };
+
+  const handleAddFromLink = async () => {
+    if (!linkInput.trim()) {
+      Alert.alert('Error', 'Please enter a link or token');
+      return;
+    }
+
+    setIsAddingFromLink(true);
+    try {
+      let yamlPayload = linkInput.trim();
+
+      // Check if it's a deep link format (rose://join?token=...)
+      if (yamlPayload.startsWith('rose://join?token=')) {
+        const encoded = yamlPayload.replace('rose://join?token=', '');
+        try {
+          yamlPayload = atob(encoded);
+        } catch {
+          Alert.alert('Error', 'Invalid link format');
+          setIsAddingFromLink(false);
+          return;
+        }
+      }
+
+      // Try to add the event
+      const success = addScannedEvent(yamlPayload);
+      if (success) {
+        setShowLinkModal(false);
+        setLinkInput('');
+        Alert.alert('Success', 'Event added! It will sync when you\'re online.');
+        // Try to sync immediately if online
+        if (isActuallyOnline) {
+          await syncEvents();
+        }
+      } else {
+        Alert.alert('Error', 'Invalid event link or token. Please check and try again.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to process the link');
+    } finally {
+      setIsAddingFromLink(false);
+    }
   };
 
   const performDelete = async () => {
@@ -244,13 +290,71 @@ export default function ParticipantHome() {
           )}
         </View>
 
-        {/* Add Event Button */}
-        <TouchableOpacity
-          className="bg-neutral-200 p-4 rounded-xl items-center mt-5"
-          onPress={() => router.push('/participant/qr-code-page')}
+        {/* Add Event Buttons */}
+        <View className="flex-row gap-3 mt-5">
+          <TouchableOpacity
+            className="flex-1 bg-neutral-200 p-4 rounded-xl items-center"
+            onPress={() => router.push('/participant/qr-code-page')}
+          >
+            <Text className="text-gray-700 text-base font-semibold">Scan QR</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-1 bg-blue-100 p-4 rounded-xl items-center"
+            onPress={() => setShowLinkModal(true)}
+          >
+            <Text className="text-blue-700 text-base font-semibold">Enter Link</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Link Entry Modal */}
+        <Modal
+          visible={showLinkModal}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowLinkModal(false)}
         >
-          <Text className="text-gray-700 text-base font-semibold">Add Event with QR</Text>
-        </TouchableOpacity>
+          <View className="flex-1 bg-black/50 justify-end">
+            <View className="bg-white rounded-t-3xl p-6">
+              <Text className="text-xl font-bold mb-2">Add Event from Link</Text>
+              <Text className="text-gray-500 text-sm mb-4">
+                Paste the event link shared by the promoter
+              </Text>
+              
+              <TextInput
+                className="border border-gray-300 rounded-xl p-4 text-base mb-4"
+                placeholder="Paste link here (rose://join?token=...)"
+                value={linkInput}
+                onChangeText={setLinkInput}
+                autoCapitalize="none"
+                autoCorrect={false}
+                multiline
+                numberOfLines={3}
+              />
+
+              <TouchableOpacity
+                className={`p-4 rounded-xl items-center mb-3 ${isAddingFromLink ? 'bg-gray-400' : 'bg-[#28B900]'}`}
+                onPress={handleAddFromLink}
+                disabled={isAddingFromLink}
+              >
+                {isAddingFromLink ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-white text-base font-bold">Add Event</Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="p-4 rounded-xl items-center"
+                onPress={() => {
+                  setShowLinkModal(false);
+                  setLinkInput('');
+                }}
+              >
+                <Text className="text-gray-500 text-base">Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
 
         {/* Delete Device Data Button */}
         <TouchableOpacity
@@ -338,9 +442,9 @@ function getMergedEvents(localEvents: LocalEvent[], serverEvents: Event[]): Disp
 
 function EventCard({ event }: { event: DisplayEvent }) {
   const statusConfig = {
-    pending: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: '⏳ Pending' },
-    synced: { bg: 'bg-green-100', text: 'text-green-700', label: '✓ Registered' },
-    error: { bg: 'bg-red-100', text: 'text-red-700', label: '⚠ Error' },
+    pending: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Pending' },
+    synced: { bg: 'bg-green-100', text: 'text-green-700', label: 'Registered' },
+    error: { bg: 'bg-red-100', text: 'text-red-700', label: 'Error' },
   };
 
   const config = statusConfig[event.status];
@@ -356,10 +460,10 @@ function EventCard({ event }: { event: DisplayEvent }) {
 
       <View className="gap-1">
         <Text className="text-sm text-gray-500">
-          🕐 {formatEventTime(event.startTime)}
+          {formatEventTime(event.startTime)}
         </Text>
         {event.location && (
-          <Text className="text-sm text-gray-500">📍 {event.location}</Text>
+          <Text className="text-sm text-gray-500">{event.location}</Text>
         )}
         {event.status === 'error' && event.errorMessage && (
           <Text className="text-sm text-red-500 mt-1">{event.errorMessage}</Text>

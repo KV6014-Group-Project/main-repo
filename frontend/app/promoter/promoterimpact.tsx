@@ -104,7 +104,7 @@ export default function PromoterImpact() {
         </View>
 
         <View className="bg-[#FFE4EB] border border-[#FF9FBA] rounded-2xl p-4 mt-4 flex-row items-start gap-3">
-          <Text className="text-xl">💡</Text>
+          <Text className="text-xl">Note:</Text>
           <Text className="text-sm text-gray-700 flex-1">
             Your outreach helped{' '}
             <Text className="font-semibold text-[#E2004E]">{totalStats.totalRsvps} people</Text>{' '}

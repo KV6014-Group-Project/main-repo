@@ -131,19 +131,6 @@ export default function PromoterEvent() {
           <Text className="text-white text-base font-bold">Generate QR Code</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          className="bg-[#48C44B] rounded-xl p-4 items-center mb-3"
-          onPress={async () => {
-            try {
-              await Clipboard.setStringAsync(`Check out this event: ${event.title}`);
-              Alert.alert('Copied!', 'Event link copied to clipboard');
-            } catch (error) {
-              Alert.alert('Error', 'Failed to copy link');
-            }
-          }}
-        >
-          <Text className="text-white text-base font-bold">Copy Link</Text>
-        </TouchableOpacity>
 
         <TouchableOpacity className="p-4 items-center" onPress={() => router.back()}>
           <Text className="text-blue-500 text-base">← Back</Text>

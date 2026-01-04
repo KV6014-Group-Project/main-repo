@@ -8,7 +8,7 @@
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 backend/
@@ -40,12 +40,12 @@ backend/
 
 ---
 
-## ⚙️ Configuration & Settings
+## Configuration & Settings
 
 ### Django Settings (`backend/settings.py`)
 
 **Security:**
-- `DEBUG = True` ⚠️ (Development mode)
+- `DEBUG = True` (Development mode)
 - Secret key is hardcoded (insecure for production)
 - `ALLOWED_HOSTS = []` (empty - only localhost allowed)
 
@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles', # Static file serving
 ]
 ```
-⚠️ **Note:** `main_app` and `accounts` apps are NOT registered in `INSTALLED_APPS`
+**Note:** `main_app` and `accounts` apps are NOT registered in `INSTALLED_APPS`
 
 **Database:**
 - SQLite3 database at `db.sqlite3`
@@ -85,7 +85,7 @@ INSTALLED_APPS = [
 
 ---
 
-## 🌐 URL Routing
+## URL Routing
 
 ### Root URLs (`backend/urls.py`)
 
@@ -105,11 +105,11 @@ urlpatterns = [
 
 ---
 
-## 📦 Applications
+## Applications
 
 ### 1. `main_app` (Primary Application)
 
-**Status:** ⚠️ Scaffolded but empty
+**Status:** Scaffolded but empty
 
 **Components:**
 - **Models** (`models.py`): No models defined
@@ -126,7 +126,7 @@ urlpatterns = [
 
 ### 2. `accounts` (User Management)
 
-**Status:** ⚠️ Directory structure only
+**Status:** Directory structure only
 
 **Contents:**
 - `migrations/` directory (empty except cache)
@@ -138,7 +138,7 @@ urlpatterns = [
 
 ---
 
-## 🗄️ Database Schema
+## Database Schema
 
 **Current State:** Empty (no custom models)
 
@@ -154,7 +154,7 @@ urlpatterns = [
 
 ---
 
-## 📚 Dependencies
+## Dependencies
 
 From `pyproject.toml`:
 
@@ -180,7 +180,7 @@ dependencies = [
 
 ---
 
-## 🔑 Key Files
+## Key Files
 
 ### `manage.py`
 Standard Django management utility for:
@@ -200,7 +200,7 @@ Purpose unclear - may be leftover from initial setup.
 
 ---
 
-## 📖 Documentation
+## Documentation
 
 ### `README.md`
 Comprehensive Django development guide covering:
@@ -218,7 +218,7 @@ Guide for implementing device UUID in Expo frontend:
 
 ---
 
-## ⚠️ Current Limitations & Missing Features
+## Current Limitations & Missing Features
 
 ### Critical Issues:
 1. **No API Endpoints** - Backend has no routes for frontend communication
@@ -246,7 +246,7 @@ Guide for implementing device UUID in Expo frontend:
 
 ---
 
-## 🎯 Expected Features (Based on Frontend)
+## Expected Features (Based on Frontend)
 
 From frontend structure, backend should support:
 
@@ -276,7 +276,7 @@ From frontend structure, backend should support:
 
 ---
 
-## 🚀 Next Steps for Development
+## Next Steps for Development
 
 ### Immediate:
 1. Register `main_app` in `INSTALLED_APPS`
@@ -304,7 +304,7 @@ From frontend structure, backend should support:
 
 ---
 
-## 💡 Recommended Architecture
+## Recommended Architecture
 
 ```
 API Routes:
