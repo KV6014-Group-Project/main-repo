@@ -1,71 +1,81 @@
-# Event Management App
+# ROSE Event Management App
 
-A mobile application for creating, managing, and RSVPing to events with a focus on Offline-first and QR code based attendance tracking. Built with **React Native (Expo)** and **Django REST Framework**.
+Offline-first mobile app for creating, managing, and checking in to events via QR codes. Tech stack: **React Native + Expo** frontend, **Django REST Framework** backend, **SQLite** storage.
 
-## Tech Stack
+---
 
-| Layer    | Technology                     |
-|----------|-------------------------------|
-| Frontend | React Native, Expo, NativeWind |
-| Backend  | Django, Django REST Framework  |
-| Database | SQLite                         |
+## 1. Requirements
+- Python 3.13+
+- Node.js 18+
+- Bun (recommended) or npm
 
-## Prerequisites
+---
 
-- **Python** 3.13+
-- **Node.js** 18+
-- **Bun** (recommended) or npm
+## 2. Setup at a Glance
 
-## Getting Started
+Backend quickstart:
+1. `cd backend`
+2. `pip install uv` (first run only)
+3. `uv sync`
+4. `uv run python manage.py makemigrations`
+5. `uv run python manage.py migrate`
+6. `uv run python manage.py runserver`
 
-### Backend
+Frontend quickstart:
+1. `cd frontend`
+2. `bun install` (or `npm install`)
+3. `bun run dev` (or `npm run dev`)
 
-```bash
-cd backend
+Ngrok for real devices: set `USE_NGROK=true` (and optionally `NGROK_AUTHTOKEN=...`) inside `backend/.env`. The custom `runserver` command will start a tunnel and write the public API URL into `frontend/.env.local`.
 
-# Install UV package manager (if not installed)
-pip install uv
+---
 
-# Install dependencies
-uv sync
+## 3. Test Accounts & Admin Access
 
-# Run development server
-uv run python manage.py runserver
-```
+- Promoter account: `promoter@gmail.com` / `Password12345`
+- Organiser account: `organiser@gmail.com` / `Password12345`
 
-> **Mobile Development & ngrok**: The backend includes an integrated ngrok tunnel to make your local API accessible to physical mobile devices. 
-> To enable it:
-> 1. Set `USE_NGROK=true` in your `backend/.env` file.
-> 2. (Optional) Add your `NGROK_AUTHTOKEN=` for longer sessions and custom domains.
-> 3. Running `manage.py runserver` will automatically start the tunnel and update your frontend's environment configuration.
+Running migrations seeds these users and the default roles automatically.
 
+Admin panel: `http://localhost:8000/admin/`.  
+Create a superuser with `cd backend && uv run python manage.py createsuperuser`.
 
-### Frontend
+---
 
-```bash
-cd frontend
+## 4. API Surface
 
-# Install dependencies
-bun install  # or: npm install
+- **Docs**: Swagger UI at `http://localhost:8000/api/docs/`, OpenAPI schema at `http://localhost:8000/api/schema/`.
+- **Base paths**:
+  - `/api/users/` – auth & profiles
+  - `/api/events/` – event CRUD
+  - `/api/organiser/`, `/api/promoter/`, `/api/participant/` – role-specific operations
+  - `/api/core/` – shared utilities (e.g., signing key)
 
-# Start Expo development server
-bun run dev  # or: npm run dev
-```
+---
 
-## Dependencies
+## 5. Environment Reference
 
-### Backend (Python)
-- django >= 5.2.7
-- djangorestframework >= 3.15.0
-- django-cors-headers >= 4.3.0
-- django-environ >= 0.11.0
-- drf-spectacular >= 0.29.0
-- geoip2 >= 5.2.0
-- pyngrok >= 7.5.0
-- cryptography >= 42.0.0
-- pyyaml >= 6.0.1
+- `USE_NGROK`: enables the ngrok tunnel integration (defaults to `false`).
+- `NGROK_AUTHTOKEN`: optional token for longer ngrok sessions and custom domains.
 
-### Frontend (Node.js)
+GeoIP-based filtering allows only Malaysia (`'MY'`) by default. Edit `ALLOWED_COUNTRIES` in `backend/backend/settings.py` to permit other regions, e.g. `['MY', 'SG', 'US']`.
+
+---
+
+## 6. Dependency Snapshot
+
+Backend stack:
+- django ≥ 5.2.7
+- djangorestframework ≥ 3.15.0
+- django-cors-headers ≥ 4.3.0
+- django-environ ≥ 0.11.0
+- drf-spectacular ≥ 0.29.0
+- geoip2 ≥ 5.2.0
+- pyngrok ≥ 7.5.0
+- cryptography ≥ 42.0.0
+- pyyaml ≥ 6.0.1
+
+Frontend stack:
 - expo ~54.0
 - react 19.1.0
 - react-native 0.81.5
@@ -75,6 +85,8 @@ bun run dev  # or: npm run dev
 - react-native-qrcode-svg ^6.3
 - react-native-reanimated ~4.1
 
-## Attribution
+---
 
-This product includes GeoLite2 data created by MaxMind, available from [maxmind.com](https://www.maxmind.com).
+## 7. Attribution
+
+Includes GeoLite2 data created by MaxMind, available from [maxmind.com](https://www.maxmind.com).
